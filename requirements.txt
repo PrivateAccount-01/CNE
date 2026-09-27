@@ -1,0 +1,2 @@
+# CNE Runtime Requirements
+# Core CNE engine is dependency-free by design (pure standard library for mobile & offline deployment)
