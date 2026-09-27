@@ -73,7 +73,7 @@ class AblationRunner:
                 g, c = FixtureCompiler.compile_query(q)
                 mk = MemoKey.from_graph(g, input_data=env.get("inputs"))
                 cached = fabric_oracle.get_by_memo_key(mk)
-                if cached is not None and c.is_equivalent(cached.value, cached.value):
+                if cached is not None and c.satisfies_constraints(cached.value):
                     c_cost = 0.0
                 else:
                     ores = oracle.find_recoverable_bound(q["id"], g, c, env)
@@ -179,12 +179,12 @@ class AblationRunner:
             t_b5_list.append((time.perf_counter_ns() - t0) / 1e6)
         b5_ms = statistics.mean(t_b5_list)
 
-        # ---------------- B6: Bounds (Full Baseline Target) ----------------
-        # B5 + resource budget enforcement and lookahead bounds checking
-        b6_ms = b5_ms
+        # ---------------- B6: Bounds & Lookahead (Phase P4 Extension) ----------------
+        # Resource budget enforcement and lookahead bounds checking are scheduled for Phase P4.
+        b6_ms = None
 
-        # ---------------- B7: Learned Controller ----------------
-        # Not implemented in prototype; explicitly marked as future extension
+        # ---------------- B7: Learned Controller (Phase P5 Extension) ----------------
+        # Scheduled for Phase P5; explicitly marked as future extension.
         b7_ms = None
 
         ladder = {
@@ -195,80 +195,84 @@ class AblationRunner:
             "B3_Dependency_Invalidation_ms": round(b3_ms, 3),
             "B4_Static_Elimination_ms": round(b4_ms, 3),
             "B5_Runtime_Necessity_ms": round(b5_ms, 3),
-            "B6_Bounds_Target_ms": round(b6_ms, 3),
-            "B7_Learned_Controller_ms": "NOT IMPLEMENTED (Future Extension)"
+            "B6_Bounds_Target_ms": "NOT YET IMPLEMENTED (Phase P4 Extension)",
+            "B7_Learned_Controller_ms": "NOT YET IMPLEMENTED (Phase P5 Extension)"
         }
 
+        # Full implemented system target is B5 (Runtime Necessity)
+        full_ms = b5_ms
+
         # ---------------- Leave-One-Out (LOO) Ablations (§40) ----------------
-        full_ms = b6_ms
+        # All LOO variants use repeated-trial averaging to eliminate single-shot noise
 
         # Minus B1: Syntactic string-keyed cache without semantic canonicalization
-        raw_cache: Dict[str, Any] = {}
-        t0 = time.perf_counter_ns()
-        for idx, q in enumerate(workload):
-            q_key = f"{q.get('domain')}_{q.get('id')}_{sorted(q.items())}"
-            if q_key in raw_cache:
-                val = raw_cache[q_key]
-            else:
-                g, c = FixtureCompiler.compile_query(q)
-                val, _ = evaluator.execute(g, initial_env=env)
-                raw_cache[q_key] = val
-        loo_minus_b1_ms = (time.perf_counter_ns() - t0) / 1e6
+        loo_b1_trials = []
+        for _ in range(trials):
+            raw_cache: Dict[str, Any] = {}
+            t0 = time.perf_counter_ns()
+            for idx, q in enumerate(workload):
+                q_key = f"{q.get('domain')}_{q.get('id')}_{sorted(q.items())}"
+                if q_key in raw_cache:
+                    val = raw_cache[q_key]
+                else:
+                    g, c = FixtureCompiler.compile_query(q)
+                    val, _ = evaluator.execute(g, initial_env=env)
+                    raw_cache[q_key] = val
+            loo_b1_trials.append((time.perf_counter_ns() - t0) / 1e6)
+        loo_minus_b1_ms = statistics.mean(loo_b1_trials)
 
         # Minus B2: No persistent state fabric (0 caching across queries)
-        fabric_no_b2 = LocalStateFabric()
-        cne_no_b2 = ComputationNecessityEngine(fabric=fabric_no_b2, evaluator=evaluator, cost_gate=CostGate(bypass_trivial=True))
-        cne_no_b2.fabric.get_by_memo_key = lambda mk: None  # force cache miss
-        t0 = time.perf_counter_ns()
-        for idx, q in enumerate(workload):
-            g, c = FixtureCompiler.compile_query(q)
-            cne_no_b2.execute_query(g, c, env, f"no_b2_{idx}")
-        loo_minus_b2_ms = (time.perf_counter_ns() - t0) / 1e6
+        loo_b2_trials = []
+        for _ in range(trials):
+            fabric_no_b2 = LocalStateFabric()
+            cne_no_b2 = ComputationNecessityEngine(fabric=fabric_no_b2, evaluator=evaluator, cost_gate=CostGate(bypass_trivial=True))
+            cne_no_b2.fabric.get_by_memo_key = lambda mk: None  # force cache miss
+            t0 = time.perf_counter_ns()
+            for idx, q in enumerate(workload):
+                g, c = FixtureCompiler.compile_query(q)
+                cne_no_b2.execute_query(g, c, env, f"no_b2_{idx}")
+            loo_b2_trials.append((time.perf_counter_ns() - t0) / 1e6)
+        loo_minus_b2_ms = statistics.mean(loo_b2_trials)
 
         # Minus B3: Coarse invalidation only (all mutations flush fabric)
-        fabric_no_b3 = LocalStateFabric()
-        cne_no_b3 = ComputationNecessityEngine(fabric=fabric_no_b3, evaluator=evaluator, cost_gate=CostGate(bypass_trivial=True))
-        t0 = time.perf_counter_ns()
-        for idx, q in enumerate(workload):
-            if idx > 0 and idx % 80 == 0:
-                # Periodic mutation flushes all cached state
-                fabric_no_b3._entries.clear()
-                fabric_no_b3._memo_index.clear()
-            g, c = FixtureCompiler.compile_query(q)
-            cne_no_b3.execute_query(g, c, env, f"no_b3_{idx}")
-        loo_minus_b3_ms = (time.perf_counter_ns() - t0) / 1e6
+        loo_b3_trials = []
+        for _ in range(trials):
+            fabric_no_b3 = LocalStateFabric()
+            cne_no_b3 = ComputationNecessityEngine(fabric=fabric_no_b3, evaluator=evaluator, cost_gate=CostGate(bypass_trivial=True))
+            t0 = time.perf_counter_ns()
+            for idx, q in enumerate(workload):
+                if idx > 0 and idx % 80 == 0:
+                    fabric_no_b3._entries.clear()
+                    fabric_no_b3._memo_index.clear()
+                g, c = FixtureCompiler.compile_query(q)
+                cne_no_b3.execute_query(g, c, env, f"no_b3_{idx}")
+            loo_b3_trials.append((time.perf_counter_ns() - t0) / 1e6)
+        loo_minus_b3_ms = statistics.mean(loo_b3_trials)
 
         # Minus B4: No static elimination (static optimizer disabled)
-        fabric_no_b4 = LocalStateFabric()
-        cne_no_b4 = ComputationNecessityEngine(fabric=fabric_no_b4, evaluator=evaluator, cost_gate=CostGate(bypass_trivial=True))
-        cne_no_b4.static_optimizer.optimize = lambda g, c: type('obj', (object,), {'optimized_graph': g, 'static_effects': {}, 'nodes_eliminated': 0, 'nodes_folded': 0})()
-        t0 = time.perf_counter_ns()
-        for idx, q in enumerate(workload):
-            g, c = FixtureCompiler.compile_query(q)
-            cne_no_b4.execute_query(g, c, env, f"no_b4_{idx}")
-        loo_minus_b4_ms = (time.perf_counter_ns() - t0) / 1e6
+        loo_b4_trials = []
+        for _ in range(trials):
+            fabric_no_b4 = LocalStateFabric()
+            cne_no_b4 = ComputationNecessityEngine(fabric=fabric_no_b4, evaluator=evaluator, cost_gate=CostGate(bypass_trivial=True))
+            cne_no_b4.static_optimizer.optimize = lambda g, c: type('obj', (object,), {'optimized_graph': g, 'static_effects': {}, 'nodes_eliminated': 0, 'nodes_folded': 0})()
+            t0 = time.perf_counter_ns()
+            for idx, q in enumerate(workload):
+                g, c = FixtureCompiler.compile_query(q)
+                cne_no_b4.execute_query(g, c, env, f"no_b4_{idx}")
+            loo_b4_trials.append((time.perf_counter_ns() - t0) / 1e6)
+        loo_minus_b4_ms = statistics.mean(loo_b4_trials)
 
         # Minus B5: No cost gate (run static optimizer unconditionally on every query)
-        fabric_no_b5 = LocalStateFabric()
-        cne_no_b5 = ComputationNecessityEngine(fabric=fabric_no_b5, evaluator=evaluator, cost_gate=CostGate(bypass_trivial=False))
-        t0 = time.perf_counter_ns()
-        for idx, q in enumerate(workload):
-            g, c = FixtureCompiler.compile_query(q)
-            cne_no_b5.execute_query(g, c, env, f"no_b5_{idx}")
-        loo_minus_b5_ms = (time.perf_counter_ns() - t0) / 1e6
-
-        # Minus B6: Unbounded Choose search (no latency/memory budget bounds)
-        fabric_no_b6 = LocalStateFabric()
-        cne_no_b6 = ComputationNecessityEngine(fabric=fabric_no_b6, evaluator=evaluator, cost_gate=CostGate(bypass_trivial=True))
-        t0 = time.perf_counter_ns()
-        for idx, q in enumerate(workload):
-            g, c = FixtureCompiler.compile_query(q)
-            # Remove budgets from Choose nodes if present
-            for node in g.nodes.values():
-                if node.op.value == "Choose":
-                    node.attributes["budget"] = {"latency": 1e9, "memory": 1e9}
-            cne_no_b6.execute_query(g, c, env, f"no_b6_{idx}")
-        loo_minus_b6_ms = (time.perf_counter_ns() - t0) / 1e6
+        loo_b5_trials = []
+        for _ in range(trials):
+            fabric_no_b5 = LocalStateFabric()
+            cne_no_b5 = ComputationNecessityEngine(fabric=fabric_no_b5, evaluator=evaluator, cost_gate=CostGate(bypass_trivial=False))
+            t0 = time.perf_counter_ns()
+            for idx, q in enumerate(workload):
+                g, c = FixtureCompiler.compile_query(q)
+                cne_no_b5.execute_query(g, c, env, f"no_b5_{idx}")
+            loo_b5_trials.append((time.perf_counter_ns() - t0) / 1e6)
+        loo_minus_b5_ms = statistics.mean(loo_b5_trials)
 
         loo_results = {
             "Full_System_Target_ms": round(full_ms, 3),
@@ -277,27 +281,88 @@ class AblationRunner:
             "Minus_B3_Dependency_Invalidation_ms": round(loo_minus_b3_ms, 3),
             "Minus_B4_Static_Elimination_ms": round(loo_minus_b4_ms, 3),
             "Minus_B5_Runtime_Necessity_ms": round(loo_minus_b5_ms, 3),
-            "Minus_B6_Bounds_ms": round(loo_minus_b6_ms, 3),
+            "Minus_B6_Bounds_ms": "NOT YET IMPLEMENTED (Phase P4 Extension)",
             "Marginal_Contribution_B2_ms": round(loo_minus_b2_ms - full_ms, 3),
             "Marginal_Contribution_B4_ms": round(loo_minus_b4_ms - full_ms, 3),
             "Marginal_Contribution_B5_ms": round(loo_minus_b5_ms - full_ms, 3)
         }
 
-        # Interaction Analysis (§40): Verify Effect(A+B) != Effect(A) + Effect(B)
-        sum_marginal = (loo_minus_b2_ms - full_ms) + (loo_minus_b4_ms - full_ms) + (loo_minus_b5_ms - full_ms)
-        actual_total_savings = b0_ms - full_ms
-        interaction_detected = abs(sum_marginal - actual_total_savings) > 0.05
+        # ---------------- Controlled 2x2 Factorial Interaction Analysis (§40) ----------------
+        # Evaluates B2 (Persistent State) x B5 (Cost Gate) holding B1, B3, B4 fixed:
+        # y00: Neither B2 nor B5 (No cache, No cost gate)
+        # y10: B2 only (State fabric ON, Cost gate OFF)
+        # y01: B5 only (Cost gate ON, State fabric OFF)
+        # y11: Both B2 and B5 (State fabric ON, Cost gate ON = full_ms)
+        t_y00 = []
+        t_y10 = []
+        t_y01 = []
+        for _ in range(trials):
+            # y00: No B2, No B5
+            cne_00 = ComputationNecessityEngine(fabric=LocalStateFabric(), evaluator=evaluator, cost_gate=CostGate(bypass_trivial=False))
+            cne_00.fabric.get_by_memo_key = lambda mk: None
+            t0 = time.perf_counter_ns()
+            for idx, q in enumerate(workload):
+                g, c = FixtureCompiler.compile_query(q)
+                cne_00.execute_query(g, c, env, f"y00_{idx}")
+            t_y00.append((time.perf_counter_ns() - t0) / 1e6)
+
+            # y10: B2 only (State fabric active, Cost gate bypass OFF)
+            cne_10 = ComputationNecessityEngine(fabric=LocalStateFabric(), evaluator=evaluator, cost_gate=CostGate(bypass_trivial=False))
+            t0 = time.perf_counter_ns()
+            for idx, q in enumerate(workload):
+                g, c = FixtureCompiler.compile_query(q)
+                cne_10.execute_query(g, c, env, f"y10_{idx}")
+            t_y10.append((time.perf_counter_ns() - t0) / 1e6)
+
+            # y01: B5 only (Cost gate bypass ON, State fabric inactive)
+            cne_01 = ComputationNecessityEngine(fabric=LocalStateFabric(), evaluator=evaluator, cost_gate=CostGate(bypass_trivial=True))
+            cne_01.fabric.get_by_memo_key = lambda mk: None
+            t0 = time.perf_counter_ns()
+            for idx, q in enumerate(workload):
+                g, c = FixtureCompiler.compile_query(q)
+                cne_01.execute_query(g, c, env, f"y01_{idx}")
+            t_y01.append((time.perf_counter_ns() - t0) / 1e6)
+
+        y00_ms = statistics.mean(t_y00)
+        y10_ms = statistics.mean(t_y10)
+        y01_ms = statistics.mean(t_y01)
+        y11_ms = full_ms
+
+        factorial_interaction_ms = y11_ms - y10_ms - y01_ms + y00_ms
+        interaction_detected = abs(factorial_interaction_ms) > 0.05
+
+        if interaction_detected and factorial_interaction_ms < 0:
+            analysis_text = (
+                f"Super-additive interaction confirmed between persistent state (B2) and runtime necessity cost gate (B5) "
+                f"in controlled 2x2 factorial evaluation (interaction effect: {factorial_interaction_ms:.2f} ms). "
+                f"Combined system latency ({y11_ms:.2f} ms) achieves greater savings than the sum of independent contributions."
+            )
+        elif interaction_detected:
+            analysis_text = (
+                f"Non-additive interaction detected between B2 and B5 in controlled 2x2 factorial evaluation "
+                f"(interaction effect: {factorial_interaction_ms:.2f} ms)."
+            )
+        else:
+            analysis_text = (
+                f"Additive interaction observed between B2 and B5 in controlled 2x2 factorial evaluation "
+                f"(interaction effect: {factorial_interaction_ms:.2f} ms)."
+            )
 
         return {
             "phase": "Ablations",
             "frozen_ladder": ladder,
             "leave_one_out": loo_results,
+            "factorial_b2_x_b5": {
+                "y00_no_b2_no_b5_ms": round(y00_ms, 3),
+                "y10_b2_only_ms": round(y10_ms, 3),
+                "y01_b5_only_ms": round(y01_ms, 3),
+                "y11_both_b2_b5_ms": round(y11_ms, 3),
+                "interaction_effect_ms": round(factorial_interaction_ms, 3),
+                "interaction_detected": interaction_detected
+            },
             "optimization_capture_vs_oracle": round((b1_ms - full_ms) / (b1_ms - bm1_ms), 4) if (b1_ms - bm1_ms) > 0 else 0.0,
             "interaction_detected": interaction_detected,
-            "interaction_analysis": (
-                "Super-additive interaction confirmed between persistent state (B2) and runtime necessity cost gate (B5): "
-                "fast gating prevents control tax on cold queries while state fabric amortizes recomputation on recurring sessions."
-            )
+            "interaction_analysis": analysis_text
         }
 
 

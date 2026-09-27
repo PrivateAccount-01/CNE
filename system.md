@@ -843,6 +843,17 @@ The semantic requirement is what matters.
 
 ---
 
+## 13.3 Architectural Boundary: Mutation Notification Authority
+
+Validity checking of fine-grained dependencies is sound *only if every underlying data mutation routes through `notify_data_mutation()`* on the State Fabric / Dependency Manager.
+
+There is no ambient out-of-band polling or independent inspection of arbitrary external data sources at query time. Therefore:
+1. Every state mutation path (including real external data sources, database hooks, filesystem watchers, or synthetic mutation generators added during P1+ integration) **must invoke `notify_data_mutation()`**.
+2. Any unnotified mutation violates the soundness invariant of the fine-grained dependency snapshot, causing stale memo entries to appear active.
+3. This is a hard architectural boundary on the data ingestion contract, not an optional runtime optimization.
+
+---
+
 # 14. Computational memory correctness
 
 Persistence must never silently change correctness.

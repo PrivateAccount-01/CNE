@@ -132,6 +132,7 @@ class GateG6Runner:
                 "cne_avg_latency_ms": round(cne_avg_latency_ms, 4),
                 "cne_p95_latency_ms": round(cne_p95_latency_ms, 4),
                 "cne_energy_mj": round(cne_energy_mj, 3),
+                "hardware_validation_status": "current software benchmark passes its own estimated-envelope formula; real-device validation (P6) not yet performed",
                 "checks": {
                     "avg_latency_passed": avg_pass,
                     "p95_latency_passed": p95_pass,

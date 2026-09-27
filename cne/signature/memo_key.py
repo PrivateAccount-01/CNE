@@ -8,9 +8,9 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 from cne.semantic_ir.nodes import IRNode, OpKind, SemanticIRGraph
-from cne.signature.canonicalization import Canonicalizer
+from cne.signature.canonicalization import Canonicalizer, callable_identity
 
 
 @dataclass(frozen=True)
@@ -22,6 +22,38 @@ class SystemVersions:
     policy_version: str = "1.0.0"
     knowledge_version: str = "1.0.0"
     schema_version: str = "1.0.0"
+
+
+_DIGEST_CACHE: Dict[int, Tuple[int, str]] = {}
+
+
+def clear_digest_cache() -> None:
+    """Clears the input digest cache. Called on data mutations."""
+    _DIGEST_CACHE.clear()
+
+
+def compute_canonical_digest(val: Any) -> str:
+    """
+    Computes a canonical SHA-256 content digest of arbitrary input data.
+    Uses an (id, len) cache for collections to ensure O(1) repeated access
+    without re-serializing large datasets on recurring queries.
+    """
+    if val is None:
+        return "none"
+    if isinstance(val, (int, float, bool, str)):
+        return str(val)
+
+    val_id = id(val)
+    val_len = len(val) if isinstance(val, (list, dict, tuple, set)) else 0
+    if val_id in _DIGEST_CACHE:
+        cached_len, cached_h = _DIGEST_CACHE[val_id]
+        if cached_len == val_len:
+            return cached_h
+
+    serialized = json.dumps(val, sort_keys=True, default=str)
+    h = hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+    _DIGEST_CACHE[val_id] = (val_len, h)
+    return h
 
 
 @dataclass(frozen=True)
@@ -44,21 +76,18 @@ class MemoKey:
             if getattr(node, "op", None) == OpKind.OBSERVE:
                 src = node.attributes.get("source")
                 k = node.attributes.get("key")
+                src_obj = env.get(src) if env else None
                 if k is not None:
-                    input_data[f"{src}.{k}"] = str(k)
-                elif src in env:
-                    val = env[src]
-                    if isinstance(val, list):
-                        input_data[f"src:{src}:len"] = len(val)
-                        if val:
-                            h = val[0]
-                            t = val[-1]
-                            input_data[f"src:{src}:h"] = h.get("id", str(h)) if isinstance(h, dict) else str(h)
-                            input_data[f"src:{src}:t"] = t.get("id", str(t)) if isinstance(t, dict) else str(t)
-                    elif isinstance(val, dict):
-                        input_data[f"src:{src}:klen"] = len(val)
+                    # Keyed observe: retrieve the actual observed value, not the key name!
+                    if isinstance(src_obj, dict):
+                        observed_val = src_obj.get(k)
+                    elif isinstance(src_obj, (list, tuple)) and isinstance(k, int) and 0 <= k < len(src_obj):
+                        observed_val = src_obj[k]
                     else:
-                        input_data[f"src:{src}"] = str(val)
+                        observed_val = None
+                    input_data[f"{src}.{k}"] = compute_canonical_digest(observed_val)
+                elif src in env:
+                    input_data[f"src:{src}"] = compute_canonical_digest(src_obj)
         return input_data
 
     @classmethod
@@ -74,20 +103,38 @@ class MemoKey:
         sys_ver = versions or SystemVersions()
         if input_data is None and env is not None:
             input_data = cls.extract_input_data(graph, env)
+
         descriptors = getattr(graph, "_cached_descriptors", None)
-        if descriptors is None:
+        shape_hash = getattr(graph, "_cached_shape_hash", None)
+        if descriptors is None or shape_hash is None:
             descriptors, _ = Canonicalizer.canonicalize_graph(graph)
             graph._cached_descriptors = descriptors
+            shape_hash = hashlib.sha256(json.dumps(descriptors, sort_keys=True).encode("utf-8")).hexdigest()
+            graph._cached_shape_hash = shape_hash
 
-        contract_repr = None
-        if contract is not None:
+        contract_repr = getattr(contract, "_cached_contract_repr", None) if contract is not None else None
+        if contract_repr is None and contract is not None:
+            constraints_repr = [
+                callable_identity(c) for c in getattr(contract, "constraints", [])
+            ]
+            equiv_fn = getattr(contract, "acceptable_equivalence", None)
+            equiv_repr = callable_identity(equiv_fn) if equiv_fn else None
+            prov_repr = sorted(getattr(contract, "provenance_requirements", {}).items()) if getattr(contract, "provenance_requirements", None) else None
+
             contract_repr = {
                 "t": getattr(getattr(contract, "contract_type", None), "name", str(contract)),
                 "tol": sorted(getattr(contract, "tolerances", {}).items()),
                 "b": getattr(contract, "decision_boundary", None),
                 "f": sorted(list(getattr(contract, "required_facts", set()))),
-                "s": getattr(contract, "output_schema", None)
+                "s": getattr(contract, "output_schema", None),
+                "cst": constraints_repr,
+                "eq": equiv_repr,
+                "prov": prov_repr
             }
+            try:
+                contract._cached_contract_repr = contract_repr
+            except Exception:
+                pass
 
         if isinstance(input_data, dict):
             input_repr = {k: str(v) for k, v in sorted(input_data.items())}
@@ -101,7 +148,7 @@ class MemoKey:
 
         memo_dict = {
             "v": f"{sys_ver.model_version}_{sys_ver.tokenizer_version}_{sys_ver.runtime_version}_{sys_ver.semantic_compiler_version}_{sys_ver.policy_version}_{sys_ver.knowledge_version}_{sys_ver.schema_version}",
-            "d": descriptors,
+            "sh": shape_hash,
             "i": input_repr,
             "s": {k: str(v) for k, v in sorted((dependency_snapshot or {}).items())},
             "c": contract_repr

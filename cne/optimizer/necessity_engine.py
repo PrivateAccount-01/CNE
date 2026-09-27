@@ -63,8 +63,6 @@ class ComputationNecessityEngine:
 
         # 1. Signature generation: collect input data for all observed sources and embed contract
         memo_k = MemoKey.from_graph(graph, env=env, contract=contract)
-        cost_cls = CostClass.from_graph(graph)
-
         # 2. State Fabric Lookup
         cached_entry = self.fabric.get_by_memo_key(memo_k)
         if cached_entry is not None:
@@ -72,9 +70,9 @@ class ComputationNecessityEngine:
             self.fabric.record_useful_reuse(cached_entry, baseline_cost_saved_ns=baseline_cost_hint_ns)
             timer_control.stop()
 
-            # Verification: cached value satisfies contract
+            # Verification: cached value satisfies contract constraints
             timer_verify.start()
-            valid = contract.is_equivalent(cached_entry.value, cached_entry.value)
+            valid = contract.satisfies_constraints(cached_entry.value)
             timer_verify.stop()
 
             costs = CostBreakdown(
@@ -93,6 +91,7 @@ class ComputationNecessityEngine:
             )
 
         # 3. Cost-gate evaluation
+        cost_cls = CostClass.from_graph(graph)
         should_opt = self.cost_gate.should_optimize(cost_cls)
         active_graph = graph
 

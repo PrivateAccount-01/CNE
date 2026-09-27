@@ -85,6 +85,7 @@ class DependencyKey:
     field_name: Optional[str] = None
     range_bounds: Optional[Tuple[Any, Any]] = None
     predicate_desc: Optional[str] = None
+    attributes: Optional[Dict[str, Any]] = None
 
     def matches(self, change_key: DependencyKey) -> bool:
         """

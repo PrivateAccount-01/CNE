@@ -283,7 +283,7 @@ def test_canonicalization_callable_handling():
     g.root_id = "n1"
     descriptors, _ = Canonicalizer.canonicalize_graph(g)
     fn_val = descriptors[0]["attributes"].get("fn")
-    assert fn_val == "my_function"
+    assert "my_function" in fn_val
 
 
 # ---------- ComputationalSignature ----------

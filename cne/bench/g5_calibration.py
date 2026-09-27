@@ -78,6 +78,7 @@ class GateG5Runner:
             "wilson_ci_95_lower_bound": round(lb_ci, 4),
             "wilson_ci_95_upper_bound": round(ub_ci, 4),
             "threshold_required": 0.95,
+            "calibration_data_source": "statistical procedure validated on synthetic data; real-world calibration pending P5",
             "evidence_breakdown": {
                 "certified_count": sum(1 for s in labeled_samples if s["level"] == "Certified"),
                 "audited_count": sum(1 for s in labeled_samples if s["level"] == "Audited")

@@ -11,7 +11,7 @@ from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 from cne.contracts.outcome_contract import OutcomeContract
 from cne.optimizer.runtime.dependencies import ChangeType, DependencyManager
 from cne.semantic_ir.types import DependencyKey
-from cne.signature.memo_key import MemoKey
+from cne.signature.memo_key import MemoKey, clear_digest_cache
 from cne.state.lifecycle import StateLifecycle
 from cne.state.retention import EvictionPolicy
 from cne.state.state_entry import StateClass, StateEntry
@@ -136,6 +136,7 @@ class LocalStateFabric:
         Supports sound P(old) OR P(new) update semantics.
         """
         t0 = time.perf_counter_ns()
+        clear_digest_cache()
         invalidated_ids = self.dep_manager.notify_change(
             change_type=change_type,
             source=source,

@@ -27,7 +27,7 @@ class FixtureCompiler:
             category = query_spec.get("category", "Food")
             exclude_transfers = query_spec.get("exclude_transfers", True)
             threshold = float(query_spec.get("threshold", 100.0))
-            return build_expense_fixture(
+            g, contract = build_expense_fixture(
                 category=category,
                 exclude_transfers=exclude_transfers,
                 threshold=threshold
@@ -36,7 +36,7 @@ class FixtureCompiler:
         elif domain == "troubleshooting":
             system_id = query_spec.get("system_id", "node_1")
             error_threshold = int(query_spec.get("error_threshold", 5))
-            return build_troubleshooting_fixture(
+            g, contract = build_troubleshooting_fixture(
                 system_id=system_id,
                 error_threshold=error_threshold
             )
@@ -44,7 +44,7 @@ class FixtureCompiler:
         elif domain == "scheduling":
             user_id = query_spec.get("user_id", "alice")
             duration = int(query_spec.get("duration", 30))
-            return build_scheduling_fixture(
+            g, contract = build_scheduling_fixture(
                 user_id=user_id,
                 required_slot_duration=duration
             )
@@ -62,7 +62,6 @@ class FixtureCompiler:
             g.add_node(emit)
             g.root_id = "emit_simple"
             contract = OutcomeContract(contract_type=ContractType.EXACT)
-            return g, contract
 
         elif domain == "multi_join_analytics":
             # Distinct topology: 2 Observers -> 2 Filters -> Join -> Map -> Reduce -> Emit
@@ -85,6 +84,13 @@ class FixtureCompiler:
             g.add_node(em)
             g.root_id = "emit_ab"
             contract = OutcomeContract(contract_type=ContractType.EXACT)
-            return g, contract
+        else:
+            raise ValueError(f"Unknown domain {domain}")
 
-        raise ValueError(f"Unknown domain {domain}")
+        # Attach static canonical shape hash from compiler phase (system.md §3.1, §10)
+        from cne.signature.canonicalization import Canonicalizer
+        import hashlib, json
+        descriptors, _ = Canonicalizer.canonicalize_graph(g)
+        g._cached_descriptors = descriptors
+        g._cached_shape_hash = hashlib.sha256(json.dumps(descriptors, sort_keys=True).encode("utf-8")).hexdigest()
+        return g, contract

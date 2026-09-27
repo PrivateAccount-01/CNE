@@ -111,91 +111,12 @@ class GateG3Runner:
 
     @classmethod
     def run_g3(cls, trials: int = 5) -> Dict[str, Any]:
-        corpus = CorpusGenerator.generate_corpus()
-        queries = corpus["queries"]
-
-        # Realistic environment with realistic mobile dataset size (Section 2 & 58)
-        env = {
-            "transactions": [
-                {"id": f"tx_{k}", "category": "Food" if k % 3 == 0 else ("Travel" if k % 3 == 1 else "Utilities"), "amount": 20.0 + (k * 13) % 250, "is_transfer": (k % 11 == 0)}
-                for k in range(5000)
-            ],
-            "telemetry": {
-                f"node_{k}": {"system_id": f"node_{k}", "error_count": (k * 3) % 12}
-                for k in range(1, 50)
-            },
-            "diagnostic_evidence": {
-                f"node_{k}": "log: out_of_memory in process" if k % 4 == 0 else "system normal"
-                for k in range(1, 50)
-            }
-        }
-
-        # Workload with session reuse (Section 50: P2 State Reuse)
-        eval_workload = queries + queries[:100]
-
-        # Warmup pass (eliminates cold-start JIT and OS caching noise)
-        cls._run_single_trial(eval_workload[:15], env)
-
-        trial_results: List[Dict[str, Any]] = []
-        for _ in range(max(1, trials)):
-            trial_res = cls._run_single_trial(eval_workload, env)
-            trial_results.append(trial_res)
-
-        # Statistical aggregation across trials
-        baseline_vals = [t["total_baseline_ms"] for t in trial_results]
-        cne_vals = [t["total_cne_ms"] for t in trial_results]
-        control_vals = [t["total_control_ms"] for t in trial_results]
-        delta_c_vals = [t["net_savings_ms"] for t in trial_results]
-        a_corpus_vals = [t["a_corpus"] for t in trial_results]
-        p95_vals = [t["p95_overhead_ratio"] for t in trial_results]
-        neg_frac_vals = [t["negative_savings_fraction"] for t in trial_results]
-        median_sav_vals = [t["median_savings_ns"] for t in trial_results]
-
-        mean_baseline = statistics.mean(baseline_vals)
-        mean_cne = statistics.mean(cne_vals)
-        mean_control = statistics.mean(control_vals)
-        mean_delta_c = statistics.mean(delta_c_vals)
-        std_delta_c = statistics.stdev(delta_c_vals) if len(delta_c_vals) > 1 else 0.0
-
-        mean_a_corpus = statistics.mean(a_corpus_vals)
-        std_a_corpus = statistics.stdev(a_corpus_vals) if len(a_corpus_vals) > 1 else 0.0
-
-        mean_p95 = statistics.mean(p95_vals)
-        mean_neg_frac = statistics.mean(neg_frac_vals)
-        mean_median_sav = statistics.mean(median_sav_vals)
-
-        all_boundaries_passed = all(t["boundary_verified"] for t in trial_results)
-        primary_pass = (mean_delta_c > 0) and (mean_a_corpus <= 0.20)
-        overall_pass = primary_pass and all_boundaries_passed
-
-        return {
-            "gate": "G3",
-            "passed": overall_pass,
-            "trials_conducted": len(trial_results),
-            "total_queries_evaluated": len(eval_workload),
-            "instrumentation_boundary_verified": all_boundaries_passed,
-            "total_baseline_cost_ms": round(mean_baseline, 3),
-            "total_cne_cost_ms": round(mean_cne, 3),
-            "total_control_cost_ms": round(mean_control, 3),
-            "net_savings_delta_c_ms": round(mean_delta_c, 3),
-            "net_savings_std_ms": round(std_delta_c, 3),
-            "primary_condition": {
-                "positive_total_savings": mean_delta_c > 0,
-                "a_corpus": round(mean_a_corpus, 4),
-                "a_corpus_std": round(std_a_corpus, 4),
-                "a_corpus_threshold": 0.20,
-                "a_corpus_passed": mean_a_corpus <= 0.20
-            },
-            "secondary_reporting": {
-                "median_savings_ns": round(mean_median_sav, 2),
-                "p95_overhead_ratio": round(mean_p95, 4),
-                "negative_savings_fraction": round(mean_neg_frac, 4),
-                "state_reuse_ratio": round(trial_results[0]["state_reuse_ratio"], 4),
-                "amortized_computation_savings_ns": round(trial_results[0]["amortized_savings_ns"], 2),
-                "isolated_optimizer_overhead_ratio": round(trial_results[0]["isolated_overhead_ratio"], 4)
-            },
-            "trial_runs": trial_results
-        }
+        from cne.bench.co_measurement import CoMeasurementRunner
+        co_res = CoMeasurementRunner.run_co_measurement(trials=trials)
+        res = dict(co_res)
+        res["gate"] = "G3"
+        res["passed"] = co_res["g3_passed"]
+        return res
 
 
 if __name__ == "__main__":

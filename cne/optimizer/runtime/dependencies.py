@@ -45,6 +45,7 @@ class JoinKeySubscription:
     source_a: str
     source_b: str
     key_field: str
+    active_keys: Optional[Set[Any]] = None
 
 
 class DependencyManager:
@@ -114,11 +115,15 @@ class DependencyManager:
             self._range_subscriptions.setdefault(src, []).append(sub_r)
 
         elif granularity == "join":
+            active_keys = None
+            if hasattr(dep_key, "attributes") and isinstance(dep_key.attributes, dict):
+                active_keys = dep_key.attributes.get("active_keys")
             sub_j = JoinKeySubscription(
                 entry_id=entry_id,
                 source_a=src,
                 source_b=dep_key.key or "",
-                key_field=dep_key.field_name or "id"
+                key_field=dep_key.field_name or "id",
+                active_keys=set(active_keys) if active_keys is not None else None
             )
             self._join_subscriptions.setdefault(src, []).append(sub_j)
 
@@ -247,8 +252,14 @@ class DependencyManager:
             for sub_j in self._join_subscriptions[source]:
                 for r in (new_row, old_row, changed_row):
                     if r and sub_j.key_field in r:
-                        invalidated.add(sub_j.entry_id)
-                        break
+                        key_val = r[sub_j.key_field]
+                        if sub_j.active_keys is not None:
+                            if key_val in sub_j.active_keys:
+                                invalidated.add(sub_j.entry_id)
+                                break
+                        else:
+                            invalidated.add(sub_j.entry_id)
+                            break
 
         return invalidated
 

@@ -127,92 +127,34 @@ class P3ReportRunner:
 
     @classmethod
     def generate_report(cls, trials: int = 5) -> Dict[str, Any]:
-        corpus = CorpusGenerator.generate_corpus()
-        queries = corpus["queries"]
-
-        env = {
-            "transactions": [
-                {"id": f"tx_{k}", "category": "Food" if k % 3 == 0 else ("Travel" if k % 3 == 1 else "Utilities"), "amount": 20.0 + (k * 13) % 250, "is_transfer": (k % 11 == 0)}
-                for k in range(5000)
-            ],
-            "telemetry": {
-                f"node_{k}": {"system_id": f"node_{k}", "error_count": (k * 3) % 12}
-                for k in range(1, 50)
-            },
-            "diagnostic_evidence": {
-                f"node_{k}": "log: out_of_memory in process" if k % 4 == 0 else "system normal"
-                for k in range(1, 50)
-            }
-        }
-
-        # Workload with session reuse (Section 50: P2 State Reuse)
-        eval_workload = queries + queries[:100]
-
-        # Warmup pass
-        cls._run_single_co_measurement(eval_workload[:15], env)
-
-        trial_results: List[Dict[str, Any]] = []
-        for _ in range(max(1, trials)):
-            tres = cls._run_single_co_measurement(eval_workload, env)
-            trial_results.append(tres)
-
-        # Statistical aggregations across trials
-        base_vals = [t["baseline_cost_ms"] for t in trial_results]
-        oracle_vals = [t["oracle_cost_ms"] for t in trial_results]
-        cne_vals = [t["cne_cost_ms"] for t in trial_results]
-        ctrl_vals = [t["control_cost_ms"] for t in trial_results]
-        exec_vals = [t["execution_cost_ms"] for t in trial_results]
-        delta_c_vals = [t["delta_c_total_ms"] for t in trial_results]
-        r_star_vals = [t["r_star_recoverable_bound"] for t in trial_results]
-        a_corpus_vals = [t["optimizer_overhead_a_corpus"] for t in trial_results]
-        opt_cap_vals = [t["optimization_capture_ratio"] for t in trial_results]
-        p95_vals = [t["p95_overhead_ratio"] for t in trial_results]
-        neg_frac_vals = [t["negative_savings_fraction"] for t in trial_results]
-        med_sav_vals = [t["median_savings_ns"] for t in trial_results]
-
-        mean_base = statistics.mean(base_vals)
-        mean_oracle = statistics.mean(oracle_vals)
-        mean_cne = statistics.mean(cne_vals)
-        mean_ctrl = statistics.mean(ctrl_vals)
-        mean_exec = statistics.mean(exec_vals)
-        mean_delta_c = statistics.mean(delta_c_vals)
-        std_delta_c = statistics.stdev(delta_c_vals) if len(delta_c_vals) > 1 else 0.0
-
-        mean_r_star = statistics.mean(r_star_vals)
-        mean_a_corpus = statistics.mean(a_corpus_vals)
-        std_a_corpus = statistics.stdev(a_corpus_vals) if len(a_corpus_vals) > 1 else 0.0
-
-        mean_opt_cap = statistics.mean(opt_cap_vals)
-        std_opt_cap = statistics.stdev(opt_cap_vals) if len(opt_cap_vals) > 1 else 0.0
-
-        mean_p95 = statistics.mean(p95_vals)
-        mean_neg_frac = statistics.mean(neg_frac_vals)
-        mean_med_sav = statistics.mean(med_sav_vals)
-
-        passed = (mean_delta_c > 0) and (mean_a_corpus <= 0.20) and (0.0 <= mean_opt_cap <= 1.0)
-
+        from cne.bench.co_measurement import CoMeasurementRunner
+        co_res = CoMeasurementRunner.run_co_measurement(trials=trials)
         report = {
             "phase": "P3",
-            "passed": passed,
-            "trials_conducted": len(trial_results),
-            "baseline_cost_ms": round(mean_base, 3),
-            "oracle_cost_ms": round(mean_oracle, 3),
-            "cne_cost_ms": round(mean_cne, 3),
-            "control_cost_ms": round(mean_ctrl, 3),
-            "execution_cost_ms": round(mean_exec, 3),
-            "r_star_recoverable_bound": round(mean_r_star, 4),
-            "optimizer_overhead_a_corpus": round(mean_a_corpus, 4),
-            "optimizer_overhead_a_corpus_std": round(std_a_corpus, 4),
-            "delta_c_total_ms": round(mean_delta_c, 3),
-            "delta_c_total_std_ms": round(std_delta_c, 3),
-            "optimization_capture_ratio": round(mean_opt_cap, 4),
-            "optimization_capture_ratio_std": round(std_opt_cap, 4),
-            "median_savings_ns": round(mean_med_sav, 2),
-            "p95_overhead_ratio": round(mean_p95, 4),
-            "negative_savings_fraction": round(mean_neg_frac, 4),
-            "state_reuse_ratio": round(trial_results[0]["state_reuse_ratio"], 4),
-            "amortized_computation_savings_ns": round(trial_results[0]["amortized_computation_savings_ns"], 2),
-            "boundary_verified": all(t["boundary_verified"] for t in trial_results)
+            "passed": co_res["p3_passed"],
+            "trials_conducted": co_res["trials_conducted"],
+            "baseline_cost_ms": co_res["total_baseline_cost_ms"],
+            "oracle_cost_ms": co_res["total_oracle_cost_ms"],
+            "cne_cost_ms": co_res["total_cne_cost_ms"],
+            "control_cost_ms": co_res["total_control_cost_ms"],
+            "execution_cost_ms": co_res["total_exec_cost_ms"],
+            "r_star_recoverable_bound": co_res["g2_oracle"]["corpus_r_star"],
+            "r_star_recoverable_bound_std": co_res["g2_oracle"]["corpus_r_star_std"],
+            "oracle_bound_label": co_res["g2_oracle"]["oracle_label"],
+            "optimizer_overhead_a_corpus": co_res["primary_condition"]["a_corpus"],
+            "optimizer_overhead_a_corpus_std": co_res["primary_condition"]["a_corpus_std"],
+            "delta_c_total_ms": co_res["net_savings_delta_c_ms"],
+            "delta_c_total_std_ms": co_res["net_savings_std_ms"],
+            "optimization_capture_ratio": co_res["optimization_capture"]["capture_ratio"],
+            "optimization_capture_ratio_std": co_res["optimization_capture"]["capture_ratio_std"],
+            "optimization_capture_label": co_res["optimization_capture"]["label"],
+            "median_savings_ns": co_res["secondary_reporting"]["median_savings_ns"],
+            "p95_overhead_ratio": co_res["secondary_reporting"]["p95_overhead_ratio"],
+            "negative_savings_fraction": co_res["secondary_reporting"]["negative_savings_fraction"],
+            "state_reuse_ratio": co_res["secondary_reporting"]["state_reuse_ratio"],
+            "amortized_computation_savings_ns": co_res["secondary_reporting"]["amortized_computation_savings_ns"],
+            "boundary_verified": co_res["instrumentation_boundary_verified"],
+            "co_measurement": co_res
         }
         return report
 

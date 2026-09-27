@@ -30,14 +30,45 @@ class SemanticEvaluator:
     def __init__(self, tools: Optional[Dict[str, Callable[..., Any]]] = None):
         self.tools = tools or {}
 
+    @staticmethod
+    def compute_reachable_nodes(graph: SemanticIRGraph) -> Set[str]:
+        """
+        Computes the set of nodes reachable from root_id or containing
+        mandatory external side-effects (requires_execution()).
+        Dead work not in this set is skipped during evaluation.
+        """
+        if not graph.nodes:
+            return set()
+        if not graph.root_id or graph.root_id not in graph.nodes:
+            return set(graph.nodes.keys())
+
+        reachable: Set[str] = set()
+        queue: List[str] = [graph.root_id]
+
+        for nid, node in graph.nodes.items():
+            imm = node.get_immediate_effects()
+            if imm.contains(Effect.WriteExternal) or imm.contains(Effect.Interactive):
+                queue.append(nid)
+
+        while queue:
+            curr = queue.pop()
+            if curr not in reachable and curr in graph.nodes:
+                reachable.add(curr)
+                queue.extend(graph.nodes[curr].inputs)
+
+        return reachable
+
     def execute(self, graph: SemanticIRGraph, initial_env: Optional[Dict[str, Any]] = None) -> Tuple[Any, ExecutionContext]:
         ctx = ExecutionContext(
             environment=dict(initial_env or {}),
             tools=dict(self.tools)
         )
+        reachable = self.compute_reachable_nodes(graph)
         order = graph.topological_order()
 
         for nid in order:
+            if nid not in reachable:
+                continue
             if nid in ctx.values:
                 continue
             self._evaluate_node(graph.nodes[nid], graph, ctx)
@@ -157,7 +188,9 @@ class SemanticEvaluator:
             else_reg_id = node.attributes.get("else_region")
 
             chosen_reg_id = then_reg_id if cond_val else else_reg_id
-            if chosen_reg_id and chosen_reg_id in graph.regions:
+            if isinstance(chosen_reg_id, SemanticRegion):
+                val = self._evaluate_region(chosen_reg_id, graph, ctx)
+            elif chosen_reg_id and isinstance(chosen_reg_id, str) and chosen_reg_id in graph.regions:
                 reg = graph.regions[chosen_reg_id]
                 val = self._evaluate_region(reg, graph, ctx)
             else:
@@ -173,8 +206,13 @@ class SemanticEvaluator:
             stop_condition = node.attributes.get("stop_condition")
 
             acc = init_val
-            if step_reg_id and step_reg_id in graph.regions:
+            reg = None
+            if isinstance(step_reg_id, SemanticRegion):
+                reg = step_reg_id
+            elif step_reg_id and isinstance(step_reg_id, str) and step_reg_id in graph.regions:
                 reg = graph.regions[step_reg_id]
+
+            if reg:
                 for item in items:
                     ctx.environment["_loop_item"] = item
                     ctx.environment["_loop_acc"] = acc
@@ -226,7 +264,7 @@ class SemanticEvaluator:
             target = node.attributes.get("target")
             args = [ctx.values.get(inp) for inp in node.inputs]
             kwargs = node.attributes.get("kwargs", {})
-            fn = ctx.tools.get(target) if target else None
+            fn = node.attributes.get("fn") or (ctx.tools.get(target) if target else None)
             if fn:
                 val = fn(*args, **kwargs)
             else:

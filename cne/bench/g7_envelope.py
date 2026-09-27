@@ -38,7 +38,8 @@ class GateG7Runner:
                 "ram_budget_gb": "6-8 GB",
                 "processor": "ARM CPU (local)",
                 "npu_dependency": False,
-                "cloud_dependency": False
+                "cloud_dependency": False,
+                "device_validation_status": "current software benchmark passes its own estimated-envelope formula; real-device validation (P6) not yet performed"
             },
             "g6_cleared_by_cpu_only": g6_res["passed"],
             "cpu_plan_details": {
