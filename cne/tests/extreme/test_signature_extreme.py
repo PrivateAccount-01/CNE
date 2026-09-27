@@ -102,6 +102,44 @@ def test_memo_key_version_sensitivity():
     assert mk1 != mk2
 
 
+def test_memo_key_policy_and_schema_version_sensitivity():
+    """Policy, knowledge, and schema versions must alter memo identity."""
+    g = _make_expense_graph()
+    v_base = SystemVersions()
+    v_policy = SystemVersions(policy_version="2.0.0")
+    v_know = SystemVersions(knowledge_version="2.0.0")
+    v_schema = SystemVersions(schema_version="2.0.0")
+
+    mk_base = MemoKey.from_graph(g, versions=v_base)
+    mk_pol = MemoKey.from_graph(g, versions=v_policy)
+    mk_know = MemoKey.from_graph(g, versions=v_know)
+    mk_sch = MemoKey.from_graph(g, versions=v_schema)
+
+    assert mk_base != mk_pol
+    assert mk_base != mk_know
+    assert mk_base != mk_sch
+
+
+def test_memo_key_contract_sensitivity():
+    """Different OutcomeContracts on identical graphs produce different memo keys."""
+    from cne.contracts.outcome_contract import OutcomeContract, ContractType
+    g = _make_expense_graph()
+
+    c_exact = OutcomeContract(contract_type=ContractType.EXACT)
+    c_approx1 = OutcomeContract(contract_type=ContractType.APPROXIMATE_NUMERIC, tolerances={"rel_tol": 1e-4})
+    c_approx2 = OutcomeContract(contract_type=ContractType.APPROXIMATE_NUMERIC, tolerances={"rel_tol": 1e-2})
+    c_dec = OutcomeContract(contract_type=ContractType.DECISION, decision_boundary=100.0)
+
+    mk_exact = MemoKey.from_graph(g, contract=c_exact)
+    mk_ap1 = MemoKey.from_graph(g, contract=c_approx1)
+    mk_ap2 = MemoKey.from_graph(g, contract=c_approx2)
+    mk_dec = MemoKey.from_graph(g, contract=c_dec)
+
+    assert mk_exact != mk_ap1
+    assert mk_ap1 != mk_ap2
+    assert mk_exact != mk_dec
+
+
 def test_memo_key_same_computation():
     """Same graph + same inputs → same memo key."""
     g = _make_expense_graph()

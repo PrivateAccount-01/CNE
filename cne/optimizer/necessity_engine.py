@@ -15,7 +15,7 @@ from cne.optimizer.runtime.cost_gate import CostGate
 from cne.optimizer.runtime.incremental_executor import IncrementalExecutor
 from cne.optimizer.static.static_optimizer import StaticOptimizer
 from cne.semantic_ir.evaluator import ExecutionContext, SemanticEvaluator
-from cne.semantic_ir.nodes import SemanticIRGraph
+from cne.semantic_ir.nodes import IRNode, OpKind, SemanticIRGraph
 from cne.signature.cost_class import CostClass
 from cne.signature.memo_key import MemoKey
 from cne.signature.shape_key import SemanticShapeKey
@@ -61,8 +61,8 @@ class ComputationNecessityEngine:
         # ================= CONTROL PHASE =================
         timer_control.start()
 
-        # 1. Signature generation: Memo key, Shape key, Cost class
-        memo_k = MemoKey.from_graph(graph, input_data=env.get("inputs"))
+        # 1. Signature generation: collect input data for all observed sources and embed contract
+        memo_k = MemoKey.from_graph(graph, env=env, contract=contract)
         cost_cls = CostClass.from_graph(graph)
 
         # 2. State Fabric Lookup

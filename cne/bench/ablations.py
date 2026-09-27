@@ -35,6 +35,7 @@ from cne.contracts.outcome_contract import OutcomeContract
 from cne.optimizer.necessity_engine import ComputationNecessityEngine
 from cne.optimizer.oracle import G2Oracle
 from cne.optimizer.runtime.cost_gate import CostGate
+from cne.optimizer.runtime.dependencies import ChangeType
 from cne.optimizer.static.static_optimizer import StaticOptimizer
 from cne.semantic_ir.evaluator import SemanticEvaluator
 from cne.signature.memo_key import MemoKey
@@ -83,13 +84,28 @@ class AblationRunner:
         bm1_ms = statistics.mean(t_bm1_list)
 
         # ---------------- B0: Direct Baseline ----------------
-        # Pure un-optimized re-execution on every query
+        # Pure native query execution directly against raw environment data (no IR)
         t_b0_list = []
         for _ in range(trials):
             t0 = time.perf_counter_ns()
             for q in workload:
-                g, c = FixtureCompiler.compile_query(q)
-                evaluator.execute(g, initial_env=env)
+                domain = q.get("domain", "expense")
+                if domain == "expense":
+                    cat = q.get("category", "Food")
+                    thresh = float(q.get("threshold", 100.0))
+                    ex = q.get("exclude_transfers", True)
+                    _ = sum(tx["amount"] for tx in env.get("transactions", []) if tx.get("category") == cat and tx.get("amount", 0) >= thresh and (not ex or not tx.get("is_transfer")))
+                elif domain == "troubleshooting":
+                    sid = q.get("system_id", "node_1")
+                    tel = env.get("telemetry", {}).get(sid, {})
+                    _ = {"action": "restart"} if tel.get("error_count", 0) > q.get("error_threshold", 5) else {"status": "healthy"}
+                elif domain == "scheduling":
+                    slots = env.get("calendar_slots", [])
+                    dur = int(q.get("duration", 30))
+                    _ = [s for s in slots if s.get("duration", 0) >= dur]
+                else:
+                    g, c = FixtureCompiler.compile_query(q)
+                    evaluator.execute(g, initial_env=env)
             t_b0_list.append((time.perf_counter_ns() - t0) / 1e6)
         b0_ms = statistics.mean(t_b0_list)
 
@@ -105,22 +121,24 @@ class AblationRunner:
         b1_ms = statistics.mean(t_b1_list)
 
         # ---------------- B2: Persistent State ----------------
-        # B1 + Local State Fabric memoization, but coarse whole-store invalidation
+        # B1 + Local State Fabric memoization, but coarse whole-store invalidation on mutation
         t_b2_list = []
         for _ in range(trials):
             fabric_b2 = LocalStateFabric()
             cne_b2 = ComputationNecessityEngine(fabric=fabric_b2, evaluator=evaluator, cost_gate=CostGate(bypass_trivial=False))
-            # Disable static optimizer
             cne_b2.static_optimizer.optimize = lambda g, c: type('obj', (object,), {'optimized_graph': g, 'static_effects': {}, 'nodes_eliminated': 0, 'nodes_folded': 0})()
             t0 = time.perf_counter_ns()
             for idx, q in enumerate(workload):
+                if idx > 0 and idx % 80 == 0:
+                    fabric_b2._entries.clear()
+                    fabric_b2._memo_index.clear()
                 g, c = FixtureCompiler.compile_query(q)
                 cne_b2.execute_query(g, c, env, f"b2_{idx}")
             t_b2_list.append((time.perf_counter_ns() - t0) / 1e6)
         b2_ms = statistics.mean(t_b2_list)
 
         # ---------------- B3: Dependency Invalidation ----------------
-        # B2 + fine-grained predicate/range dependency management
+        # B2 + fine-grained predicate/range dependency management (selective invalidation)
         t_b3_list = []
         for _ in range(trials):
             fabric_b3 = LocalStateFabric()
@@ -128,8 +146,10 @@ class AblationRunner:
             cne_b3.static_optimizer.optimize = lambda g, c: type('obj', (object,), {'optimized_graph': g, 'static_effects': {}, 'nodes_eliminated': 0, 'nodes_folded': 0})()
             t0 = time.perf_counter_ns()
             for idx, q in enumerate(workload):
+                if idx > 0 and idx % 80 == 0:
+                    fabric_b3.notify_data_mutation(ChangeType.INSERT, "transactions", new_row={"id": f"mut_{idx}", "category": "Travel", "amount": 99.0})
                 g, c = FixtureCompiler.compile_query(q)
-                cne_res = cne_b3.execute_query(g, c, env, f"b3_{idx}")
+                cne_b3.execute_query(g, c, env, f"b3_{idx}")
             t_b3_list.append((time.perf_counter_ns() - t0) / 1e6)
         b3_ms = statistics.mean(t_b3_list)
 
@@ -161,11 +181,11 @@ class AblationRunner:
 
         # ---------------- B6: Bounds (Full Baseline Target) ----------------
         # B5 + resource budget enforcement and lookahead bounds checking
-        b6_ms = b5_ms  # B6 includes budget/bounds enforcement in Choose and evaluation
+        b6_ms = b5_ms
 
         # ---------------- B7: Learned Controller ----------------
-        # Projected future extension: B6 + offline predictive prior specialization
-        b7_ms = round(b6_ms * 0.94, 3)
+        # Not implemented in prototype; explicitly marked as future extension
+        b7_ms = None
 
         ladder = {
             "B(-1)_Oracle_Upper_Bound_ms": round(bm1_ms, 3),
@@ -176,14 +196,24 @@ class AblationRunner:
             "B4_Static_Elimination_ms": round(b4_ms, 3),
             "B5_Runtime_Necessity_ms": round(b5_ms, 3),
             "B6_Bounds_Target_ms": round(b6_ms, 3),
-            "B7_Learned_Controller_ms": round(b7_ms, 3)
+            "B7_Learned_Controller_ms": "NOT IMPLEMENTED (Future Extension)"
         }
 
         # ---------------- Leave-One-Out (LOO) Ablations (§40) ----------------
         full_ms = b6_ms
 
-        # Minus B1: Syntactic string cache without semantic graph representation
-        loo_minus_b1_ms = round(b0_ms * 0.88, 3)
+        # Minus B1: Syntactic string-keyed cache without semantic canonicalization
+        raw_cache: Dict[str, Any] = {}
+        t0 = time.perf_counter_ns()
+        for idx, q in enumerate(workload):
+            q_key = f"{q.get('domain')}_{q.get('id')}_{sorted(q.items())}"
+            if q_key in raw_cache:
+                val = raw_cache[q_key]
+            else:
+                g, c = FixtureCompiler.compile_query(q)
+                val, _ = evaluator.execute(g, initial_env=env)
+                raw_cache[q_key] = val
+        loo_minus_b1_ms = (time.perf_counter_ns() - t0) / 1e6
 
         # Minus B2: No persistent state fabric (0 caching across queries)
         fabric_no_b2 = LocalStateFabric()
@@ -196,7 +226,17 @@ class AblationRunner:
         loo_minus_b2_ms = (time.perf_counter_ns() - t0) / 1e6
 
         # Minus B3: Coarse invalidation only (all mutations flush fabric)
-        loo_minus_b3_ms = round(full_ms * 1.25, 3)
+        fabric_no_b3 = LocalStateFabric()
+        cne_no_b3 = ComputationNecessityEngine(fabric=fabric_no_b3, evaluator=evaluator, cost_gate=CostGate(bypass_trivial=True))
+        t0 = time.perf_counter_ns()
+        for idx, q in enumerate(workload):
+            if idx > 0 and idx % 80 == 0:
+                # Periodic mutation flushes all cached state
+                fabric_no_b3._entries.clear()
+                fabric_no_b3._memo_index.clear()
+            g, c = FixtureCompiler.compile_query(q)
+            cne_no_b3.execute_query(g, c, env, f"no_b3_{idx}")
+        loo_minus_b3_ms = (time.perf_counter_ns() - t0) / 1e6
 
         # Minus B4: No static elimination (static optimizer disabled)
         fabric_no_b4 = LocalStateFabric()
@@ -208,7 +248,7 @@ class AblationRunner:
             cne_no_b4.execute_query(g, c, env, f"no_b4_{idx}")
         loo_minus_b4_ms = (time.perf_counter_ns() - t0) / 1e6
 
-        # Minus B5: No cost gate (run static optimizer on every single query)
+        # Minus B5: No cost gate (run static optimizer unconditionally on every query)
         fabric_no_b5 = LocalStateFabric()
         cne_no_b5 = ComputationNecessityEngine(fabric=fabric_no_b5, evaluator=evaluator, cost_gate=CostGate(bypass_trivial=False))
         t0 = time.perf_counter_ns()
@@ -217,8 +257,18 @@ class AblationRunner:
             cne_no_b5.execute_query(g, c, env, f"no_b5_{idx}")
         loo_minus_b5_ms = (time.perf_counter_ns() - t0) / 1e6
 
-        # Minus B6: No bounds checking on Choose
-        loo_minus_b6_ms = round(full_ms * 1.04, 3)
+        # Minus B6: Unbounded Choose search (no latency/memory budget bounds)
+        fabric_no_b6 = LocalStateFabric()
+        cne_no_b6 = ComputationNecessityEngine(fabric=fabric_no_b6, evaluator=evaluator, cost_gate=CostGate(bypass_trivial=True))
+        t0 = time.perf_counter_ns()
+        for idx, q in enumerate(workload):
+            g, c = FixtureCompiler.compile_query(q)
+            # Remove budgets from Choose nodes if present
+            for node in g.nodes.values():
+                if node.op.value == "Choose":
+                    node.attributes["budget"] = {"latency": 1e9, "memory": 1e9}
+            cne_no_b6.execute_query(g, c, env, f"no_b6_{idx}")
+        loo_minus_b6_ms = (time.perf_counter_ns() - t0) / 1e6
 
         loo_results = {
             "Full_System_Target_ms": round(full_ms, 3),
@@ -242,7 +292,7 @@ class AblationRunner:
             "phase": "Ablations",
             "frozen_ladder": ladder,
             "leave_one_out": loo_results,
-            "optimization_capture_vs_oracle": round((b0_ms - full_ms) / (b0_ms - bm1_ms), 4) if (b0_ms - bm1_ms) > 0 else 0.0,
+            "optimization_capture_vs_oracle": round((b1_ms - full_ms) / (b1_ms - bm1_ms), 4) if (b1_ms - bm1_ms) > 0 else 0.0,
             "interaction_detected": interaction_detected,
             "interaction_analysis": (
                 "Super-additive interaction confirmed between persistent state (B2) and runtime necessity cost gate (B5): "

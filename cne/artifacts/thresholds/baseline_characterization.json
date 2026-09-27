@@ -1,8 +1,8 @@
 {
   "num_queries": 80,
-  "total_baseline_time_ms": 32.743,
-  "avg_baseline_latency_ms": 0.3869,
-  "p95_baseline_latency_ms": 0.8237,
+  "total_baseline_time_ms": 36.934,
+  "avg_baseline_latency_ms": 0.4372,
+  "p95_baseline_latency_ms": 0.9143,
   "estimated_ram_mb": 12.5,
-  "estimated_energy_mj_per_query": 1.354
+  "estimated_energy_mj_per_query": 1.53
 }

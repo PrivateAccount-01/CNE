@@ -49,6 +49,12 @@ class LocalStateFabric:
             for cid in candidates:
                 self.delete(cid)
 
+        # Record current dependency snapshot
+        dep_snap = {}
+        if dependencies:
+            for dep in dependencies:
+                dep_snap[dep.source] = self.dep_manager.get_source_version(dep.source)
+
         entry = StateEntry(
             entry_id=entry_id,
             state_class=state_class,
@@ -57,6 +63,7 @@ class LocalStateFabric:
             memo_key=memo_key,
             contract=contract,
             dependency_keys=dependencies or [],
+            dependency_snapshot=dep_snap,
             provenance=provenance or {}
         )
         self._entries[entry_id] = entry
@@ -73,9 +80,24 @@ class LocalStateFabric:
 
         return entry
 
+    def is_entry_valid(self, entry: StateEntry) -> bool:
+        """
+        Sound validity check: active lifecycle and unviolated dependency snapshot.
+        """
+        if entry.lifecycle != StateLifecycle.ACTIVE:
+            return False
+        for dep in entry.dependency_keys:
+            if dep.granularity in ("source", "table"):
+                expected_ver = entry.dependency_snapshot.get(dep.source)
+                if expected_ver is not None and self.dep_manager.get_source_version(dep.source) != expected_ver:
+                    entry.transition(StateLifecycle.STALE)
+                    return False
+        return True
+
     def get_by_memo_key(self, memo_key: MemoKey) -> Optional[StateEntry]:
         """
         Retrieves active, non-stale computational state by memo key.
+        Integrates dependency validity verification.
         """
         t0 = time.perf_counter_ns()
         entry_id = self._memo_index.get(memo_key.key_hash)
@@ -84,7 +106,7 @@ class LocalStateFabric:
             return None
 
         entry = self._entries.get(entry_id)
-        if not entry or entry.lifecycle != StateLifecycle.ACTIVE:
+        if not entry or not self.is_entry_valid(entry):
             self.total_stateful_overhead_ns += (time.perf_counter_ns() - t0)
             return None
 
@@ -103,15 +125,25 @@ class LocalStateFabric:
         self,
         change_type: ChangeType,
         source: str,
-        changed_row: Dict[str, Any],
-        row_key: Optional[str] = None
+        changed_row: Optional[Dict[str, Any]] = None,
+        row_key: Optional[str] = None,
+        old_row: Optional[Dict[str, Any]] = None,
+        new_row: Optional[Dict[str, Any]] = None
     ) -> Set[str]:
         """
         Invalidates state entries whose fine or coarse dependencies match the mutation.
         Transitions affected entries to StateLifecycle.STALE.
+        Supports sound P(old) OR P(new) update semantics.
         """
         t0 = time.perf_counter_ns()
-        invalidated_ids = self.dep_manager.notify_change(change_type, source, changed_row, row_key)
+        invalidated_ids = self.dep_manager.notify_change(
+            change_type=change_type,
+            source=source,
+            changed_row=changed_row,
+            row_key=row_key,
+            old_row=old_row,
+            new_row=new_row
+        )
 
         for eid in invalidated_ids:
             if eid in self._entries:

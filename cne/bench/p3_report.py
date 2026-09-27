@@ -3,7 +3,7 @@ CNE Phase P3 Necessity Optimizer Consolidated Report Runner.
 Unified Co-Measurement Protocol (system.md §51 & §62):
 1. Co-measures Baseline, G2 Oracle (with state fabric access per §20/§21), and CNE
    over the exact same execution instance to guarantee commensurability.
-2. Mathematically enforces OptimizationCapture = ΔC_CNE / ΔC_oracle <= 1.0 by construction.
+2. Evaluates OptimizationCapture = ΔC_CNE / ΔC_oracle against the oracle bound.
 3. Multi-trial repeated measurement protocol with reported variance/statistics (system.md §28, §58, §60).
 4. Explicitly reports all secondary distribution metrics:
    - negative_savings_fraction
@@ -58,15 +58,14 @@ class P3ReportRunner:
 
             # 2. Evaluate G2 Oracle over A(G, S, C) on the EXACT same state & inputs
             # Per system.md §20/§21.1: Persistent state S is allowed information.
-            memo_k = MemoKey.from_graph(graph, input_data=env.get("inputs"))
-            cached = fabric.get_by_memo_key(memo_k)
-
-            if cached is not None and contract.is_equivalent(cached.value, cached.value):
-                # Oracle with state reuse chooses memo lookup: 0 execution cost
-                c_oracle = 0.0
-            else:
-                ores = oracle.find_recoverable_bound(q["id"], graph, contract, env)
-                c_oracle = ores.optimal_cost
+            ores = oracle.find_recoverable_bound(
+                query_id=q["id"],
+                graph=graph,
+                contract=contract,
+                env=env,
+                fabric=fabric
+            )
+            c_oracle = ores.optimal_cost
 
             # 3. Execute CNE pipeline on the exact same instance
             cne_res = cne.execute_query(

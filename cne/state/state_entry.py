@@ -33,6 +33,7 @@ class StateEntry:
     memo_key: Optional[MemoKey] = None
     contract: Optional[OutcomeContract] = None
     dependency_keys: List[DependencyKey] = field(default_factory=list)
+    dependency_snapshot: Dict[str, int] = field(default_factory=dict)
     created_at_ns: int = field(default_factory=time.perf_counter_ns)
     last_accessed_at_ns: int = field(default_factory=time.perf_counter_ns)
     access_count: int = 0

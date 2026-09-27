@@ -1,6 +1,6 @@
 {
-  "max_avg_cne_latency_ms": 0.3482,
-  "max_p95_cne_latency_ms": 1.2355,
+  "max_avg_cne_latency_ms": 0.3935,
+  "max_p95_cne_latency_ms": 1.3715,
   "max_ram_mb": 128.0,
-  "max_energy_mj_per_query": 1.286
+  "max_energy_mj_per_query": 1.454
 }

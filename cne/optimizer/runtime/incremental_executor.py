@@ -35,36 +35,67 @@ class IncrementalExecutor:
         self.fabric = fabric
         self.evaluator = evaluator or SemanticEvaluator()
 
-    def execute_incremental(
+    def derive_stale_cone(
         self,
         graph: SemanticIRGraph,
-        contract: OutcomeContract,
-        env: Dict[str, Any],
-        stale_sources: Set[str],
-        prior_node_values: Optional[Dict[str, Any]] = None
-    ) -> IncrementalExecutionReport:
-        t_ctrl_start = time.perf_counter_ns()
-        prior_vals = dict(prior_node_values or {})
-
-        # Determine the stale dependency cone:
-        # A node is in the stale cone if:
-        # 1. It is an Observe node whose source is in stale_sources
-        # 2. Or it transitively depends on a node in the stale cone
+        prior_vals: Dict[str, Any],
+        stale_sources: Optional[Set[str]] = None,
+        mutated_dependencies: Optional[List[DependencyKey]] = None
+    ) -> Set[str]:
+        """
+        Derives the minimal transitive stale cone from dependency manager state.
+        A node is in the stale cone if:
+        1. It is an Observe node whose source or key is stale
+        2. Or any input node is in the stale cone
+        3. Or it is missing from prior_vals
+        """
+        stale_srcs = set(stale_sources or set())
         stale_cone: Set[str] = set()
 
         for nid in graph.topological_order():
             node = graph.nodes[nid]
             if node.op == OpKind.OBSERVE:
                 src = node.attributes.get("source")
-                if src in stale_sources or nid not in prior_vals:
+                k = node.attributes.get("key")
+                is_stale = (src in stale_srcs) or (nid not in prior_vals)
+                if not is_stale and mutated_dependencies:
+                    for dep in mutated_dependencies:
+                        if dep.source == src:
+                            if dep.granularity in ("source", "table"):
+                                is_stale = True
+                                break
+                            elif dep.granularity == "key" and k is not None and str(dep.key) == str(k):
+                                is_stale = True
+                                break
+                if is_stale:
                     stale_cone.add(nid)
             elif node.op == OpKind.LITERAL:
                 if nid not in prior_vals:
                     stale_cone.add(nid)
             else:
-                # If any input is in the stale cone or missing from prior_vals, node is stale
                 if any(inp in stale_cone or inp not in prior_vals for inp in node.inputs):
                     stale_cone.add(nid)
+
+        return stale_cone
+
+    def execute_incremental(
+        self,
+        graph: SemanticIRGraph,
+        contract: OutcomeContract,
+        env: Dict[str, Any],
+        stale_sources: Optional[Set[str]] = None,
+        prior_node_values: Optional[Dict[str, Any]] = None,
+        mutated_dependencies: Optional[List[DependencyKey]] = None
+    ) -> IncrementalExecutionReport:
+        t_ctrl_start = time.perf_counter_ns()
+        prior_vals = dict(prior_node_values or {})
+
+        stale_cone = self.derive_stale_cone(
+            graph=graph,
+            prior_vals=prior_vals,
+            stale_sources=stale_sources,
+            mutated_dependencies=mutated_dependencies
+        )
 
         reused_nodes = [nid for nid in graph.nodes if nid not in stale_cone]
         control_overhead_ns = float(time.perf_counter_ns() - t_ctrl_start)
@@ -83,9 +114,10 @@ class IncrementalExecutor:
         execution_time_ns = float(time.perf_counter_ns() - t_exec_start)
         final_val = ctx.values.get(graph.root_id)
 
-        # Selectivity check:
-        # If there were valid nodes that were NOT re-executed, it was selective!
-        was_selective = (len(reused_nodes) > 0 or len(stale_cone) == len(graph.nodes))
+        # True selectivity check (Section 30):
+        # Execution is selective iff some nodes were successfully reused AND not all nodes had to be recomputed.
+        # If stale_cone == all nodes, full recomputation occurred (NOT selective).
+        was_selective = (len(reused_nodes) > 0 and len(stale_cone) < len(graph.nodes))
 
         # Check against clean-slate baseline
         clean_val, _ = self.evaluator.execute(graph, initial_env=env)

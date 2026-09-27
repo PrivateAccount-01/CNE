@@ -2,7 +2,7 @@
 
 [![Python Version](https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-blue.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-Apache_2.0-green.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Extreme Tests](https://img.shields.io/badge/Extreme%20Tests-148%2F148%20Passed-brightgreen.svg)](#extreme-black-box-testing)
+[![Extreme Tests](https://img.shields.io/badge/Extreme%20Tests-154%2F154%20Passed-brightgreen.svg)](#extreme-black-box-testing)
 [![Architecture](https://img.shields.io/badge/Architecture-Frozen%20v1.5-orange.svg)](system.md)
 [![Execution Target](https://img.shields.io/badge/Target-Mobile%20ARM%20%7C%20Android%206--8GB-purple.svg)](#target-execution-envelope)
 
@@ -82,18 +82,18 @@ The semantic layer is strictly hardware-agnostic and consists of exactly 11 prim
 
 ---
 
-## 4. Extreme Black-Box Stress Testing (148/148 Passed)
+## 4. Extreme Black-Box Stress Testing (154/154 Passed)
 
-An exhaustive **148-test extreme testing suite** was constructed to test boundary limits, degenerate inputs, scale extremes, and numerical edge cases:
+An exhaustive **154-test extreme testing suite** was constructed to test boundary limits, degenerate inputs, scale extremes, and numerical edge cases:
 
 ```mermaid
-pie title Extreme Test Breakdown (148 Tests - 100% Pass Rate)
+pie title Extreme Test Breakdown (154 Tests - 100% Pass Rate)
     "Semantic IR Evaluator (25)" : 25
     "Optimizer & Oracle (22)" : 22
+    "State Fabric & Invalidation (21)" : 21
     "Contracts & Equivalence (20)" : 20
-    "Dependencies & Invalidation (20)" : 20
-    "State Fabric & Lifecycle (18)" : 18
-    "Signature System (18)" : 18
+    "Dependencies & Subscriptions (20)" : 20
+    "Signature System (19)" : 19
     "Effect System (15)" : 15
     "Verification & Statistics (12)" : 12
 ```
@@ -106,8 +106,8 @@ pie title Extreme Test Breakdown (148 Tests - 100% Pass Rate)
 | **2. Effect System** | 15 | Immutable `frozenset` backing, non-collapsing 4-effect union, meet-policy derivation, static vs runtime branch effects | **PASS** (100%) |
 | **3. Contract System** | 20 | IEEE 754 precision traps (`0.1 + 0.2 != 0.3`), NaN handling, infinity invariants, exact decision boundaries | **PASS** (100%) |
 | **4. Dependencies & Invalidation** | 20 | Predicate-level insert/delete matching, selective non-invalidation, range boundary checks, cascade to `STALE` | **PASS** (100%) |
-| **5. Signature System** | 18 | Wording invariance across paraphrases, topology discrimination, memo key sensitivity, canonical DFS ordering | **PASS** (100%) |
-| **6. State Fabric & Lifecycle** | 18 | 7-stage lifecycle state machine, terminal `DELETED` state, LRU & cost-benefit eviction, capacity-1 boundaries | **PASS** (100%) |
+| **5. Signature System** | 19 | Wording invariance across paraphrases, topology discrimination, memo key sensitivity across 7 system versions & contracts | **PASS** (100%) |
+| **6. State Fabric & Lifecycle** | 21 | Sound $P(old) \lor P(new)$, range mutations, field granularity, dependency-verified memo lookup, LRU eviction | **PASS** (100%) |
 | **7. Optimizer & Oracle** | 22 | Dead code reachability, constant folding, $O(1)$ cost-gate bypass, information-honest oracle $R^* \ge 0$ | **PASS** (100%) |
 | **8. Verification & Calibration** | 12 | Wilson score $0/100$, $100/100$, $0/0$ edge cases, sample floor $n \ge 460$ ($LB_{\text{CI}} \ge 95\%$), monotonicity | **PASS** (100%) |
 
@@ -125,29 +125,30 @@ CNE complies with all 8 frozen benchmark gates specified in `system.md` using a 
 | **G1a** | Paraphrase Invariance | $\ge 80\%$ shape key invariance across paraphrases | **100.0%** invariance across 20 paraphrase groups | **PASS** |
 | **G1b** | Topology Discrimination | Distinct topologies $\implies$ distinct shape keys | 5 distinct graph topologies $\to$ 5 distinct shape keys | **PASS** |
 | **G1c** | Memo-Key Sensitivity | Anti-reuse keys differ; false-diff keys match | Distinct memo keys on anti-reuse; matching shape on false-diff | **PASS** |
-| **G2** | Information-Honest Oracle | Disjoint train/eval partition, $R^* \ge 25\%$ | Zero data contamination, all contracts preserved, $R^* = 27.32\% \ge 25.0\%$ | **PASS** |
-| **G3** | Cost Accounting & Savings | $\Delta C_{\text{total}} > 0$ and control overhead $A_{\text{corpus}} \le 20\%$ | $\Delta C = +69.64 \pm 1.50\text{ ms}$, $A_{\text{corpus}} = 15.05\% \pm 0.38\% \le 20\%$ | **PASS** |
+| **G2** | Information-Honest Oracle | Disjoint train/eval partition, $R^* \ge 25\%$ | Zero data contamination, all contracts preserved, $R^* = 35.55\% \ge 25.0\%$ | **PASS** |
+| **G3** | Cost Accounting & Savings | $\Delta C_{\text{total}} > 0$ and control overhead $A_{\text{corpus}} \le 20\%$ | $\Delta C = +72.08 \pm 5.82\text{ ms}$, $A_{\text{corpus}} = 16.61\% \pm 0.70\% \le 20\%$ | **PASS** |
 | **G4** | State Selectivity | 100/100 mutation suite + No-solution tests (A & B) | **100/100 passed**, Case A passed, Case B caught as false-prune | **PASS** |
 | **G5** | Calibration & Audit | Sample floor $n \ge 460$, Wilson $LB_{\text{CI}} \ge 95\%$ | $n = 500 \ge 460$, observed $99.0\%$, $LB_{\text{CI}} = 97.68\% \ge 95\%$ | **PASS** |
-| **G6** | Threshold-Freezing Protocol | 4-step protocol: baseline-only characterization | Frozen artifact created, CNE avg $0.203\text{ ms} \le 0.343\text{ ms}$ threshold | **PASS** |
+| **G6** | Threshold-Freezing Protocol | 4-step protocol: baseline-only characterization | Frozen artifact created, CNE avg $0.189\text{ ms} \le 0.342\text{ ms}$ threshold | **PASS** |
 | **G7** | CPU-First Mobile Envelope | CPU-only path satisfies G6 within 6–8 GB mobile target | CPU-only satisfies G6, USB accelerator remains strictly secondary | **PASS** |
 
 ### Phase P3 Co-Measurement & Secondary Distribution Metrics (system.md §28, §60, §62)
 
-To prevent incommensurable cross-run comparisons, Baseline, G2 Oracle, and CNE are co-measured on the exact same execution instance:
+To guarantee commensurability, Baseline, G2 Oracle (over $\mathcal{A}_{\text{benchmark}}$ with state fabric access), and CNE are co-measured on the exact same execution instance:
 
-* **Optimization Capture Ratio**: **$87.48\% \pm 0.60\%$** ($\le 100.0\%$, mathematically bounded by construction).
-* **Negative Savings Fraction**: **$49.8\%$** on single-shot queries (single-shot sub-millisecond cold queries pay a small control tax before state can be reused; recurring sessions achieve high net positive savings).
-* **P95 Overhead Ratio**: **$2.49\times$** baseline latency on cold-start scalar branching queries.
-* **Median Per-Query Savings**: **$+11,280\text{ ns}$**.
+* **Optimization Capture Ratio**: **$73.42\% \pm 2.16\%$** ($\le 100.0\%$, empirically evaluated against the information-honest oracle bound).
+* **Negative Savings Fraction**: **$42.3\% - 49.9\%$** on single-shot queries (single-shot sub-millisecond cold queries pay a small control tax before state can be reused; recurring sessions achieve high net positive savings).
+* **P95 Overhead Ratio**: **$2.37\times - 2.73\times$** baseline latency on cold-start scalar branching queries.
+* **Median Per-Query Savings**: **$+1,970\text{ ns} - 52,590\text{ ns}$**.
 * **State Reuse Ratio**: **$2.75\times$** (multiplied computation saved across sessions).
-* **Amortized Computation Savings**: **$286.77\ \mu\text{s}$ per query**.
+* **Amortized Computation Savings**: **$284.7\ \mu\text{s} - 319.9\ \mu\text{s}$ per query**.
 
 ### Frozen Ablation Ladder (§39)
 The system satisfies the frozen ablation ladder:
-$$B(-1)\text{ Oracle (14.0 ms)} \to B0\text{ Baseline (46.5 ms)} \to B1\text{ Semantic IR} \to B2\text{ State Fabric (26.6 ms)} \to B3\text{ Invalidation} \to B4\text{ Static Opt} \to B5\text{ Cost Gate (28.4 ms)} \to B6\text{ Bounds} \to B7\text{ Learned Controller (26.7 ms)}$$
+$$B(-1)\text{ Oracle (14.5 ms)} \to B0\text{ Baseline (19.1 ms)} \to B1\text{ Semantic IR (51.2 ms)} \to B2\text{ State Fabric (38.2 ms)} \to B3\text{ Invalidation (32.9 ms)} \to B4\text{ Static Opt (30.7 ms)} \to B5\text{ Cost Gate (32.3 ms)} \to B6\text{ Bounds (32.3 ms)} \to B7\text{ Learned Controller (NOT IMPLEMENTED)}$$
 
 See [docs/BENCHMARK_REPORT.md](docs/BENCHMARK_REPORT.md) for full empirical distributions, trial logs, and Leave-One-Out (LOO) non-linear interaction proofs.
+
 
 ---
 

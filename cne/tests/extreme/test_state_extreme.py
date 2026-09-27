@@ -13,6 +13,8 @@ from cne.signature.memo_key import MemoKey
 from cne.contracts.outcome_contract import ContractType, OutcomeContract
 from cne.compiler.deterministic_fixtures import build_expense_fixture
 from cne.semantic_ir.evaluator import SemanticEvaluator
+from cne.semantic_ir.types import DependencyKey
+from cne.optimizer.runtime.dependencies import ChangeType
 from cne.optimizer.necessity_engine import ComputationNecessityEngine
 
 
@@ -234,3 +236,120 @@ def test_concurrent_put_evict_cycle():
     assert len(fabric._entries) <= 5
     # Last entries should be present
     assert f"entry_99" in fabric._entries
+
+
+def test_sound_old_new_mutation_invalidation():
+    """Update where P(old) was True and P(new) is False MUST invalidate (P(old) v P(new))."""
+    fabric = LocalStateFabric()
+    dep = DependencyKey(source="transactions", granularity="predicate", predicate_desc="Category == Food")
+    pred_fn = lambda r: r.get("category") == "Food"
+
+    entry = fabric.put(
+        entry_id="e_food",
+        state_class=StateClass.COMPUTATIONAL,
+        value=100.0,
+        dependencies=[dep],
+        predicate_fns={"transactions": pred_fn}
+    )
+
+    # Update row from Food to Travel
+    old_row = {"id": "tx_1", "category": "Food", "amount": 50.0}
+    new_row = {"id": "tx_1", "category": "Travel", "amount": 50.0}
+
+    inv = fabric.notify_data_mutation(
+        ChangeType.UPDATE,
+        source="transactions",
+        old_row=old_row,
+        new_row=new_row
+    )
+
+    assert "e_food" in inv
+    assert entry.lifecycle == StateLifecycle.STALE
+
+
+def test_sound_range_mutation_invalidation():
+    """Update where old in Range and new not in Range MUST invalidate."""
+    fabric = LocalStateFabric()
+    dep = DependencyKey(source="transactions", granularity="range", field_name="amount", range_bounds=(100.0, 500.0))
+
+    entry = fabric.put(
+        entry_id="e_range",
+        state_class=StateClass.COMPUTATIONAL,
+        value=300.0,
+        dependencies=[dep]
+    )
+
+    old_row = {"id": "tx_1", "amount": 250.0}
+    new_row = {"id": "tx_1", "amount": 1500.0}
+
+    inv = fabric.notify_data_mutation(
+        ChangeType.UPDATE,
+        source="transactions",
+        old_row=old_row,
+        new_row=new_row
+    )
+
+    assert "e_range" in inv
+    assert entry.lifecycle == StateLifecycle.STALE
+
+
+def test_field_level_granularity_invalidation():
+    """Modifying unrelated field does NOT invalidate; modifying subscribed field DOES invalidate."""
+    fabric = LocalStateFabric()
+    dep = DependencyKey(source="users", granularity="field", field_name="status")
+
+    entry = fabric.put(
+        entry_id="e_user_status",
+        state_class=StateClass.COMPUTATIONAL,
+        value="active",
+        dependencies=[dep]
+    )
+
+    # 1. Update unrelated field 'note'
+    old_row = {"id": "u1", "status": "active", "note": "old_note"}
+    new_row = {"id": "u1", "status": "active", "note": "new_note"}
+    inv1 = fabric.notify_data_mutation(
+        ChangeType.UPDATE,
+        source="users",
+        old_row=old_row,
+        new_row=new_row
+    )
+    assert "e_user_status" not in inv1
+    assert entry.lifecycle == StateLifecycle.ACTIVE
+
+    # 2. Update subscribed field 'status'
+    old_row2 = {"id": "u1", "status": "active", "note": "new_note"}
+    new_row2 = {"id": "u1", "status": "suspended", "note": "new_note"}
+    inv2 = fabric.notify_data_mutation(
+        ChangeType.UPDATE,
+        source="users",
+        old_row=old_row2,
+        new_row=new_row2
+    )
+    assert "e_user_status" in inv2
+    assert entry.lifecycle == StateLifecycle.STALE
+
+
+def test_dependency_validity_integrated_into_memo_lookup():
+    """Memo lookup checks dependency version; coarse change renders entry stale on lookup."""
+    fabric = LocalStateFabric()
+    g, contract = build_expense_fixture()
+    mk = MemoKey.from_graph(g, contract=contract)
+    dep = DependencyKey(source="transactions", granularity="table")
+
+    entry = fabric.put(
+        entry_id="e_table_dep",
+        state_class=StateClass.COMPUTATIONAL,
+        value=500.0,
+        memo_key=mk,
+        contract=contract,
+        dependencies=[dep]
+    )
+
+    # Directly increment source version in dep_manager (simulating external un-notified mutation)
+    fabric.dep_manager.source_versions["transactions"] = fabric.dep_manager.get_source_version("transactions") + 1
+
+    # Lookup should detect dependency version mismatch and return None
+    looked_up = fabric.get_by_memo_key(mk)
+    assert looked_up is None
+    assert entry.lifecycle == StateLifecycle.STALE

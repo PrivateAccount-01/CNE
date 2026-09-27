@@ -31,10 +31,20 @@ class CostClass:
         for r in graph.regions.values():
             op_count += len(r.nodes)
 
-        has_external = any(n.op in (OpKind.OBSERVE, OpKind.CALL) for n in graph.nodes.values())
-        has_lazy = any(n.op in (OpKind.BRANCH, OpKind.ITERATE) for n in graph.nodes.values())
-        has_join = any(n.op == OpKind.JOIN for n in graph.nodes.values())
-        has_reduce = any(n.op == OpKind.REDUCE for n in graph.nodes.values())
+        has_external = False
+        has_lazy = False
+        has_join = False
+        has_reduce = False
+        for n in graph.nodes.values():
+            op = n.op
+            if op in (OpKind.OBSERVE, OpKind.CALL):
+                has_external = True
+            elif op in (OpKind.BRANCH, OpKind.ITERATE):
+                has_lazy = True
+            elif op == OpKind.JOIN:
+                has_join = True
+            elif op == OpKind.REDUCE:
+                has_reduce = True
 
         if cardinality_hint < 10:
             bracket = "<10"
