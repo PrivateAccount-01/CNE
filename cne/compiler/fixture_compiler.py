@@ -93,4 +93,15 @@ class FixtureCompiler:
         descriptors, _ = Canonicalizer.canonicalize_graph(g)
         g._cached_descriptors = descriptors
         g._cached_shape_hash = hashlib.sha256(json.dumps(descriptors, sort_keys=True).encode("utf-8")).hexdigest()
+
+        # Attach compile-time execution policy (Doc #4)
+        from cne.effects.effect_set import EffectSet
+        from cne.effects.execution_policy import ExecutionPolicy
+        from cne.effects.propagation import EffectPropagator
+        static_effects = EffectPropagator.compute_static_effects(g)
+        root_eff = static_effects.get(g.root_id) if g.root_id else EffectSet.pure()
+        policy = ExecutionPolicy.from_effect_set(root_eff)
+        g.metadata["execution_policy"] = policy
+        g._cached_execution_policy = policy
+
         return g, contract

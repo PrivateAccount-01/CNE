@@ -54,24 +54,24 @@ def test_predicate_delete_matching_row():
 
 
 def test_predicate_update_matching_to_nonmatching():
-    """Update row to no longer match → MUST invalidate (row changed)."""
+    """Update row to no longer match → MUST invalidate via P(old) matching."""
     dm = DependencyManager()
     dep_key = DependencyKey(source="transactions", granularity="predicate",
                             predicate_desc="category == Food")
     dm.register_dependency("entry_1", dep_key,
                            predicate_fn=lambda row: row.get("category") == "Food")
-    # The changed_row shows the row as it now exists (Travel)
-    # But the predicate checks against the changed row — it doesn't match now
+    old_row = {"id": "tx_1", "category": "Food", "amount": 100}
+    new_row = {"id": "tx_1", "category": "Travel", "amount": 100}
     result = dm.notify_change(ChangeType.UPDATE, "transactions",
-                              {"id": "tx_1", "category": "Travel", "amount": 100})
-    # Even though it doesn't match NOW, the update itself should trigger consideration
-    # Conservative: source-level subscription would catch it
-    # The predicate fn returns False for Travel, so predicate sub doesn't fire
-    # But the original data DID match — this tests whether the system is conservative
-    # Per the spec, this is about "changes that would newly satisfy the predicate"
-    # An UPDATE to a row that previously matched should invalidate
-    # This depends on implementation — let's see what actually happens
-    # (Recording actual behavior)
+                              old_row=old_row, new_row=new_row)
+    assert "entry_1" in result
+
+    # When neither old nor new row matches predicate, entry is preserved
+    unmatched_old = {"id": "tx_2", "category": "Travel", "amount": 50}
+    unmatched_new = {"id": "tx_2", "category": "Entertainment", "amount": 50}
+    result2 = dm.notify_change(ChangeType.UPDATE, "transactions",
+                               old_row=unmatched_old, new_row=unmatched_new)
+    assert "entry_1" not in result2
 
 
 def test_key_level_insert_same_key():
@@ -294,14 +294,30 @@ def test_predicate_never_existed_row():
 def test_field_granularity_mismatch():
     """Field-level subscription vs key-level change — interaction test."""
     dm = DependencyManager()
-    # This is a tricky case: field granularity requires both key and field_name match
     dep_key = DependencyKey(source="users", granularity="field",
                             key="alice", field_name="email")
     dm.register_dependency("entry_1", dep_key)
-    # No specific handling for field granularity in current register_dependency
-    # This tests what actually happens — does it fall through to source-level?
-    result = dm.notify_change(ChangeType.UPDATE, "users",
-                              {"id": "alice", "email": "new@example.com"},
-                              row_key="alice")
-    # The result depends on implementation — recording actual behavior
-    # Field granularity may not be fully implemented
+
+    # Mutating matching key 'alice' and matching field 'email' -> MUST invalidate
+    result_matched = dm.notify_change(
+        ChangeType.UPDATE, "users",
+        new_row={"id": "alice", "email": "new@example.com"},
+        row_key="alice"
+    )
+    assert "entry_1" in result_matched
+
+    # Mutating matching key 'alice' but different field 'age' -> MUST NOT invalidate
+    result_unmatched_field = dm.notify_change(
+        ChangeType.UPDATE, "users",
+        new_row={"id": "alice", "age": 30},
+        row_key="alice"
+    )
+    assert "entry_1" not in result_unmatched_field
+
+    # Mutating different key 'bob' with 'email' -> MUST NOT invalidate
+    result_unmatched_key = dm.notify_change(
+        ChangeType.UPDATE, "users",
+        new_row={"id": "bob", "email": "bob@example.com"},
+        row_key="bob"
+    )
+    assert "entry_1" not in result_unmatched_key

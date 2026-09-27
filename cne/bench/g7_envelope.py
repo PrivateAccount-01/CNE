@@ -16,8 +16,8 @@ from cne.planner.physical_planner import ExecutionTarget, PhysicalPlanner
 class GateG7Runner:
     @classmethod
     def run_g7(cls) -> Dict[str, Any]:
-        # 1. Run G6 under CPU-only constraint
-        g6_res = GateG6Runner.run_g6()
+        # 1. Evaluate G6 under CPU-only constraint against frozen thresholds (Doc #24: read, do not regenerate)
+        g6_res = GateG6Runner.run_g6(force_freeze=False)
 
         # 2. Verify physical planner CPU-first assignments
         planner_cpu = PhysicalPlanner(allow_usb=False)

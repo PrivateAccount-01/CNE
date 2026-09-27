@@ -23,6 +23,9 @@ from cne.semantic_ir.evaluator import ExecutionContext, SemanticEvaluator
 from cne.semantic_ir.nodes import IRNode, OpKind, SemanticIRGraph, SemanticRegion
 
 
+import statistics
+
+
 @dataclass
 class OracleIntervention:
     """
@@ -31,6 +34,7 @@ class OracleIntervention:
     description: str
     transformed_graph: SemanticIRGraph
     estimated_cost: float
+    evidence_tier: str = "Certified"
 
 
 @dataclass
@@ -66,11 +70,14 @@ class G2Oracle:
         if train_corpus_ids and query_id in train_corpus_ids:
             raise ValueError(f"Contamination violation: evaluated query {query_id} is in train corpus!")
 
-        # 1. Run baseline execution and measure baseline cost
-        t0 = time.perf_counter_ns()
+        # 1. Run baseline execution and measure baseline cost across repeated trials (Doc #18)
         baseline_result, baseline_ctx = self.evaluator.execute(graph, initial_env=env)
-        baseline_time_ns = max(1, time.perf_counter_ns() - t0)
-        baseline_cost = float(baseline_time_ns)
+        base_times = []
+        for _ in range(3):
+            t0 = time.perf_counter_ns()
+            self.evaluator.execute(graph, initial_env=env)
+            base_times.append(max(1, time.perf_counter_ns() - t0))
+        baseline_cost = float(statistics.median(base_times))
 
         # 2. Enumerate candidate admissible interventions from A_benchmark(G, S, C)
         candidate_interventions = self._generate_admissible_candidates(graph, env, contract, fabric)
@@ -83,9 +90,14 @@ class G2Oracle:
         # 3. Offline hindsight-validation:
         # Validate candidate against OutcomeContract using baseline result
         for cand in candidate_interventions:
-            t_cand_start = time.perf_counter_ns()
+            # Measure candidate execution time via repeated-trial median to eliminate noise (Doc #18)
             cand_val, cand_ctx = self.evaluator.execute(cand.transformed_graph, initial_env=env)
-            cand_time_ns = max(1, time.perf_counter_ns() - t_cand_start)
+            cand_times = []
+            for _ in range(3):
+                t_cand = time.perf_counter_ns()
+                self.evaluator.execute(cand.transformed_graph, initial_env=env)
+                cand_times.append(max(1, time.perf_counter_ns() - t_cand))
+            cand_time_ns = int(statistics.median(cand_times))
 
             # Check contract equivalence: cand_val ≡_C baseline_result
             if contract.is_equivalent(cand_val, baseline_result):
@@ -174,11 +186,13 @@ class G2Oracle:
                 ))
 
         # T5: Filter simplification under contract
+        # (Doc #15: Relabeled as Audited-tier evidence, since heuristic predicate sampling on empty/test input is not a formal proof)
         filt_g = self._simplify_filters(spec_g, contract)
         candidates.append(OracleIntervention(
             description="contract_filter_simplification",
             transformed_graph=filt_g,
-            estimated_cost=0.0
+            estimated_cost=0.0,
+            evidence_tier="Audited"
         ))
 
         # T6: Composite composition

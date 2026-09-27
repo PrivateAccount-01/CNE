@@ -26,8 +26,12 @@ class GateG6Runner:
     ARTIFACT_DIR = os.path.join(os.path.dirname(__file__), "..", "artifacts", "thresholds")
 
     @classmethod
-    def run_g6(cls) -> Dict[str, Any]:
+    def run_g6(cls, force_freeze: bool = False) -> Dict[str, Any]:
         os.makedirs(cls.ARTIFACT_DIR, exist_ok=True)
+        base_char_path = os.path.join(cls.ARTIFACT_DIR, "baseline_characterization.json")
+        thresholds_path = os.path.join(cls.ARTIFACT_DIR, "thresholds_frozen.json")
+        timestamp_path = os.path.join(cls.ARTIFACT_DIR, "timestamp.txt")
+
         corpus = CorpusGenerator.generate_corpus()
         queries = corpus["queries"][:80]
 
@@ -42,60 +46,73 @@ class GateG6Runner:
 
         evaluator = SemanticEvaluator()
 
+        # True write-once check (Doc #24):
+        # If freeze artifacts already exist and force_freeze is False, load them directly.
+        artifacts_exist = (
+            os.path.exists(base_char_path)
+            and os.path.exists(thresholds_path)
+            and os.path.exists(timestamp_path)
+        )
+
+        if artifacts_exist and not force_freeze:
+            with open(base_char_path, "r", encoding="utf-8") as f:
+                baseline_characterization = json.load(f)
+            with open(thresholds_path, "r", encoding="utf-8") as f:
+                frozen_thresholds = json.load(f)
+            with open(timestamp_path, "r", encoding="utf-8") as f:
+                now_iso = f.read().strip()
+        else:
+            # =================================================================
+            # STEP 1: Baseline characterization ONLY (no CNE results visible)
+            # =================================================================
+            baseline_latencies_ms: List[float] = []
+            t_base_start = time.perf_counter_ns()
+            for q in queries:
+                g, _ = FixtureCompiler.compile_query(q)
+                t0 = time.perf_counter_ns()
+                evaluator.execute(g, initial_env=env)
+                lat = (time.perf_counter_ns() - t0) / 1e6
+                baseline_latencies_ms.append(lat)
+            total_baseline_time_ms = (time.perf_counter_ns() - t_base_start) / 1e6
+
+            avg_baseline_latency_ms = sum(baseline_latencies_ms) / len(baseline_latencies_ms)
+            p95_baseline_latency_ms = sorted(baseline_latencies_ms)[int(0.95 * len(baseline_latencies_ms))]
+
+            baseline_characterization = {
+                "num_queries": len(queries),
+                "total_baseline_time_ms": round(total_baseline_time_ms, 3),
+                "avg_baseline_latency_ms": round(avg_baseline_latency_ms, 4),
+                "p95_baseline_latency_ms": round(p95_baseline_latency_ms, 4),
+                "estimated_ram_mb": 12.5,
+                "estimated_energy_mj_per_query": round(avg_baseline_latency_ms * 3.5, 3)
+            }
+
+            # =================================================================
+            # STEP 2: Determine acceptable thresholds strictly from baseline
+            # =================================================================
+            frozen_thresholds = {
+                "max_avg_cne_latency_ms": round(avg_baseline_latency_ms * 0.90, 4),  # Must be at least 10% faster on avg
+                "max_p95_cne_latency_ms": round(p95_baseline_latency_ms * 1.5, 4),   # Bound on tail latency
+                "max_ram_mb": 128.0,                                                 # Well within 6-8 GB mobile budget
+                "max_energy_mj_per_query": round(baseline_characterization["estimated_energy_mj_per_query"] * 0.95, 3)
+            }
+
+            # =================================================================
+            # STEP 3: Create timestamped freeze artifacts
+            # =================================================================
+            now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
+
+            with open(base_char_path, "w", encoding="utf-8") as f:
+                json.dump(baseline_characterization, f, indent=2)
+
+            with open(thresholds_path, "w", encoding="utf-8") as f:
+                json.dump(frozen_thresholds, f, indent=2)
+
+            with open(timestamp_path, "w", encoding="utf-8") as f:
+                f.write(f"Frozen at: {now_iso}\nBaseline characterization complete.\n")
+
         # =================================================================
-        # STEP 1: Baseline characterization ONLY (no CNE results visible)
-        # =================================================================
-        baseline_latencies_ms: List[float] = []
-        t_base_start = time.perf_counter_ns()
-        for q in queries:
-            g, _ = FixtureCompiler.compile_query(q)
-            t0 = time.perf_counter_ns()
-            evaluator.execute(g, initial_env=env)
-            lat = (time.perf_counter_ns() - t0) / 1e6
-            baseline_latencies_ms.append(lat)
-        total_baseline_time_ms = (time.perf_counter_ns() - t_base_start) / 1e6
-
-        avg_baseline_latency_ms = sum(baseline_latencies_ms) / len(baseline_latencies_ms)
-        p95_baseline_latency_ms = sorted(baseline_latencies_ms)[int(0.95 * len(baseline_latencies_ms))]
-
-        baseline_characterization = {
-            "num_queries": len(queries),
-            "total_baseline_time_ms": round(total_baseline_time_ms, 3),
-            "avg_baseline_latency_ms": round(avg_baseline_latency_ms, 4),
-            "p95_baseline_latency_ms": round(p95_baseline_latency_ms, 4),
-            "estimated_ram_mb": 12.5,
-            "estimated_energy_mj_per_query": round(avg_baseline_latency_ms * 3.5, 3)
-        }
-
-        # =================================================================
-        # STEP 2: Determine acceptable thresholds strictly from baseline
-        # =================================================================
-        frozen_thresholds = {
-            "max_avg_cne_latency_ms": round(avg_baseline_latency_ms * 0.90, 4),  # Must be at least 10% faster on avg
-            "max_p95_cne_latency_ms": round(p95_baseline_latency_ms * 1.5, 4),   # Bound on tail latency
-            "max_ram_mb": 128.0,                                                 # Well within 6-8 GB mobile budget
-            "max_energy_mj_per_query": round(baseline_characterization["estimated_energy_mj_per_query"] * 0.95, 3)
-        }
-
-        # =================================================================
-        # STEP 3: Create timestamped freeze artifacts
-        # =================================================================
-        now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
-
-        base_char_path = os.path.join(cls.ARTIFACT_DIR, "baseline_characterization.json")
-        with open(base_char_path, "w", encoding="utf-8") as f:
-            json.dump(baseline_characterization, f, indent=2)
-
-        thresholds_path = os.path.join(cls.ARTIFACT_DIR, "thresholds_frozen.json")
-        with open(thresholds_path, "w", encoding="utf-8") as f:
-            json.dump(frozen_thresholds, f, indent=2)
-
-        timestamp_path = os.path.join(cls.ARTIFACT_DIR, "timestamp.txt")
-        with open(timestamp_path, "w", encoding="utf-8") as f:
-            f.write(f"Frozen at: {now_iso}\nBaseline characterization complete.\n")
-
-        # =================================================================
-        # STEP 4: After freezing, run CNE against frozen thresholds
+        # STEP 4: Evaluate CNE against frozen thresholds
         # =================================================================
         fabric = LocalStateFabric()
         cne = ComputationNecessityEngine(fabric=fabric, evaluator=evaluator)

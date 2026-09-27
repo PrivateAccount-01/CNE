@@ -37,6 +37,10 @@ class SemanticEvaluator:
         mandatory external side-effects (requires_execution()).
         Dead work not in this set is skipped during evaluation.
         """
+        cached = getattr(graph, "_cached_reachable", None)
+        if cached is not None:
+            return cached
+
         if not graph.nodes:
             return set()
         if not graph.root_id or graph.root_id not in graph.nodes:
@@ -56,13 +60,21 @@ class SemanticEvaluator:
                 reachable.add(curr)
                 queue.extend(graph.nodes[curr].inputs)
 
+        graph._cached_reachable = reachable
         return reachable
 
-    def execute(self, graph: SemanticIRGraph, initial_env: Optional[Dict[str, Any]] = None) -> Tuple[Any, ExecutionContext]:
+    def execute(
+        self,
+        graph: SemanticIRGraph,
+        initial_env: Optional[Dict[str, Any]] = None,
+        physical_plan: Optional[Any] = None
+    ) -> Tuple[Any, ExecutionContext]:
         ctx = ExecutionContext(
             environment=dict(initial_env or {}),
             tools=dict(self.tools)
         )
+        if physical_plan is not None:
+            ctx.environment["_physical_plan"] = physical_plan
         reachable = self.compute_reachable_nodes(graph)
         order = graph.topological_order()
 
@@ -257,8 +269,21 @@ class SemanticEvaluator:
             budget = node.attributes.get("budget", {})
             utility_fn = node.attributes.get("utility_fn")
             cost_fn = node.attributes.get("cost_fn")
+            policy_type = node.attributes.get("policy", "greedy")
+            lookahead_depth = node.attributes.get("lookahead_depth", 2)
 
-            val = self._choose_action(belief, actions, budget, utility_fn, cost_fn)
+            if policy_type == "bounded_lookahead" or node.attributes.get("lookahead", False):
+                from cne.optimizer.runtime.choose import BoundedLookaheadPolicy
+                u_fn = utility_fn if utility_fn else (lambda act, b: act.get("expected_utility", 0.0))
+                val = BoundedLookaheadPolicy.select_first_action(
+                    belief=belief,
+                    actions=actions,
+                    budget=budget,
+                    utility_fn=u_fn,
+                    depth=lookahead_depth
+                )
+            else:
+                val = self._choose_action(belief, actions, budget, utility_fn, cost_fn)
 
         elif node.op == OpKind.CALL:
             target = node.attributes.get("target")

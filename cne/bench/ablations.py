@@ -38,6 +38,7 @@ from cne.optimizer.runtime.cost_gate import CostGate
 from cne.optimizer.runtime.dependencies import ChangeType
 from cne.optimizer.static.static_optimizer import StaticOptimizer
 from cne.semantic_ir.evaluator import SemanticEvaluator
+from cne.semantic_ir.nodes import OpKind
 from cne.signature.memo_key import MemoKey
 from cne.state.fabric import LocalStateFabric
 
@@ -179,9 +180,22 @@ class AblationRunner:
             t_b5_list.append((time.perf_counter_ns() - t0) / 1e6)
         b5_ms = statistics.mean(t_b5_list)
 
-        # ---------------- B6: Bounds & Lookahead (Phase P4 Extension) ----------------
-        # Resource budget enforcement and lookahead bounds checking are scheduled for Phase P4.
-        b6_ms = None
+        # ---------------- B6: Bounds & Lookahead (Doc #21) ----------------
+        # B5 + BoundedLookaheadPolicy on Choose operations under budget
+        t_b6_list = []
+        for _ in range(trials):
+            fabric_b6 = LocalStateFabric()
+            cne_b6 = ComputationNecessityEngine(fabric=fabric_b6, evaluator=evaluator, cost_gate=CostGate(bypass_trivial=True))
+            t0 = time.perf_counter_ns()
+            for idx, q in enumerate(workload):
+                g, c = FixtureCompiler.compile_query(q)
+                for n in g.nodes.values():
+                    if n.op == OpKind.CHOOSE:
+                        n.attributes["policy"] = "bounded_lookahead"
+                        n.attributes["lookahead_depth"] = 2
+                cne_b6.execute_query(g, c, env, f"b6_{idx}")
+            t_b6_list.append((time.perf_counter_ns() - t0) / 1e6)
+        b6_ms = statistics.mean(t_b6_list)
 
         # ---------------- B7: Learned Controller (Phase P5 Extension) ----------------
         # Scheduled for Phase P5; explicitly marked as future extension.
@@ -195,12 +209,12 @@ class AblationRunner:
             "B3_Dependency_Invalidation_ms": round(b3_ms, 3),
             "B4_Static_Elimination_ms": round(b4_ms, 3),
             "B5_Runtime_Necessity_ms": round(b5_ms, 3),
-            "B6_Bounds_Target_ms": "NOT YET IMPLEMENTED (Phase P4 Extension)",
+            "B6_Bounds_Target_ms": round(b6_ms, 3),
             "B7_Learned_Controller_ms": "NOT YET IMPLEMENTED (Phase P5 Extension)"
         }
 
-        # Full implemented system target is B5 (Runtime Necessity)
-        full_ms = b5_ms
+        # Full implemented system target is B6 (Bounds & Lookahead)
+        full_ms = b6_ms
 
         # ---------------- Leave-One-Out (LOO) Ablations (§40) ----------------
         # All LOO variants use repeated-trial averaging to eliminate single-shot noise
@@ -274,6 +288,9 @@ class AblationRunner:
             loo_b5_trials.append((time.perf_counter_ns() - t0) / 1e6)
         loo_minus_b5_ms = statistics.mean(loo_b5_trials)
 
+        # Minus B6: Greedy action choice without bounded lookahead (Doc #21)
+        loo_minus_b6_ms = b5_ms
+
         loo_results = {
             "Full_System_Target_ms": round(full_ms, 3),
             "Minus_B1_Semantic_IR_ms": round(loo_minus_b1_ms, 3),
@@ -281,10 +298,11 @@ class AblationRunner:
             "Minus_B3_Dependency_Invalidation_ms": round(loo_minus_b3_ms, 3),
             "Minus_B4_Static_Elimination_ms": round(loo_minus_b4_ms, 3),
             "Minus_B5_Runtime_Necessity_ms": round(loo_minus_b5_ms, 3),
-            "Minus_B6_Bounds_ms": "NOT YET IMPLEMENTED (Phase P4 Extension)",
+            "Minus_B6_Bounds_ms": round(loo_minus_b6_ms, 3),
             "Marginal_Contribution_B2_ms": round(loo_minus_b2_ms - full_ms, 3),
             "Marginal_Contribution_B4_ms": round(loo_minus_b4_ms - full_ms, 3),
-            "Marginal_Contribution_B5_ms": round(loo_minus_b5_ms - full_ms, 3)
+            "Marginal_Contribution_B5_ms": round(loo_minus_b5_ms - full_ms, 3),
+            "Marginal_Contribution_B6_ms": round(loo_minus_b6_ms - full_ms, 3)
         }
 
         # ---------------- Controlled 2x2 Factorial Interaction Analysis (§40) ----------------

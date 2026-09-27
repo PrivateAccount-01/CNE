@@ -419,14 +419,21 @@ def test_necessity_engine_stale_after_mutation():
     ]}
 
     r1 = cne.execute_query(g, contract, env, query_id="q1")
+    assert r1.value == 100.0
+    assert r1.reused_state is False
+
     # Mutate the data source
+    new_tx = {"id": "2", "category": "Food", "amount": 80.0, "is_transfer": False}
+    env["transactions"].append(new_tx)
     fabric.notify_data_mutation(
         ChangeType.INSERT, "transactions",
-        {"id": "2", "category": "Food", "amount": 80.0}
+        new_row=new_tx
     )
     # Should NOT get stale cached result
     r2 = cne.execute_query(g, contract, env, query_id="q2_post_mutation")
     # r2 should be a fresh computation (not reused stale state)
+    assert r2.reused_state is False
+    assert r2.value == 180.0
 
 
 # ---------- Physical Planner ----------

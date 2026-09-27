@@ -41,6 +41,11 @@ class PhysicalPlanner:
         """
         Assigns nodes to execution targets. Defaults strictly to CPU_LOCAL.
         """
+        if not self.allow_usb and not system_thermal_throttled:
+            cached = getattr(graph, "_cached_physical_plan", None)
+            if cached is not None:
+                return cached
+
         assignments: Dict[str, ExecutionTarget] = {}
         for nid in graph.nodes:
             # Primary target is always local CPU
@@ -55,9 +60,12 @@ class PhysicalPlanner:
 
         is_cpu_only = all(t == ExecutionTarget.CPU_LOCAL for t in assignments.values())
 
-        return PhysicalPlan(
+        plan = PhysicalPlan(
             graph_id=graph.root_id,
             target_assignments=assignments,
             estimated_memory_mb=16.0,
             is_cpu_only=is_cpu_only
         )
+        if not self.allow_usb and not system_thermal_throttled:
+            graph._cached_physical_plan = plan
+        return plan

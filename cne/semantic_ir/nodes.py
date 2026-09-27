@@ -99,13 +99,46 @@ class SemanticIRGraph:
     root_id: str = ""
     metadata: Dict[str, Any] = field(default_factory=dict)
 
+    def invalidate_structural_cache(self) -> None:
+        """
+        Invalidates all cached structural derivations (topological order,
+        shape hash, descriptors, reachability, execution policy) when graph topology mutates (Doc #10).
+        """
+        self._cached_topo = None
+        self._cached_descriptors = None
+        self._cached_shape_hash = None
+        self._cached_reachable = None
+        self._cached_execution_policy = None
+        self._cached_observed_sources = None
+        self._cached_physical_plan = None
+
+    def get_observed_sources(self) -> List[str]:
+        cached = getattr(self, "_cached_observed_sources", None)
+        if cached is None:
+            sources = []
+            for n in self.nodes.values():
+                if n.op == OpKind.OBSERVE:
+                    src = n.attributes.get("source")
+                    if src:
+                        sources.append(src)
+            self._cached_observed_sources = sources
+            return sources
+        return cached
+
     def add_node(self, node: IRNode) -> None:
         self.nodes[node.id] = node
         if not self.root_id:
             self.root_id = node.id
+        self.invalidate_structural_cache()
+
+    def remove_node(self, node_id: str) -> None:
+        if node_id in self.nodes:
+            del self.nodes[node_id]
+            self.invalidate_structural_cache()
 
     def add_region(self, region: SemanticRegion) -> None:
         self.regions[region.id] = region
+        self.invalidate_structural_cache()
 
     def get_node(self, node_id: str) -> Optional[IRNode]:
         if node_id in self.nodes:

@@ -93,8 +93,8 @@ pie title Extreme Test Breakdown (154 Tests - 100% Pass Rate)
     "State Fabric & Invalidation (21)" : 21
     "Contracts & Equivalence (20)" : 20
     "Dependencies & Subscriptions (20)" : 20
-    "Signature System (19)" : 19
-    "Effect System (15)" : 15
+    "Signature System (20)" : 20
+    "Effect System (14)" : 14
     "Verification & Statistics (12)" : 12
 ```
 
@@ -103,10 +103,10 @@ pie title Extreme Test Breakdown (154 Tests - 100% Pass Rate)
 | Module | Tests | Extreme Edge Cases Validated | Status |
 | :--- | :---: | :--- | :---: |
 | **1. Semantic IR Evaluator** | 25 | Empty graphs, 200-deep recursion chains, $N=50$ Bayesian hypotheses, $100 \times 100$ joins, budget exhaustion | **PASS** (100%) |
-| **2. Effect System** | 15 | Immutable `frozenset` backing, non-collapsing 4-effect union, meet-policy derivation, static vs runtime branch effects | **PASS** (100%) |
+| **2. Effect System** | 14 | Immutable `frozenset` backing, non-collapsing 4-effect union, meet-policy derivation, static vs runtime branch effects | **PASS** (100%) |
 | **3. Contract System** | 20 | IEEE 754 precision traps (`0.1 + 0.2 != 0.3`), NaN handling, infinity invariants, exact decision boundaries | **PASS** (100%) |
 | **4. Dependencies & Invalidation** | 20 | Predicate-level insert/delete matching, selective non-invalidation, range boundary checks, cascade to `STALE` | **PASS** (100%) |
-| **5. Signature System** | 19 | Wording invariance across paraphrases, topology discrimination, memo key sensitivity across 7 system versions & contracts | **PASS** (100%) |
+| **5. Signature System** | 20 | Wording invariance across paraphrases, topology discrimination, memo key sensitivity across 7 system versions & contracts | **PASS** (100%) |
 | **6. State Fabric & Lifecycle** | 21 | Sound $P(old) \lor P(new)$, range mutations, field granularity, dependency-verified memo lookup, LRU eviction | **PASS** (100%) |
 | **7. Optimizer & Oracle** | 22 | Dead code reachability, constant folding, $O(1)$ cost-gate bypass, information-honest oracle $R^* \ge 0$ | **PASS** (100%) |
 | **8. Verification & Calibration** | 12 | Wilson score $0/100$, $100/100$, $0/0$ edge cases, sample floor $n \ge 460$ ($LB_{\text{CI}} \ge 95\%$), monotonicity | **PASS** (100%) |

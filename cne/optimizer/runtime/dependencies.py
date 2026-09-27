@@ -126,6 +126,8 @@ class DependencyManager:
                 active_keys=set(active_keys) if active_keys is not None else None
             )
             self._join_subscriptions.setdefault(src, []).append(sub_j)
+            if sub_j.source_b and sub_j.source_b != src:
+                self._join_subscriptions.setdefault(sub_j.source_b, []).append(sub_j)
 
     def notify_change(
         self,

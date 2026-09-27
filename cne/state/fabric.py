@@ -41,6 +41,7 @@ class LocalStateFabric:
         predicate_fns: Optional[Dict[str, Callable[[Dict[str, Any]], bool]]] = None,
         provenance: Optional[Dict[str, Any]] = None
     ) -> StateEntry:
+        t0 = time.perf_counter_ns()
         # Check eviction if needed
         if len(self._entries) >= self.eviction_policy.max_entries:
             candidates = self.eviction_policy.select_eviction_candidates(
@@ -78,6 +79,7 @@ class LocalStateFabric:
                 pred_fn = (predicate_fns or {}).get(dep.source)
                 self.dep_manager.register_dependency(entry_id, dep, predicate_fn=pred_fn)
 
+        self.total_stateful_overhead_ns += (time.perf_counter_ns() - t0)
         return entry
 
     def is_entry_valid(self, entry: StateEntry) -> bool:
@@ -155,6 +157,8 @@ class LocalStateFabric:
         return invalidated_ids
 
     def delete(self, entry_id: str) -> bool:
+        t0 = time.perf_counter_ns()
+        deleted = False
         if entry_id in self._entries:
             entry = self._entries[entry_id]
             entry.transition(StateLifecycle.DELETED)
@@ -162,8 +166,9 @@ class LocalStateFabric:
                 self._memo_index.pop(entry.memo_key.key_hash, None)
             self.dep_manager.unregister_entry(entry_id)
             del self._entries[entry_id]
-            return True
-        return False
+            deleted = True
+        self.total_stateful_overhead_ns += (time.perf_counter_ns() - t0)
+        return deleted
 
     @property
     def state_reuse_ratio(self) -> float:

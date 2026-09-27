@@ -99,6 +99,14 @@ class GateG4Runner:
                 else:
                     thresh = 60.0 + idx * 5.0
                     graph, contract = build_expense_fixture(category="Food", threshold=thresh)
+                    obs_pref = IRNode(
+                        id="obs_pref",
+                        op=OpKind.OBSERVE,
+                        attributes={"source": "user_preferences"},
+                        output_type=SemanticType.record({})
+                    )
+                    graph.add_node(obs_pref)
+                    graph.nodes["emit_res"].inputs = ["red_sum", "obs_pref"]
                     clean_val, clean_ctx = evaluator.execute(graph, initial_env=env)
                     memo_k = MemoKey.from_graph(graph, input_data={"thresh": thresh})
                     entry = fabric.put(
@@ -201,11 +209,11 @@ class GateG4Runner:
                     prior_node_values=clean_ctx.values
                 )
 
-                if inc_report.is_contract_equivalent:
+                # Strict requirement (Doc #7): BOTH contract equivalence AND selectivity must pass!
+                if inc_report.is_contract_equivalent and inc_report.was_selective:
                     passed_cases += 1
                     matrix_breakdown[m_type] += 1
-                    if inc_report.was_selective:
-                        fabric.record_useful_reuse(entry, baseline_cost_saved_ns=1000.0)
+                    fabric.record_useful_reuse(entry, baseline_cost_saved_ns=1000.0)
 
         # ---------------- Section 32: No-Solution Cases ----------------
         # Case A: Genuine Insufficiency (both baseline and CNE emit insufficiency -> MUST PASS)

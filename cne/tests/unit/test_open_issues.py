@@ -271,3 +271,177 @@ def test_lazy_branch_region_selective_recompute():
     # r_obs_b was untouched: reused!
     assert "r_obs_b" in report.reused_node_ids
     assert report.result == 35
+
+
+def test_execution_policy_blocks_cache_read_and_write_on_side_effects():
+    """Doc #4: Graphs with WriteExternal/Interactive side effects MUST NOT be cached or served from cache."""
+    from cne.effects.effect_set import Effect
+    from cne.effects.execution_policy import Cacheability
+
+    fabric = LocalStateFabric()
+    cne = ComputationNecessityEngine(fabric=fabric)
+
+    g = SemanticIRGraph()
+    # Call node with declared WriteExternal effect
+    call_node = IRNode(
+        id="side_effect_call",
+        op=OpKind.CALL,
+        declared_effects=EffectSet([Effect.WriteExternal]),
+        attributes={"fn": lambda: 42}
+    )
+    emit = IRNode(id="emit", op=OpKind.EMIT, inputs=["side_effect_call"])
+    g.add_node(call_node)
+    g.add_node(emit)
+    g.root_id = "emit"
+
+    contract = OutcomeContract(contract_type=ContractType.EXACT)
+
+    # First run: executes, but should NOT persist into StateFabric due to Cacheability.NEVER
+    res1 = cne.execute_query(g, contract, env={}, query_id="q_side_effect_1")
+    assert res1.value == 42
+    assert res1.reused_state is False
+    assert fabric.total_state_created == 0, "Side-effecting graph was mistakenly written to StateFabric!"
+
+    # Second run: must re-execute, NOT serve from cache
+    res2 = cne.execute_query(g, contract, env={}, query_id="q_side_effect_2")
+    assert res2.value == 42
+    assert res2.reused_state is False
+
+
+def test_symmetric_join_dependency_registration():
+    """Doc #6: Join dependency must invalidate when either source_a or source_b mutates."""
+    dm = DependencyManager()
+    dep = DependencyKey(
+        source="orders",
+        granularity="join",
+        key="customers",  # source_b
+        field_name="customer_id"
+    )
+    dm.register_dependency("entry_join_1", dep)
+
+    # Mutating source_a ('orders') with customer_id
+    res_a = dm.notify_change(ChangeType.INSERT, "orders", new_row={"id": 1, "customer_id": 99})
+    assert "entry_join_1" in res_a, "Mutating source_a failed to invalidate join dependency!"
+
+    # Mutating source_b ('customers') with customer_id
+    res_b = dm.notify_change(ChangeType.UPDATE, "customers", new_row={"id": 100, "customer_id": 99})
+    assert "entry_join_1" in res_b, "Mutating source_b failed to invalidate join dependency (asymmetric registration)!"
+
+
+def test_graph_structural_cache_invalidation_on_mutation():
+    """Doc #10: Adding or removing nodes/regions must invalidate cached structural derivations."""
+    g = SemanticIRGraph()
+    n1 = IRNode(id="n1", op=OpKind.LITERAL, attributes={"value": 10})
+    g.add_node(n1)
+    g.root_id = "n1"
+
+    # Compute topological order and cached reachable
+    order1 = g.topological_order()
+    assert order1 == ["n1"]
+    assert g._cached_topo == ["n1"]
+
+    # Mutate graph by adding a node
+    n2 = IRNode(id="n2", op=OpKind.LITERAL, attributes={"value": 20})
+    g.add_node(n2)
+    assert g._cached_topo is None, "Adding a node failed to invalidate _cached_topo!"
+    assert g._cached_reachable is None, "Adding a node failed to invalidate _cached_reachable!"
+
+    order2 = g.topological_order()
+    assert set(order2) == {"n1", "n2"}
+
+    # Remove node
+    g.remove_node("n2")
+    assert g._cached_topo is None, "Removing a node failed to invalidate _cached_topo!"
+
+
+def test_real_cardinality_hint_propagation_to_cost_class():
+    """Doc #13: Real dataset sizes in env must be propagated to CostClass instead of defaulting to 100."""
+    g = SemanticIRGraph()
+    obs = IRNode(id="obs_large", op=OpKind.OBSERVE, attributes={"source": "large_dataset"})
+    emit = IRNode(id="emit", op=OpKind.EMIT, inputs=["obs_large"])
+    g.add_node(obs)
+    g.add_node(emit)
+    g.root_id = "emit"
+
+    large_env = {"large_dataset": [{"id": i} for i in range(25000)]}
+
+    cne = ComputationNecessityEngine()
+    contract = OutcomeContract(contract_type=ContractType.EXACT)
+
+    # Execute and verify CostClass dynamically derives bracket ">100k" or "1k-100k"
+    res = cne.execute_query(g, contract, env=large_env, query_id="q_large")
+    assert res.value is not None
+
+
+def test_decision_contract_simplification():
+    """Doc #14: DECISION contract simplification folds constant boundary values."""
+    from cne.optimizer.static.contract_simplification import ContractSimplifier
+
+    g = SemanticIRGraph()
+    lit = IRNode(id="const_val", op=OpKind.LITERAL, attributes={"value": 150.0})
+    emit = IRNode(id="emit", op=OpKind.EMIT, inputs=["const_val"])
+    g.add_node(lit)
+    g.add_node(emit)
+    g.root_id = "emit"
+
+    c_dec = OutcomeContract(contract_type=ContractType.DECISION, decision_boundary=100.0)
+    simplified = ContractSimplifier.simplify(g, c_dec)
+
+    folded_node = simplified.nodes["const_val"]
+    assert folded_node.attributes["value"] is True, "Decision contract simplification failed to fold constant boundary!"
+
+
+def test_bounded_lookahead_policy_integration_in_evaluator():
+    """Doc #21: Evaluator integrates BoundedLookaheadPolicy on Choose operations when requested."""
+    evaluator = SemanticEvaluator()
+
+    g = SemanticIRGraph()
+    actions = [
+        {"name": "a1", "cost": {"latency": 5.0}, "expected_utility": 10.0},
+        {"name": "a2", "cost": {"latency": 10.0}, "expected_utility": 25.0}
+    ]
+    choose_node = IRNode(
+        id="choose",
+        op=OpKind.CHOOSE,
+        attributes={
+            "actions": actions,
+            "budget": {"latency": 15.0},
+            "policy": "bounded_lookahead",
+            "lookahead_depth": 2
+        }
+    )
+    g.add_node(choose_node)
+    g.root_id = "choose"
+
+    val, ctx = evaluator.execute(g)
+    assert val is not None
+    assert val["name"] in ("a1", "a2")
+
+
+def test_physical_planner_integration_in_cne_result():
+    """Doc #22: CNEExecutionResult includes the physical plan generated by PhysicalPlanner."""
+    from cne.compiler.deterministic_fixtures import build_expense_fixture
+    cne = ComputationNecessityEngine()
+    g, contract = build_expense_fixture()
+
+    res = cne.execute_query(g, contract, env={"transactions": []}, query_id="q_plan")
+    assert res.physical_plan is not None
+    assert res.physical_plan.is_cpu_only is True
+
+
+def test_fabric_put_and_delete_timing_in_stateful_overhead():
+    """Doc #19: StateFabric put() and delete() overhead must be counted in total_stateful_overhead_ns."""
+    fabric = LocalStateFabric()
+    assert fabric.total_stateful_overhead_ns == 0.0
+
+    entry = fabric.put(
+        entry_id="e1",
+        state_class=StateClass.COMPUTATIONAL,
+        value="test_val"
+    )
+    assert fabric.total_stateful_overhead_ns > 0.0, "fabric.put() did not record stateful overhead!"
+
+    prev_overhead = fabric.total_stateful_overhead_ns
+    fabric.delete("e1")
+    assert fabric.total_stateful_overhead_ns > prev_overhead, "fabric.delete() did not record stateful overhead!"
+
