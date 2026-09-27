@@ -66,7 +66,9 @@ class GateG2Runner:
         corpus_r_star = max(0.0, (total_baseline_cost - total_optimal_cost) / total_baseline_cost) if total_baseline_cost > 0 else 0.0
         all_contracts_satisfied = all(r.contract_satisfied for r in results)
 
-        passed = all_contracts_satisfied and len(results) == len(eval_queries)
+        # Gate G2 specification: R* >= 0.25 provisional floor (system.md §20 & §61)
+        r_star_threshold = 0.25
+        passed = all_contracts_satisfied and len(results) == len(eval_queries) and (corpus_r_star >= r_star_threshold)
 
         return {
             "gate": "G2",
@@ -77,6 +79,7 @@ class GateG2Runner:
             "corpus_baseline_cost_ns": total_baseline_cost,
             "corpus_optimal_cost_ns": total_optimal_cost,
             "corpus_r_star": round(corpus_r_star, 4),
+            "r_star_threshold": r_star_threshold,
             "sample_results": [
                 {
                     "query_id": r.query_id,

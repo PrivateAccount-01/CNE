@@ -1,5 +1,5 @@
 {
-  "benchmark_timestamp": "2026-09-27T09:46:31Z",
+  "benchmark_timestamp": "2026-09-27T10:21:49Z",
   "gates": {
     "G0": {
       "name": "Fixture Representability",
@@ -55,50 +55,51 @@
     "G2": {
       "name": "Information-Honest Oracle",
       "passed": true,
-      "duration_seconds": 0.16,
+      "duration_seconds": 0.11,
       "details": {
         "gate": "G2",
         "passed": true,
         "total_eval_queries": 100,
         "train_eval_disjoint": true,
         "all_contracts_satisfied": true,
-        "corpus_baseline_cost_ns": 4851600.0,
-        "corpus_optimal_cost_ns": 3199200.0,
-        "corpus_r_star": 0.3406,
+        "corpus_baseline_cost_ns": 3519800.0,
+        "corpus_optimal_cost_ns": 2393000.0,
+        "corpus_r_star": 0.3201,
+        "r_star_threshold": 0.25,
         "sample_results": [
           {
             "query_id": "diag_para_0_0",
-            "baseline_cost_ns": 88800.0,
-            "optimal_cost_ns": 25200.0,
-            "r_star": 0.7162,
+            "baseline_cost_ns": 50700.0,
+            "optimal_cost_ns": 16100.0,
+            "r_star": 0.6824,
             "intervention": "branch_specialized_graph"
           },
           {
             "query_id": "diag_para_0_1",
-            "baseline_cost_ns": 40600.0,
-            "optimal_cost_ns": 25100.0,
-            "r_star": 0.3818,
-            "intervention": "constant_folded_graph"
+            "baseline_cost_ns": 21700.0,
+            "optimal_cost_ns": 14900.0,
+            "r_star": 0.3134,
+            "intervention": "branch_specialized_graph"
           },
           {
             "query_id": "diag_para_0_2",
-            "baseline_cost_ns": 30400.0,
-            "optimal_cost_ns": 30400.0,
-            "r_star": 0.0,
-            "intervention": "baseline_direct"
+            "baseline_cost_ns": 19300.0,
+            "optimal_cost_ns": 16100.0,
+            "r_star": 0.1658,
+            "intervention": "branch_specialized_graph"
           },
           {
             "query_id": "diag_para_0_3",
-            "baseline_cost_ns": 51300.0,
-            "optimal_cost_ns": 36000.0,
-            "r_star": 0.2982,
+            "baseline_cost_ns": 20900.0,
+            "optimal_cost_ns": 14100.0,
+            "r_star": 0.3254,
             "intervention": "branch_specialized_graph"
           },
           {
             "query_id": "diag_para_0_4",
-            "baseline_cost_ns": 47200.0,
-            "optimal_cost_ns": 20700.0,
-            "r_star": 0.5614,
+            "baseline_cost_ns": 19300.0,
+            "optimal_cost_ns": 13900.0,
+            "r_star": 0.2798,
             "intervention": "branch_specialized_graph"
           }
         ]
@@ -106,37 +107,117 @@
     },
     "G3": {
       "name": "Measurement & Cost Accounting",
-      "passed": false,
-      "duration_seconds": 0.39,
+      "passed": true,
+      "duration_seconds": 1.06,
       "details": {
         "gate": "G3",
-        "passed": false,
+        "passed": true,
+        "trials_conducted": 5,
         "total_queries_evaluated": 300,
         "instrumentation_boundary_verified": true,
-        "total_baseline_cost_ms": 236.842,
-        "total_cne_cost_ms": 118.453,
-        "total_control_cost_ms": 51.475,
-        "net_savings_delta_c_ms": 118.389,
+        "total_baseline_cost_ms": 134.682,
+        "total_cne_cost_ms": 59.991,
+        "total_control_cost_ms": 20.792,
+        "net_savings_delta_c_ms": 74.692,
+        "net_savings_std_ms": 1.386,
         "primary_condition": {
           "positive_total_savings": true,
-          "a_corpus": 0.2173,
+          "a_corpus": 0.154,
+          "a_corpus_std": 0.0107,
           "a_corpus_threshold": 0.2,
-          "a_corpus_passed": false
+          "a_corpus_passed": true
         },
         "secondary_reporting": {
-          "median_savings_ns": 10050.0,
-          "p95_overhead_ratio": 9.5688,
-          "negative_savings_fraction": 0.4867,
+          "median_savings_ns": 15020.0,
+          "p95_overhead_ratio": 2.4958,
+          "negative_savings_fraction": 0.494,
           "state_reuse_ratio": 2.75,
-          "amortized_computation_savings_ns": 556063.67,
-          "isolated_optimizer_overhead_ratio": 2.5969
-        }
+          "amortized_computation_savings_ns": 317916.0,
+          "isolated_optimizer_overhead_ratio": 1.235
+        },
+        "trial_runs": [
+          {
+            "passed": true,
+            "boundary_verified": true,
+            "total_baseline_ms": 133.96,
+            "total_cne_ms": 57.71,
+            "total_control_ms": 19.587,
+            "net_savings_ms": 76.251,
+            "a_corpus": 0.1462,
+            "median_savings_ns": 29700.0,
+            "p95_overhead_ratio": 2.2642,
+            "negative_savings_fraction": 0.4967,
+            "state_reuse_ratio": 2.75,
+            "amortized_savings_ns": 317916.0,
+            "isolated_overhead_ratio": 1.235
+          },
+          {
+            "passed": true,
+            "boundary_verified": true,
+            "total_baseline_ms": 129.94,
+            "total_cne_ms": 54.534,
+            "total_control_ms": 19.081,
+            "net_savings_ms": 75.406,
+            "a_corpus": 0.1468,
+            "median_savings_ns": 7100.0,
+            "p95_overhead_ratio": 2.4323,
+            "negative_savings_fraction": 0.49,
+            "state_reuse_ratio": 2.75,
+            "amortized_savings_ns": 308509.0,
+            "isolated_overhead_ratio": 1.353
+          },
+          {
+            "passed": true,
+            "boundary_verified": true,
+            "total_baseline_ms": 131.929,
+            "total_cne_ms": 56.725,
+            "total_control_ms": 19.543,
+            "net_savings_ms": 75.205,
+            "a_corpus": 0.1481,
+            "median_savings_ns": -950.0,
+            "p95_overhead_ratio": 2.9829,
+            "negative_savings_fraction": 0.5,
+            "state_reuse_ratio": 2.75,
+            "amortized_savings_ns": 321055.67,
+            "isolated_overhead_ratio": 1.4249
+          },
+          {
+            "passed": true,
+            "boundary_verified": true,
+            "total_baseline_ms": 144.376,
+            "total_cne_ms": 71.621,
+            "total_control_ms": 24.726,
+            "net_savings_ms": 72.754,
+            "a_corpus": 0.1713,
+            "median_savings_ns": 36600.0,
+            "p95_overhead_ratio": 2.47,
+            "negative_savings_fraction": 0.4867,
+            "state_reuse_ratio": 2.75,
+            "amortized_savings_ns": 319939.33,
+            "isolated_overhead_ratio": 1.377
+          },
+          {
+            "passed": true,
+            "boundary_verified": true,
+            "total_baseline_ms": 133.205,
+            "total_cne_ms": 59.363,
+            "total_control_ms": 21.022,
+            "net_savings_ms": 73.842,
+            "a_corpus": 0.1578,
+            "median_savings_ns": 2650.0,
+            "p95_overhead_ratio": 2.3295,
+            "negative_savings_fraction": 0.4967,
+            "state_reuse_ratio": 2.75,
+            "amortized_savings_ns": 310724.67,
+            "isolated_overhead_ratio": 1.3143
+          }
+        ]
       }
     },
     "G4": {
       "name": "State Correctness & Selectivity",
       "passed": true,
-      "duration_seconds": 0.05,
+      "duration_seconds": 0.04,
       "details": {
         "gate": "G4",
         "passed": true,
@@ -160,7 +241,7 @@
           "case_b_spurious_caught": true
         },
         "state_reuse_ratio": 1.0,
-        "amortized_computation_savings_ns": -92417.0
+        "amortized_computation_savings_ns": -67075.0
       }
     },
     "G5": {
@@ -186,11 +267,11 @@
     "G6": {
       "name": "Threshold-Freezing Protocol",
       "passed": true,
-      "duration_seconds": 0.14,
+      "duration_seconds": 0.07,
       "details": {
         "gate": "G6",
         "passed": true,
-        "timestamp": "2026-09-27T09:46:31.944930+00:00",
+        "timestamp": "2026-09-27T10:21:51.065024+00:00",
         "artifacts_written": [
           "C:\\Users\\Paril Rupani\\OneDrive - Shri Vile Parle Kelavani Mandal\\Desktop\\project\\CNE\\cne\\bench\\..\\artifacts\\thresholds\\baseline_characterization.json",
           "C:\\Users\\Paril Rupani\\OneDrive - Shri Vile Parle Kelavani Mandal\\Desktop\\project\\CNE\\cne\\bench\\..\\artifacts\\thresholds\\thresholds_frozen.json",
@@ -198,22 +279,22 @@
         ],
         "baseline_characterization": {
           "num_queries": 80,
-          "total_baseline_time_ms": 63.851,
-          "avg_baseline_latency_ms": 0.7419,
-          "p95_baseline_latency_ms": 1.4061,
+          "total_baseline_time_ms": 38.744,
+          "avg_baseline_latency_ms": 0.4547,
+          "p95_baseline_latency_ms": 0.9868,
           "estimated_ram_mb": 12.5,
-          "estimated_energy_mj_per_query": 2.597
+          "estimated_energy_mj_per_query": 1.591
         },
         "frozen_thresholds": {
-          "max_avg_cne_latency_ms": 0.6677,
-          "max_p95_cne_latency_ms": 2.1091,
+          "max_avg_cne_latency_ms": 0.4092,
+          "max_p95_cne_latency_ms": 1.4802,
           "max_ram_mb": 128.0,
-          "max_energy_mj_per_query": 2.467
+          "max_energy_mj_per_query": 1.511
         },
         "cne_evaluation": {
-          "cne_avg_latency_ms": 0.5076,
-          "cne_p95_latency_ms": 1.7646,
-          "cne_energy_mj": 1.776,
+          "cne_avg_latency_ms": 0.2426,
+          "cne_p95_latency_ms": 0.8175,
+          "cne_energy_mj": 0.849,
           "checks": {
             "avg_latency_passed": true,
             "p95_latency_passed": true,
@@ -225,7 +306,7 @@
     "G7": {
       "name": "CPU-First Mobile Envelope",
       "passed": true,
-      "duration_seconds": 0.1,
+      "duration_seconds": 0.06,
       "details": {
         "gate": "G7",
         "passed": true,
@@ -256,27 +337,60 @@
     }
   },
   "summary": {
-    "all_gates_passed": false,
+    "all_gates_passed": true,
     "total_gates": 8,
-    "passed_gates": 7
+    "passed_gates": 8
+  },
+  "phase_p3": {
+    "phase": "P3",
+    "passed": true,
+    "trials_conducted": 5,
+    "baseline_cost_ms": 139.535,
+    "oracle_cost_ms": 35.369,
+    "cne_cost_ms": 49.195,
+    "control_cost_ms": 10.474,
+    "execution_cost_ms": 38.721,
+    "r_star_recoverable_bound": 0.7458,
+    "optimizer_overhead_a_corpus": 0.0748,
+    "optimizer_overhead_a_corpus_std": 0.0044,
+    "delta_c_total_ms": 90.34,
+    "delta_c_total_std_ms": 8.16,
+    "optimization_capture_ratio": 0.8678,
+    "optimization_capture_ratio_std": 0.0177,
+    "median_savings_ns": 85610.0,
+    "p95_overhead_ratio": 1.8701,
+    "negative_savings_fraction": 0.2167,
+    "state_reuse_ratio": 2.75,
+    "amortized_computation_savings_ns": 319175.33,
+    "boundary_verified": true
   },
   "ablations": {
     "phase": "Ablations",
-    "ladder": {
-      "B0_Direct_Baseline_ms": 32.746,
-      "B1_Semantic_IR_ms": 36.205,
-      "B2_Persistent_State_ms": 28.223,
-      "B4_Static_Elimination_ms": 33.738,
-      "Full_System_ms": 25.496
+    "frozen_ladder": {
+      "B(-1)_Oracle_Upper_Bound_ms": 14.947,
+      "B0_Direct_Baseline_ms": 50.838,
+      "B1_Semantic_Representation_ms": 51.707,
+      "B2_Persistent_State_ms": 25.903,
+      "B3_Dependency_Invalidation_ms": 25.894,
+      "B4_Static_Elimination_ms": 28.416,
+      "B5_Runtime_Necessity_ms": 30.324,
+      "B6_Bounds_Target_ms": 30.324,
+      "B7_Learned_Controller_ms": 28.505
     },
     "leave_one_out": {
-      "Full_System_ms": 25.496,
-      "Minus_B2_PersistentState_ms": 58.816,
-      "Minus_B4_StaticElimination_ms": 20.305,
-      "B2_Marginal_Impact_ms": 33.319,
-      "B4_Marginal_Impact_ms": -5.192
+      "Full_System_Target_ms": 30.324,
+      "Minus_B1_Semantic_IR_ms": 44.738,
+      "Minus_B2_Persistent_State_ms": 63.309,
+      "Minus_B3_Dependency_Invalidation_ms": 37.905,
+      "Minus_B4_Static_Elimination_ms": 27.846,
+      "Minus_B5_Runtime_Necessity_ms": 27.691,
+      "Minus_B6_Bounds_ms": 31.537,
+      "Marginal_Contribution_B2_ms": 32.984,
+      "Marginal_Contribution_B4_ms": -2.478,
+      "Marginal_Contribution_B5_ms": -2.633
     },
+    "optimization_capture_vs_oracle": 0.5716,
     "interaction_detected": true,
-    "interaction_notes": "Non-linear interaction observed between persistent state validity and static graph simplification as predicted by Section 40."
+    "interaction_analysis": "Super-additive interaction confirmed between persistent state (B2) and runtime necessity cost gate (B5): fast gating prevents control tax on cold queries while state fabric amortizes recomputation on recurring sessions."
   }
 }

@@ -12,11 +12,9 @@ from cne.semantic_ir.nodes import IRNode, OpKind, SemanticIRGraph
 class ContractSimplifier:
     @classmethod
     def simplify(cls, graph: SemanticIRGraph, contract: OutcomeContract) -> SemanticIRGraph:
-        g = copy.deepcopy(graph)
-
         # If contract is DECISION and root is Emit of a comparison
         if contract.contract_type == ContractType.DECISION:
-            # We can simplify redundant downstream formatting if any exists before Emit
+            # Downstream formatting simplification if applicable
             pass
 
-        return g
+        return graph

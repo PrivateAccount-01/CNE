@@ -78,10 +78,17 @@ def run_master_benchmark() -> Dict[str, Any]:
             }
             gate_table_rows.append((gid, name, "ERROR", f"{duration_s:.2f}s"))
 
-    # Also run Ablations
-    print(f"\n[RUNNING] Phase P3 & Ablations Ladder...")
+    # Run Phase P3 Consolidated Report
+    print(f"\n[RUNNING] Phase P3 Consolidated Co-Measurement Report...")
+    t_p3_start = time.perf_counter()
+    p3_res = P3ReportRunner.generate_report(trials=5)
+    master_results["phase_p3"] = p3_res
+    print(f"[DONE] Phase P3 completed ({time.perf_counter() - t_p3_start:.2f}s)")
+
+    # Run Ablations Ladder (§39 & §40)
+    print(f"\n[RUNNING] Ablations Ladder (B(-1) through B7)...")
     t_abl_start = time.perf_counter()
-    abl_res = AblationRunner.run_ablations()
+    abl_res = AblationRunner.run_ablations(trials=3)
     master_results["ablations"] = abl_res
     print(f"[DONE] Ablations completed ({time.perf_counter() - t_abl_start:.2f}s)")
 

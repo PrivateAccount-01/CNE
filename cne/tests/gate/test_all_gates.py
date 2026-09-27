@@ -39,7 +39,7 @@ def test_gate_g2_oracle():
     res = GateG2Runner.run_g2()
     assert res["passed"]
     assert res["train_eval_disjoint"]
-    assert res["corpus_r_star"] >= 0.10
+    assert res["corpus_r_star"] >= 0.25  # Frozen spec provisional floor (system.md §20 & §61)
 
 
 def test_gate_g3_measurement():

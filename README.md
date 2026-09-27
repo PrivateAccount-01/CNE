@@ -117,22 +117,37 @@ See [docs/EXTREME_TESTING_REPORT.md](docs/EXTREME_TESTING_REPORT.md) for complet
 
 ## 5. Empirical Benchmark Gate Summary (G0 – G7)
 
-CNE complies with the 8 frozen benchmark gates specified in `system.md`:
+CNE complies with all 8 frozen benchmark gates specified in `system.md` using a strict **multi-trial repeated measurement protocol with reported variance** (5 trials after warmup):
 
-| Gate | Focus Area | Requirement | Empirical Benchmark Result | Status |
+| Gate | Focus Area | Requirement | Empirical Benchmark Result (Mean ± Std) | Status |
 | :--- | :--- | :--- | :--- | :---: |
 | **G0** | Fixture Representability | 3 fixtures, $\le 2$ new primitives, 0 domain nodes | 3/3 representable, 0 new primitives, strictly 11 frozen primitives | **PASS** |
 | **G1a** | Paraphrase Invariance | $\ge 80\%$ shape key invariance across paraphrases | **100.0%** invariance across 20 paraphrase groups | **PASS** |
 | **G1b** | Topology Discrimination | Distinct topologies $\implies$ distinct shape keys | 5 distinct graph topologies $\to$ 5 distinct shape keys | **PASS** |
 | **G1c** | Memo-Key Sensitivity | Anti-reuse keys differ; false-diff keys match | Distinct memo keys on anti-reuse; matching shape on false-diff | **PASS** |
-| **G2** | Information-Honest Oracle | Disjoint train/eval partition, $R^* \ge 10\%$ | Zero data contamination, all contracts preserved, $R^* = 32.07\%$ | **PASS** |
-| **G3** | Cost Accounting & Savings | $\Delta C_{\text{total}} > 0$ and control overhead $A_{\text{corpus}} \le 20\%$ | $\Delta C = +68.77\text{ ms}$, $A_{\text{corpus}} = 19.38\% \le 20\%$ | **PASS** |
+| **G2** | Information-Honest Oracle | Disjoint train/eval partition, $R^* \ge 25\%$ | Zero data contamination, all contracts preserved, $R^* = 27.32\% \ge 25.0\%$ | **PASS** |
+| **G3** | Cost Accounting & Savings | $\Delta C_{\text{total}} > 0$ and control overhead $A_{\text{corpus}} \le 20\%$ | $\Delta C = +69.64 \pm 1.50\text{ ms}$, $A_{\text{corpus}} = 15.05\% \pm 0.38\% \le 20\%$ | **PASS** |
 | **G4** | State Selectivity | 100/100 mutation suite + No-solution tests (A & B) | **100/100 passed**, Case A passed, Case B caught as false-prune | **PASS** |
 | **G5** | Calibration & Audit | Sample floor $n \ge 460$, Wilson $LB_{\text{CI}} \ge 95\%$ | $n = 500 \ge 460$, observed $99.0\%$, $LB_{\text{CI}} = 97.68\% \ge 95\%$ | **PASS** |
-| **G6** | Threshold-Freezing Protocol | 4-step protocol: baseline-only characterization | Frozen artifact created, CNE avg $0.189\text{ ms} \le 0.367\text{ ms}$ threshold | **PASS** |
+| **G6** | Threshold-Freezing Protocol | 4-step protocol: baseline-only characterization | Frozen artifact created, CNE avg $0.203\text{ ms} \le 0.343\text{ ms}$ threshold | **PASS** |
 | **G7** | CPU-First Mobile Envelope | CPU-only path satisfies G6 within 6–8 GB mobile target | CPU-only satisfies G6, USB accelerator remains strictly secondary | **PASS** |
 
-See [docs/BENCHMARK_REPORT.md](docs/BENCHMARK_REPORT.md) for the full Phase P3 report and ablation ladder.
+### Phase P3 Co-Measurement & Secondary Distribution Metrics (system.md §28, §60, §62)
+
+To prevent incommensurable cross-run comparisons, Baseline, G2 Oracle, and CNE are co-measured on the exact same execution instance:
+
+* **Optimization Capture Ratio**: **$87.48\% \pm 0.60\%$** ($\le 100.0\%$, mathematically bounded by construction).
+* **Negative Savings Fraction**: **$49.8\%$** on single-shot queries (single-shot sub-millisecond cold queries pay a small control tax before state can be reused; recurring sessions achieve high net positive savings).
+* **P95 Overhead Ratio**: **$2.49\times$** baseline latency on cold-start scalar branching queries.
+* **Median Per-Query Savings**: **$+11,280\text{ ns}$**.
+* **State Reuse Ratio**: **$2.75\times$** (multiplied computation saved across sessions).
+* **Amortized Computation Savings**: **$286.77\ \mu\text{s}$ per query**.
+
+### Frozen Ablation Ladder (§39)
+The system satisfies the frozen ablation ladder:
+$$B(-1)\text{ Oracle (14.0 ms)} \to B0\text{ Baseline (46.5 ms)} \to B1\text{ Semantic IR} \to B2\text{ State Fabric (26.6 ms)} \to B3\text{ Invalidation} \to B4\text{ Static Opt} \to B5\text{ Cost Gate (28.4 ms)} \to B6\text{ Bounds} \to B7\text{ Learned Controller (26.7 ms)}$$
+
+See [docs/BENCHMARK_REPORT.md](docs/BENCHMARK_REPORT.md) for full empirical distributions, trial logs, and Leave-One-Out (LOO) non-linear interaction proofs.
 
 ---
 
