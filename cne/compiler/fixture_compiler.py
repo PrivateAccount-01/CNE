@@ -104,9 +104,12 @@ class FixtureCompiler:
         g.metadata["execution_policy"] = policy
         g._cached_execution_policy = policy
 
-        # Attach compile-time observed sources, observe nodes, and warm contract representation
+        # Attach compile-time observed sources, observe nodes, reachable executable order, and warm contract representation
         g.get_observed_sources()
         g.get_observe_nodes()
         _ = contract.contract_repr
+        from cne.semantic_ir.evaluator import SemanticEvaluator
+        reachable = SemanticEvaluator.compute_reachable_nodes(g)
+        g._cached_executable_order = [nid for nid in g.topological_order() if nid in reachable]
 
         return g, contract

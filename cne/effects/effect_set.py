@@ -56,6 +56,12 @@ class EffectSet:
     def is_pure(self) -> bool:
         return len(self._effects) == 0
 
+    def is_empty(self) -> bool:
+        return len(self._effects) == 0
+
+    def __bool__(self) -> bool:
+        return len(self._effects) > 0
+
     @property
     def effects(self) -> FrozenSet[Effect]:
         return self._effects

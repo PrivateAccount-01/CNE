@@ -143,6 +143,8 @@ class CoMeasurementRunner:
             "isolated_overhead_ratio": round(avg_isolated_overhead, 4)
         }
 
+    _run_single_co_measurement = run_single_trial
+
     @classmethod
     def run_co_measurement(cls, trials: int = 5) -> Dict[str, Any]:
         """

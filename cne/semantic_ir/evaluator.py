@@ -75,12 +75,14 @@ class SemanticEvaluator:
         )
         if physical_plan is not None:
             ctx.environment["_physical_plan"] = physical_plan
-        reachable = self.compute_reachable_nodes(graph)
-        order = graph.topological_order()
+        executable_order = getattr(graph, "_cached_executable_order", None)
+        if executable_order is None:
+            reachable = self.compute_reachable_nodes(graph)
+            topo = graph.topological_order()
+            executable_order = [nid for nid in topo if nid in reachable]
+            graph._cached_executable_order = executable_order
 
-        for nid in order:
-            if nid not in reachable:
-                continue
+        for nid in executable_order:
             if nid in ctx.values:
                 continue
             self._evaluate_node(graph.nodes[nid], graph, ctx)
@@ -90,7 +92,9 @@ class SemanticEvaluator:
 
     def _evaluate_node(self, node: IRNode, graph: SemanticIRGraph, ctx: ExecutionContext) -> Any:
         ctx.executed_nodes.append(node.id)
-        ctx.runtime_effects = ctx.runtime_effects.union(node.get_immediate_effects())
+        imm = node.get_immediate_effects()
+        if not imm.is_empty():
+            ctx.runtime_effects = ctx.runtime_effects.union(imm)
 
         val = None
 

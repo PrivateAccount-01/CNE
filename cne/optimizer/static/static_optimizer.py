@@ -58,6 +58,8 @@ class StaticOptimizer:
 
         eliminated_count = max(0, initial_node_count - len(g_final.nodes))
         evidence_tier = g_final.metadata.get("evidence_tier", "Certified")
+        g_final._cached_reachable = set(g_final.nodes.keys())
+        g_final._cached_executable_order = g_final.topological_order()
 
         return StaticOptimizationResult(
             optimized_graph=g_final,

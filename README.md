@@ -145,7 +145,7 @@ To guarantee commensurability, Baseline, G2 Oracle (over $\mathcal{A}_{\text{ben
 
 ### Frozen Ablation Ladder (§39)
 The system satisfies the frozen ablation ladder:
-$$B(-1)\text{ Oracle (17.0 ms)} \to B0\text{ Baseline (24.1 ms)} \to B1\text{ Semantic IR (75.3 ms)} \to B2\text{ State Fabric (41.1 ms)} \to B3\text{ Invalidation (48.9 ms)} \to B4\text{ Static Opt (38.0 ms)} \to B5\text{ Cost Gate (39.3 ms)} \to B6\text{ Bounds (39.0 ms)} \to B7\text{ Learned Controller (NOT YET IMPLEMENTED)}$$
+$$B(-1)\text{ Oracle (0.33 ms)} \to B0\text{ Baseline (21.7 ms)} \to B1\text{ Semantic IR (63.8 ms)} \to B2\text{ State Fabric (38.1 ms)} \to B3\text{ Invalidation (40.8 ms)} \to B4\text{ Static Opt (36.4 ms)} \to B5\text{ Cost Gate (38.4 ms)} \to B6\text{ Bounds (39.1 ms)} \to B7\text{ Learned Controller (NOT YET IMPLEMENTED)}$$
 
 See [docs/BENCHMARK_REPORT.md](docs/BENCHMARK_REPORT.md) for full empirical distributions, trial logs, and Leave-One-Out (LOO) non-linear interaction proofs.
 

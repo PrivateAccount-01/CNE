@@ -43,24 +43,33 @@ class IRNode:
         if self.declared_effects is not None:
             return self.declared_effects
 
+        cached = getattr(self, "_cached_imm_effects", None)
+        if cached is not None:
+            return cached
+
         if self.op == OpKind.OBSERVE:
-            return EffectSet.read_external()
+            eff = EffectSet.read_external()
         elif self.op == OpKind.CALL:
             # Must declare effects, defaults to read/write external if undeclared
-            return EffectSet((Effect.ReadExternal, Effect.WriteExternal))
+            eff = EffectSet((Effect.ReadExternal, Effect.WriteExternal))
         elif self.op in (OpKind.MAP, OpKind.FILTER, OpKind.REDUCE):
             # Check if function passed in attributes has declared effects
             fn_effects = self.attributes.get("effects")
             if fn_effects and isinstance(fn_effects, EffectSet):
-                return fn_effects
-            return EffectSet.pure()
+                eff = fn_effects
+            else:
+                eff = EffectSet.pure()
         elif self.op == OpKind.LITERAL:
-            return EffectSet.pure()
+            eff = EffectSet.pure()
         elif self.op == OpKind.EMIT:
-            return EffectSet.pure()
+            eff = EffectSet.pure()
         elif self.op in (OpKind.BRANCH, OpKind.ITERATE, OpKind.JOIN, OpKind.CHOOSE, OpKind.UPDATE):
-            return EffectSet.pure()
-        return EffectSet.pure()
+            eff = EffectSet.pure()
+        else:
+            eff = EffectSet.pure()
+
+        self._cached_imm_effects = eff
+        return eff
 
 
 @dataclass
@@ -114,6 +123,7 @@ class SemanticIRGraph:
         self._cached_physical_plan = None
         self._cached_cost_structure = None
         self._cached_static_opt_res = None
+        self._cached_executable_order = None
 
     def get_observed_sources(self) -> List[str]:
         cached = getattr(self, "_cached_observed_sources", None)

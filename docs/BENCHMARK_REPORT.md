@@ -70,29 +70,29 @@ pie title CNE Cost Decomposition (Phase P3 Co-Measurement)
 
 ## 4. Frozen Ablation Ladder ($B(-1)$ through $B7$)
 
-In strict adherence to `system.md` §39, the ablation ladder was evaluated across repeated trials on the benchmark workload (no synthetic formulas):
+In strict adherence to `system.md` §39, the ablation ladder was evaluated across repeated trials on the benchmark workload (no synthetic formulas), with $B(-1)$ evaluated directly through the unified `CoMeasurementRunner` pipeline:
 
 | Ladder Rung | Architecture Description | Total Latency (ms) | Status |
 | :--- | :--- | :---: | :---: |
-| **$B(-1)$** | **Oracle Upper Bound** (Closed-world optimum over $\mathcal{A}_{\text{benchmark}}$, 0 control tax) | 17.01 | Measured |
-| **$B0$** | **Direct Baseline** (Pure native re-execution, no IR, no state) | 24.13 | Measured |
-| **$B1$** | **Semantic Representation** (Semantic IR interpreter, no optimization, no state) | 75.27 | Measured |
-| **$B2$** | **Persistent State** ($B1$ + State Fabric caching, coarse whole-store flush) | 41.12 | Measured |
-| **$B3$** | **Dependency Invalidation** ($B2$ + fine-grained predicate/range tracking) | 48.91 | Measured |
-| **$B4$** | **Static Elimination** ($B3$ + compile-time reachability & constant folding) | 37.99 | Measured |
-| **$B5$** | **Runtime Necessity** ($B4$ + $O(1)$ Cost Gate bypass for trivial queries) | 39.34 | Measured |
-| **$B6$** | **Bounds Target** (Resource budget enforcement & BoundedLookaheadPolicy depth=2) | 39.04 | Measured |
+| **$B(-1)$** | **Oracle Upper Bound** (Closed-world optimum over $\mathcal{A}_{\text{benchmark}}$ via `CoMeasurementRunner`) | 0.33 | Measured |
+| **$B0$** | **Direct Baseline** (Pure native re-execution, no IR, no state) | 21.66 | Measured |
+| **$B1$** | **Semantic Representation** (Semantic IR interpreter, no optimization, no state) | 63.84 | Measured |
+| **$B2$** | **Persistent State** ($B1$ + State Fabric caching, coarse whole-store flush) | 38.13 | Measured |
+| **$B3$** | **Dependency Invalidation** ($B2$ + fine-grained predicate/range tracking) | 40.82 | Measured |
+| **$B4$** | **Static Elimination** ($B3$ + compile-time reachability & constant folding) | 36.38 | Measured |
+| **$B5$** | **Runtime Necessity** ($B4$ + $O(1)$ Cost Gate bypass for trivial queries) | 38.39 | Measured |
+| **$B6$** | **Bounds Target** (Resource budget enforcement & BoundedLookaheadPolicy depth=2) | 39.08 | Measured |
 | **$B7$** | **Learned Controller** (Offline learned prior tuning) | — | **NOT YET IMPLEMENTED** (Phase P5) |
 
 ```mermaid
 graph TD
-    Bm1["B(-1) Closed-World Oracle: 17.01 ms"] --> B0["B0 Direct Baseline: 24.13 ms"]
-    B0 --> B1["B1 Semantic Representation: 75.27 ms"]
-    B1 --> B2["B2 Persistent State Fabric: 41.12 ms"]
-    B2 --> B3["B3 Dependency Invalidation: 48.91 ms"]
-    B3 --> B4["B4 Static Elimination: 37.99 ms"]
-    B4 --> B5["B5 Runtime Cost Gate: 39.34 ms"]
-    B5 --> B6["B6 Bounds (BoundedLookaheadPolicy): 39.04 ms"]
+    Bm1["B(-1) Unified Oracle: 0.33 ms"] --> B0["B0 Direct Baseline: 21.66 ms"]
+    B0 --> B1["B1 Semantic Representation: 63.84 ms"]
+    B1 --> B2["B2 Persistent State Fabric: 38.13 ms"]
+    B2 --> B3["B3 Dependency Invalidation: 40.82 ms"]
+    B3 --> B4["B4 Static Elimination: 36.38 ms"]
+    B4 --> B5["B5 Runtime Cost Gate: 38.39 ms"]
+    B5 --> B6["B6 Bounds (BoundedLookaheadPolicy): 39.08 ms"]
     B6 -.-> B7["B7 Learned Controller: NOT YET IMPLEMENTED"]
 ```
 
@@ -100,17 +100,17 @@ graph TD
 
 ## 5. Leave-One-Out (LOO) Component Attribution (§40)
 
-To isolate component contributions and test whether $\text{Effect}(A+B) = \text{Effect}(A) + \text{Effect}(B)$, LOO ablations were conducted empirically against the full target system ($B6$ = 39.04 ms) using repeated trials:
+To isolate component contributions and test whether $\text{Effect}(A+B) = \text{Effect}(A) + \text{Effect}(B)$, LOO ablations were conducted empirically against the full target system ($B6$ = 39.08 ms) using repeated trials:
 
 | Ablated Component (LOO) | Resulting Latency (ms) | Marginal Contribution (ms) | Description |
 | :--- | :---: | :---: | :--- |
-| **Full Target System ($B6$)** | **39.04** | — | Reference target system |
-| **Minus $B1$ (Semantic IR)** | 51.61 | $+12.57$ | Syntactic string-keyed cache without semantic canonicalization |
-| **Minus $B2$ (Persistent State)** | 87.87 | **$+48.82$** | **$+48.82\text{ ms}$**: Primary driver of session computation savings |
-| **Minus $B3$ (Dependency Invalidation)**| 46.70 | $+7.66$ | Coarse invalidation flushes entire fabric on mutation |
-| **Minus $B4$ (Static Elimination)** | 39.09 | $+0.04$ | Omits compile-time reachability, slicing, and constant folding |
-| **Minus $B5$ (Runtime Cost Gate)** | 38.25 | $-0.79$ | Unconditionally optimizes all queries without O(1) gating |
-| **Minus $B6$ (Bounds / Lookahead)** | 39.34 | $+0.30$ | Reverts bounded lookahead pruning on choose operations ($B5$) |
+| **Full Target System ($B6$)** | **39.08** | — | Reference target system |
+| **Minus $B1$ (Semantic IR)** | 43.86 | $+4.78$ | Syntactic string-keyed cache without semantic canonicalization |
+| **Minus $B2$ (Persistent State)** | 79.09 | **$+40.01$** | **$+40.01\text{ ms}$**: Primary driver of session computation savings |
+| **Minus $B3$ (Dependency Invalidation)**| 41.71 | $+2.63$ | Coarse invalidation flushes entire fabric on mutation |
+| **Minus $B4$ (Static Elimination)** | 33.46 | $-5.62$ | Omits compile-time reachability, slicing, and constant folding |
+| **Minus $B5$ (Runtime Cost Gate)** | 36.57 | $-2.51$ | Unconditionally optimizes all queries without O(1) gating |
+| **Minus $B6$ (Bounds / Lookahead)** | 38.39 | $-0.69$ | Reverts bounded lookahead pruning on choose operations ($B5$) |
 
 ### Controlled 2x2 Factorial Interaction Analysis (B2 x B5)
 
@@ -118,14 +118,14 @@ To rigorously test interaction without overclaiming, a controlled $2 \times 2$ f
 
 | Configuration | State Fabric ($B2$) | Cost Gate ($B5$) | Measured Latency (ms) |
 | :--- | :---: | :---: | :---: |
-| **$Y_{00}$** | OFF | OFF | 88.66 ms |
-| **$Y_{10}$** | ON | OFF | 37.99 ms |
-| **$Y_{01}$** | OFF | ON | 85.89 ms |
-| **$Y_{11}$** | ON | ON | 39.04 ms |
+| **$Y_{00}$** | OFF | OFF | 75.05 ms |
+| **$Y_{10}$** | ON | OFF | 41.64 ms |
+| **$Y_{01}$** | OFF | ON | 73.82 ms |
+| **$Y_{11}$** | ON | ON | 39.08 ms |
 
-$$\text{Interaction Effect} = Y_{11} - Y_{10} - Y_{01} + Y_{00} = 39.04 - 37.99 - 85.89 + 88.66 = +3.82\text{ ms}$$
-Non-additive interaction is detected between $B2$ and $B5$ ($|\text{Interaction}| > 0.05\text{ ms}$), reflecting that cost gating is most impactful when state reuse is active.
-Ablation ladder Optimization Capture vs Oracle: **$0.6218$ (62.18%)**.
+$$\text{Interaction Effect} = Y_{11} - Y_{10} - Y_{01} + Y_{00} = 39.08 - 41.64 - 73.82 + 75.05 = -1.33\text{ ms}$$
+Super-additive interaction is confirmed between $B2$ and $B5$ in controlled 2x2 factorial evaluation (interaction effect: $-1.33\text{ ms}$). Combined system latency achieves greater savings than the sum of independent contributions.
+Ablation ladder Optimization Capture vs Oracle: **$0.3899$ (38.99%)**.
 
 ---
 

@@ -29,11 +29,11 @@ import copy
 import statistics
 import time
 from typing import Any, Dict, List, Optional
+from cne.bench.co_measurement import CoMeasurementRunner
 from cne.bench.corpus.corpus_generator import CorpusGenerator
 from cne.compiler.fixture_compiler import FixtureCompiler
 from cne.contracts.outcome_contract import OutcomeContract
 from cne.optimizer.necessity_engine import ComputationNecessityEngine
-from cne.optimizer.oracle import G2Oracle
 from cne.optimizer.runtime.cost_gate import CostGate
 from cne.optimizer.runtime.dependencies import ChangeType
 from cne.optimizer.static.static_optimizer import StaticOptimizer, StaticOptimizationResult
@@ -63,37 +63,15 @@ class AblationRunner:
         workload = queries + queries[:40]
 
         evaluator = SemanticEvaluator()
-        oracle = G2Oracle(evaluator=evaluator)
 
         # ---------------- B(-1): Oracle Upper Bound ----------------
         # Theoretical optimal plan with zero control overhead: sum of optimal execution costs
-        # Harmonized with unified co_measurement.py pipeline
+        # Evaluated through the unified co_measurement.py pipeline (CoMeasurementRunner)
+        # to ensure strict commensurability with G2/G3/P3
         t_bm1_list = []
         for _ in range(trials):
-            fabric_oracle = LocalStateFabric()
-            total_optimal_ns = 0.0
-            for idx, q in enumerate(workload):
-                g, c = FixtureCompiler.compile_query(q)
-                ores = oracle.find_recoverable_bound(
-                    query_id=q["id"],
-                    graph=g,
-                    contract=c,
-                    env=env,
-                    fabric=fabric_oracle
-                )
-                total_optimal_ns += ores.optimal_cost
-                mk = MemoKey.from_graph(g, env=env, contract=c)
-                if fabric_oracle.get_by_memo_key(mk) is None:
-                    target_g = ores.optimal_graph if ores.optimal_graph is not None else g
-                    val, _ = evaluator.execute(target_g, initial_env=env)
-                    fabric_oracle.put(
-                        entry_id=f"o_{idx}_{q['id']}",
-                        state_class=StateClass.COMPUTATIONAL,
-                        value=val,
-                        memo_key=mk,
-                        contract=c
-                    )
-            t_bm1_list.append(total_optimal_ns / 1e6)
+            co_res = CoMeasurementRunner._run_single_co_measurement(eval_workload=workload, env=env)
+            t_bm1_list.append(co_res["total_oracle_ms"])
         bm1_ms = statistics.mean(t_bm1_list)
 
         # ---------------- B0: Direct Baseline ----------------
