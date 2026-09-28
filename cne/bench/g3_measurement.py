@@ -116,6 +116,7 @@ class GateG3Runner:
         res = dict(co_res)
         res["gate"] = "G3"
         res["passed"] = co_res["g3_passed"]
+        res["a_corpus"] = co_res["primary_condition"]["a_corpus"]
         return res
 
 

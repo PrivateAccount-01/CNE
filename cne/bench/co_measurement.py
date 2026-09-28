@@ -138,6 +138,7 @@ class CoMeasurementRunner:
             "p95_overhead_ratio": round(p95_overhead, 4),
             "negative_savings_fraction": round(negative_savings_fraction, 4),
             "state_reuse_ratio": round(fabric.state_reuse_ratio, 4),
+            "reuse_events_per_created_state": round(fabric.reuse_events_per_created_state, 4),
             "amortized_savings_ns": round(fabric.compute_amortized_savings(len(eval_workload)), 2),
             "isolated_overhead_ratio": round(avg_isolated_overhead, 4)
         }
@@ -255,6 +256,7 @@ class CoMeasurementRunner:
                 "p95_overhead_ratio": round(mean_p95, 4),
                 "negative_savings_fraction": round(mean_neg_frac, 4),
                 "state_reuse_ratio": round(trial_results[0]["state_reuse_ratio"], 4),
+                "reuse_events_per_created_state": round(trial_results[0]["reuse_events_per_created_state"], 4),
                 "amortized_computation_savings_ns": round(trial_results[0]["amortized_savings_ns"], 2),
                 "isolated_optimizer_overhead_ratio": round(trial_results[0]["isolated_overhead_ratio"], 4)
             },

@@ -445,3 +445,66 @@ def test_fabric_put_and_delete_timing_in_stateful_overhead():
     fabric.delete("e1")
     assert fabric.total_stateful_overhead_ns > prev_overhead, "fabric.delete() did not record stateful overhead!"
 
+
+def test_filter_slicing_evidence_tier_certified():
+    """Item 2: Bytecode-proven constant-True filter elimination must be labeled Certified."""
+    from cne.optimizer.static.slicing import DependencySlicer
+    g = SemanticIRGraph()
+    obs = IRNode(id="obs", op=OpKind.OBSERVE, attributes={"source": "transactions"})
+    filt = IRNode(id="filt", op=OpKind.FILTER, inputs=["obs"], attributes={"predicate": lambda x: True})
+    emit = IRNode(id="emit", op=OpKind.EMIT, inputs=["filt"])
+    g.add_node(obs)
+    g.add_node(filt)
+    g.add_node(emit)
+    g.root_id = "emit"
+
+    sliced = DependencySlicer.slice(g)
+    assert "filt" not in sliced.nodes, "Certified constant-True filter was not eliminated!"
+    assert sliced.metadata.get("evidence_tier") == "Certified"
+    evidence = sliced.metadata.get("filter_slicing_evidence", [])
+    assert len(evidence) == 1
+    assert evidence[0]["evidence_tier"] == "Certified"
+    assert "Bytecode" in evidence[0]["justification"]
+
+
+def test_filter_slicing_evidence_tier_audited():
+    """Item 2: Heuristic-probed filter elimination without bytecode proof must be labeled Audited."""
+    from cne.optimizer.static.slicing import DependencySlicer
+    g = SemanticIRGraph()
+    obs = IRNode(id="obs", op=OpKind.OBSERVE, attributes={"source": "transactions"})
+    # A lambda that depends on a parameter or dictionary lookup but returns True for None and {}
+    # E.g.: (lambda x: True if x is None or isinstance(x, dict) else False)
+    filt = IRNode(id="filt", op=OpKind.FILTER, inputs=["obs"], attributes={
+        "predicate": lambda x: True if x is None or isinstance(x, dict) else False
+    })
+    emit = IRNode(id="emit", op=OpKind.EMIT, inputs=["filt"])
+    g.add_node(obs)
+    g.add_node(filt)
+    g.add_node(emit)
+    g.root_id = "emit"
+
+    sliced = DependencySlicer.slice(g)
+    assert "filt" not in sliced.nodes, "Audited heuristic filter was not eliminated!"
+    assert sliced.metadata.get("evidence_tier") == "Audited"
+    evidence = sliced.metadata.get("filter_slicing_evidence", [])
+    assert len(evidence) == 1
+    assert evidence[0]["evidence_tier"] == "Audited"
+    assert "Audited tier" in evidence[0]["justification"]
+
+
+def test_state_reuse_ratio_and_reuse_events_alias():
+    """Item 3: state_reuse_ratio and reuse_events_per_created_state match and represent reuse events per entry."""
+    fabric = LocalStateFabric()
+    e = fabric.put(entry_id="e1", state_class=StateClass.COMPUTATIONAL, value=42)
+    assert fabric.state_reuse_ratio == 0.0
+    assert fabric.reuse_events_per_created_state == 0.0
+
+    fabric.record_useful_reuse(e, baseline_cost_saved_ns=100.0)
+    fabric.record_useful_reuse(e, baseline_cost_saved_ns=100.0)
+    fabric.record_useful_reuse(e, baseline_cost_saved_ns=100.0)
+
+    # 3 reuse events on 1 created state entry = 3.0
+    assert fabric.state_reuse_ratio == 3.0
+    assert fabric.reuse_events_per_created_state == 3.0
+
+

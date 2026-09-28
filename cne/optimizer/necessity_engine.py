@@ -35,6 +35,7 @@ class CNEExecutionResult:
     contract_satisfied: bool
     memo_key: MemoKey
     physical_plan: Optional[PhysicalPlan] = None
+    evidence_tier: str = "Certified"
 
 
 class ComputationNecessityEngine:
@@ -112,31 +113,47 @@ class ComputationNecessityEngine:
                 optimized=True,
                 contract_satisfied=valid,
                 memo_key=memo_k,
-                physical_plan=None
+                physical_plan=None,
+                evidence_tier="Certified"
             )
 
         # 3. Cost-gate evaluation with real workload cardinality hint (Doc #13)
         cardinality_hint = graph.metadata.get("cardinality_hint", 0)
         if cardinality_hint <= 0 and env:
             for src in graph.get_observed_sources():
-                if src in env:
-                    val = env[src]
-                    if isinstance(val, (list, tuple, set, dict)):
-                        cardinality_hint = max(cardinality_hint, len(val))
+                val = env.get(src)
+                if isinstance(val, (list, tuple, set, dict)):
+                    l = len(val)
+                    if l > cardinality_hint:
+                        cardinality_hint = l
         if cardinality_hint <= 0:
             cardinality_hint = 100
 
         cost_cls = CostClass.from_graph(graph, cardinality_hint=cardinality_hint)
         should_opt = self.cost_gate.should_optimize(cost_cls)
         active_graph = graph
+        evidence_tier = "Certified"
 
         if should_opt:
             # Run static optimizer: reachability, folding, slicing, contract simplification
-            opt_res = self.static_optimizer.optimize(graph, contract)
+            opt_res = getattr(graph, "_cached_static_opt_res", None)
+            c_repr = getattr(contract, "contract_repr", "")
+            cached_c_repr = getattr(opt_res, "contract_repr", None)
+            if opt_res is None or cached_c_repr != c_repr:
+                opt_res = self.static_optimizer.optimize(graph, contract)
+                try:
+                    opt_res.contract_repr = c_repr
+                except Exception:
+                    pass
+                graph._cached_static_opt_res = opt_res
             active_graph = opt_res.optimized_graph
+            evidence_tier = getattr(opt_res, "evidence_tier", "Certified")
 
         # Route execution through PhysicalPlanner (Doc #22)
-        physical_plan = self.planner.plan(active_graph)
+        physical_plan = getattr(active_graph, "_cached_physical_plan", None)
+        if physical_plan is None:
+            physical_plan = self.planner.plan(active_graph)
+            active_graph._cached_physical_plan = physical_plan
 
         timer_control.stop()
 
@@ -179,6 +196,7 @@ class ComputationNecessityEngine:
             optimized=should_opt,
             contract_satisfied=contract_ok,
             memo_key=memo_k,
-            physical_plan=physical_plan
+            physical_plan=physical_plan,
+            evidence_tier=evidence_tier
         )
 

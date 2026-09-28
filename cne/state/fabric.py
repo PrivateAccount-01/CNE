@@ -173,11 +173,23 @@ class LocalStateFabric:
     @property
     def state_reuse_ratio(self) -> float:
         """
-        StateReuseRatio = UsefulPriorStateReused / TotalStateCreated (Section 15)
+        State reuse multiplier (reuse events per created state entry):
+        StateReuseRatio = UsefulPriorStateReused / TotalStateCreated (Section 15).
+        Note: This is an event multiplier representing the average number of reuse events
+        derived from each created state entry (which can naturally exceed 1.0),
+        not a fractional percentage bounded by [0, 1].
         """
         if self.total_state_created == 0:
             return 0.0
         return self.useful_prior_state_reused / self.total_state_created
+
+    @property
+    def reuse_events_per_created_state(self) -> float:
+        """
+        Explicit unambiguous metric for state reuse:
+        UsefulPriorStateReused / TotalStateCreated (average reuse events per entry created).
+        """
+        return self.state_reuse_ratio
 
     def compute_amortized_savings(self, num_subsequent_tasks: int) -> float:
         """

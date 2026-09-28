@@ -2,7 +2,7 @@
 
 [![Python Version](https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-blue.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-Apache_2.0-green.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Tests](https://img.shields.io/badge/Tests-190%2F190%20Passed-brightgreen.svg)](#extreme-black-box-testing)
+[![Tests](https://img.shields.io/badge/Tests-201%2F201%20Passed-brightgreen.svg)](#extreme-black-box-testing)
 [![Architecture](https://img.shields.io/badge/Architecture-Frozen%20v1.5-orange.svg)](system.md)
 [![Execution Target](https://img.shields.io/badge/Target-Mobile%20ARM%20%7C%20Android%206--8GB-purple.svg)](#target-execution-envelope)
 
@@ -125,8 +125,8 @@ CNE complies with all 8 frozen benchmark gates specified in `system.md` using a 
 | **G1a** | Paraphrase Invariance | $\ge 80\%$ shape key invariance across paraphrases | **100.0%** invariance across 20 paraphrase groups | **PASS** |
 | **G1b** | Topology Discrimination | Distinct topologies $\implies$ distinct shape keys | 5 distinct graph topologies $\to$ 5 distinct shape keys | **PASS** |
 | **G1c** | Memo-Key Sensitivity | Anti-reuse keys differ; false-diff keys match | Distinct memo keys on anti-reuse; matching shape on false-diff | **PASS** |
-| **G2** | Information-Honest Oracle | Disjoint train/eval partition, $R^* \ge 25\%$ | Closed-world candidate space $\mathcal{A}_{\text{benchmark}}$, $R^* = 97.05\% \pm 0.03\% \ge 25.0\%$ | **PASS** |
-| **G3** | Cost Accounting & Savings | $\Delta C_{\text{total}} > 0$ and control overhead $A_{\text{corpus}} \le 20\%$ | $\Delta C = +68.94 \pm 1.11\text{ ms}$, $A_{\text{corpus}} = 12.97\% \pm 0.37\% \le 20\%$ | **PASS** |
+| **G2** | Information-Honest Oracle | Disjoint train/eval partition, $R^* \ge 25\%$ | Closed-world candidate space $\mathcal{A}_{\text{benchmark}}$, $R^* = 98.88\% \pm 0.03\% \ge 25.0\%$ | **PASS** |
+| **G3** | Cost Accounting & Savings | $\Delta C_{\text{total}} > 0$ and control overhead $A_{\text{corpus}} \le 20\%$ | $\Delta C = +89.67 \pm 4.77\text{ ms}$, $A_{\text{corpus}} = 15.04\% \pm 0.40\% \le 20\%$ | **PASS** |
 | **G4** | State Selectivity | 100/100 mutation suite + No-solution tests (A & B) | **100/100 passed**, Case A passed, Case B caught as false-prune | **PASS** |
 | **G5** | Calibration & Audit | Sample floor $n \ge 460$, Wilson $LB_{\text{CI}} \ge 95\%$ | Statistical procedure validated on synthetic data ($n = 500 \ge 460$, $LB_{\text{CI}} = 97.68\% \ge 95\%$) | **PASS** |
 | **G6** | Threshold-Freezing Protocol | 4-step protocol: baseline-only characterization | Frozen artifact created, CNE avg latency passes threshold (software model) | **PASS** |
@@ -136,16 +136,16 @@ CNE complies with all 8 frozen benchmark gates specified in `system.md` using a 
 
 To guarantee commensurability, Baseline, G2 Oracle (over $\mathcal{A}_{\text{benchmark}}$ with state fabric access), and CNE are co-measured on the exact same execution instance via `CoMeasurementRunner`:
 
-* **Optimization Capture Ratio**: **$61.70\% \pm 0.76\%$** (observed empirical capture ratio $\le 100.0\%$, evaluated against the closed-world oracle bound).
-* **Negative Savings Fraction**: **$38.11\%$** on single-shot queries (single-shot sub-millisecond cold queries pay a small control tax before state can be reused; recurring sessions achieve high net positive savings).
-* **P95 Overhead Ratio**: **$1.75\times$** baseline latency on cold-start scalar branching queries.
-* **Median Per-Query Savings**: **$+16.17\ \mu\text{s}$**.
-* **State Reuse Ratio**: **$2.75\times$** (multiplied computation saved across sessions).
-* **Amortized Computation Savings**: **$277.9\ \mu\text{s}$ per query**.
+* **Optimization Capture Ratio**: **$57.21\% \pm 1.38\%$** (observed empirical capture ratio $\le 100.0\%$, evaluated against the closed-world oracle bound).
+* **Negative Savings Fraction**: **$29.22\%$** on single-shot queries (single-shot sub-millisecond cold queries pay a small control tax before state can be reused; recurring sessions achieve high net positive savings).
+* **P95 Overhead Ratio**: **$1.65\times$** baseline latency on cold-start scalar branching queries.
+* **Median Per-Query Savings**: **$+34.03\ \mu\text{s}$**.
+* **State Reuse Ratio**: **$2.75$ reuse events / state entry** (explicit alias `reuse_events_per_created_state`).
+* **Amortized Computation Savings**: **$363.2\ \mu\text{s}$ per query**.
 
 ### Frozen Ablation Ladder (§39)
 The system satisfies the frozen ablation ladder:
-$$B(-1)\text{ Oracle (12.7 ms)} \to B0\text{ Baseline (16.1 ms)} \to B1\text{ Semantic IR (55.9 ms)} \to B2\text{ State Fabric (30.8 ms)} \to B3\text{ Invalidation (35.5 ms)} \to B4\text{ Static Opt (27.5 ms)} \to B5\text{ Cost Gate (23.9 ms)} \to B6\text{ Bounds (NOT YET IMPLEMENTED)} \to B7\text{ Learned Controller (NOT YET IMPLEMENTED)}$$
+$$B(-1)\text{ Oracle (17.0 ms)} \to B0\text{ Baseline (24.1 ms)} \to B1\text{ Semantic IR (75.3 ms)} \to B2\text{ State Fabric (41.1 ms)} \to B3\text{ Invalidation (48.9 ms)} \to B4\text{ Static Opt (38.0 ms)} \to B5\text{ Cost Gate (39.3 ms)} \to B6\text{ Bounds (39.0 ms)} \to B7\text{ Learned Controller (NOT YET IMPLEMENTED)}$$
 
 See [docs/BENCHMARK_REPORT.md](docs/BENCHMARK_REPORT.md) for full empirical distributions, trial logs, and Leave-One-Out (LOO) non-linear interaction proofs.
 

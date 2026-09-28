@@ -19,6 +19,7 @@ from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 from cne.contracts.outcome_contract import OutcomeContract
 from cne.effects.effect_set import Effect, EffectSet
 from cne.effects.propagation import EffectPropagator
+from cne.optimizer.static.slicing import is_provably_constant_true
 from cne.semantic_ir.evaluator import ExecutionContext, SemanticEvaluator
 from cne.semantic_ir.nodes import IRNode, OpKind, SemanticIRGraph, SemanticRegion
 
@@ -46,6 +47,7 @@ class OracleResult:
     admissible_interventions_evaluated: int
     optimal_intervention_desc: str
     contract_satisfied: bool
+    optimal_graph: Optional[SemanticIRGraph] = None
 
 
 class G2Oracle:
@@ -118,7 +120,8 @@ class G2Oracle:
             recoverable_ratio=r_star,
             admissible_interventions_evaluated=len(candidate_interventions),
             optimal_intervention_desc=best_desc,
-            contract_satisfied=contract_satisfied
+            contract_satisfied=contract_satisfied,
+            optimal_graph=optimal_graph
         )
 
     def _generate_admissible_candidates(
@@ -186,13 +189,13 @@ class G2Oracle:
                 ))
 
         # T5: Filter simplification under contract
-        # (Doc #15: Relabeled as Audited-tier evidence, since heuristic predicate sampling on empty/test input is not a formal proof)
-        filt_g = self._simplify_filters(spec_g, contract)
+        # (Doc #15: Certified if bytecode-proven constant-True, Audited if using empirical heuristic probe)
+        filt_g, filt_tier = self._simplify_filters_with_tier(spec_g, contract)
         candidates.append(OracleIntervention(
             description="contract_filter_simplification",
             transformed_graph=filt_g,
             estimated_cost=0.0,
-            evidence_tier="Audited"
+            evidence_tier=filt_tier
         ))
 
         # T6: Composite composition
@@ -204,25 +207,36 @@ class G2Oracle:
 
         return candidates
 
-    def _simplify_filters(self, graph: SemanticIRGraph, contract: Optional[OutcomeContract]) -> SemanticIRGraph:
+    def _simplify_filters_with_tier(self, graph: SemanticIRGraph, contract: Optional[OutcomeContract]) -> Tuple[SemanticIRGraph, str]:
         """
-        Bypasses redundant pass-through filters when contract allows.
+        Bypasses redundant pass-through filters when contract allows, tracking evidence tier.
         """
         g = copy.deepcopy(graph)
+        tier = "Certified"
         for nid, node in list(g.nodes.items()):
             if node.op == OpKind.FILTER and node.inputs:
                 pred = node.attributes.get("predicate")
-                if pred is not None:
+                eliminated = False
+                if is_provably_constant_true(pred):
+                    eliminated = True
+                elif pred is not None:
                     try:
                         if pred({}) is True and pred({"test": 1}) is True:
-                            parent_id = node.inputs[0]
-                            for other in g.nodes.values():
-                                other.inputs = [parent_id if inp == nid else inp for inp in other.inputs]
-                            if g.root_id == nid:
-                                g.root_id = parent_id
-                            del g.nodes[nid]
+                            eliminated = True
+                            tier = "Audited"
                     except Exception:
                         pass
+                if eliminated:
+                    parent_id = node.inputs[0]
+                    for other in g.nodes.values():
+                        other.inputs = [parent_id if inp == nid else inp for inp in other.inputs]
+                    if g.root_id == nid:
+                        g.root_id = parent_id
+                    del g.nodes[nid]
+        return g, tier
+
+    def _simplify_filters(self, graph: SemanticIRGraph, contract: Optional[OutcomeContract]) -> SemanticIRGraph:
+        g, _ = self._simplify_filters_with_tier(graph, contract)
         return g
 
     def _slice_graph(self, graph: SemanticIRGraph) -> SemanticIRGraph:

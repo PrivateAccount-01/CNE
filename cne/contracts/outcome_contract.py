@@ -30,6 +30,32 @@ class OutcomeContract:
     acceptable_equivalence: Optional[Callable[[Any, Any], bool]] = None
     provenance_requirements: Optional[Dict[str, Any]] = None
 
+    @property
+    def contract_repr(self) -> Dict[str, Any]:
+        """
+        Cached invariant dictionary representation of contract for MemoKey.
+        """
+        cached = getattr(self, "_cached_contract_repr", None)
+        if cached is None:
+            from cne.signature.canonicalization import callable_identity
+            constraints_repr = [
+                callable_identity(c) for c in self.constraints
+            ]
+            equiv_repr = callable_identity(self.acceptable_equivalence) if self.acceptable_equivalence else None
+            prov_repr = sorted(self.provenance_requirements.items()) if self.provenance_requirements else None
+            cached = {
+                "t": self.contract_type.name,
+                "tol": sorted(self.tolerances.items()),
+                "b": self.decision_boundary,
+                "f": sorted(list(self.required_facts)),
+                "s": self.output_schema,
+                "cst": constraints_repr,
+                "eq": equiv_repr,
+                "prov": prov_repr
+            }
+            self._cached_contract_repr = cached
+        return cached
+
     def is_equivalent(self, candidate: Any, reference: Any) -> bool:
         """
         Evaluate contract equivalence: candidate ≡_C reference.

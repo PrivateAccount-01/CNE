@@ -13,6 +13,9 @@ from cne.semantic_ir.nodes import IRNode, OpKind, SemanticIRGraph
 from cne.signature.canonicalization import Canonicalizer, callable_identity
 
 
+DEFAULT_VERSION_STRING = "v1.5_v1.0_1.0.0_1.0.0_1.0.0_1.0.0_1.0.0"
+
+
 @dataclass(frozen=True)
 class SystemVersions:
     model_version: str = "v1.5"
@@ -22,6 +25,18 @@ class SystemVersions:
     policy_version: str = "1.0.0"
     knowledge_version: str = "1.0.0"
     schema_version: str = "1.0.0"
+
+    @property
+    def version_string(self) -> str:
+        if (self.model_version == "v1.5" and
+            self.tokenizer_version == "v1.0" and
+            self.runtime_version == "1.0.0" and
+            self.semantic_compiler_version == "1.0.0" and
+            self.policy_version == "1.0.0" and
+            self.knowledge_version == "1.0.0" and
+            self.schema_version == "1.0.0"):
+            return DEFAULT_VERSION_STRING
+        return f"{self.model_version}_{self.tokenizer_version}_{self.runtime_version}_{self.semantic_compiler_version}_{self.policy_version}_{self.knowledge_version}_{self.schema_version}"
 
 
 _DIGEST_CACHE: Dict[int, Tuple[int, str]] = {}
@@ -72,22 +87,27 @@ class MemoKey:
         input_data: Dict[str, Any] = {}
         if "inputs" in env and isinstance(env["inputs"], dict):
             input_data.update(env["inputs"])
-        for node in graph.nodes.values():
-            if getattr(node, "op", None) == OpKind.OBSERVE:
-                src = node.attributes.get("source")
-                k = node.attributes.get("key")
-                src_obj = env.get(src) if env else None
-                if k is not None:
-                    # Keyed observe: retrieve the actual observed value, not the key name!
-                    if isinstance(src_obj, dict):
-                        observed_val = src_obj.get(k)
-                    elif isinstance(src_obj, (list, tuple)) and isinstance(k, int) and 0 <= k < len(src_obj):
-                        observed_val = src_obj[k]
-                    else:
-                        observed_val = None
-                    input_data[f"{src}.{k}"] = compute_canonical_digest(observed_val)
-                elif src in env:
-                    input_data[f"src:{src}"] = compute_canonical_digest(src_obj)
+        
+        obs_nodes = getattr(graph, "_cached_observe_nodes", None)
+        if obs_nodes is None:
+            obs_nodes = [n for n in graph.nodes.values() if getattr(n, "op", None) == OpKind.OBSERVE]
+            graph._cached_observe_nodes = obs_nodes
+
+        for node in obs_nodes:
+            src = node.attributes.get("source")
+            k = node.attributes.get("key")
+            src_obj = env.get(src) if env else None
+            if k is not None:
+                # Keyed observe: retrieve the actual observed value, not the key name!
+                if isinstance(src_obj, dict):
+                    observed_val = src_obj.get(k)
+                elif isinstance(src_obj, (list, tuple)) and isinstance(k, int) and 0 <= k < len(src_obj):
+                    observed_val = src_obj[k]
+                else:
+                    observed_val = None
+                input_data[f"{src}.{k}"] = compute_canonical_digest(observed_val)
+            elif src in env:
+                input_data[f"src:{src}"] = compute_canonical_digest(src_obj)
         return input_data
 
     @classmethod
@@ -112,29 +132,31 @@ class MemoKey:
             shape_hash = hashlib.sha256(json.dumps(descriptors, sort_keys=True).encode("utf-8")).hexdigest()
             graph._cached_shape_hash = shape_hash
 
-        contract_repr = getattr(contract, "_cached_contract_repr", None) if contract is not None else None
+        contract_repr = getattr(contract, "contract_repr", None) if contract is not None else None
         if contract_repr is None and contract is not None:
-            constraints_repr = [
-                callable_identity(c) for c in getattr(contract, "constraints", [])
-            ]
-            equiv_fn = getattr(contract, "acceptable_equivalence", None)
-            equiv_repr = callable_identity(equiv_fn) if equiv_fn else None
-            prov_repr = sorted(getattr(contract, "provenance_requirements", {}).items()) if getattr(contract, "provenance_requirements", None) else None
+            contract_repr = getattr(contract, "_cached_contract_repr", None)
+            if contract_repr is None:
+                constraints_repr = [
+                    callable_identity(c) for c in getattr(contract, "constraints", [])
+                ]
+                equiv_fn = getattr(contract, "acceptable_equivalence", None)
+                equiv_repr = callable_identity(equiv_fn) if equiv_fn else None
+                prov_repr = sorted(getattr(contract, "provenance_requirements", {}).items()) if getattr(contract, "provenance_requirements", None) else None
 
-            contract_repr = {
-                "t": getattr(getattr(contract, "contract_type", None), "name", str(contract)),
-                "tol": sorted(getattr(contract, "tolerances", {}).items()),
-                "b": getattr(contract, "decision_boundary", None),
-                "f": sorted(list(getattr(contract, "required_facts", set()))),
-                "s": getattr(contract, "output_schema", None),
-                "cst": constraints_repr,
-                "eq": equiv_repr,
-                "prov": prov_repr
-            }
-            try:
-                contract._cached_contract_repr = contract_repr
-            except Exception:
-                pass
+                contract_repr = {
+                    "t": getattr(getattr(contract, "contract_type", None), "name", str(contract)),
+                    "tol": sorted(getattr(contract, "tolerances", {}).items()),
+                    "b": getattr(contract, "decision_boundary", None),
+                    "f": sorted(list(getattr(contract, "required_facts", set()))),
+                    "s": getattr(contract, "output_schema", None),
+                    "cst": constraints_repr,
+                    "eq": equiv_repr,
+                    "prov": prov_repr
+                }
+                try:
+                    contract._cached_contract_repr = contract_repr
+                except Exception:
+                    pass
 
         if isinstance(input_data, dict):
             input_repr = {k: str(v) for k, v in sorted(input_data.items())}
@@ -146,11 +168,12 @@ class MemoKey:
         else:
             input_repr = {}
 
+        v_str = sys_ver.version_string if hasattr(sys_ver, "version_string") else DEFAULT_VERSION_STRING
         memo_dict = {
-            "v": f"{sys_ver.model_version}_{sys_ver.tokenizer_version}_{sys_ver.runtime_version}_{sys_ver.semantic_compiler_version}_{sys_ver.policy_version}_{sys_ver.knowledge_version}_{sys_ver.schema_version}",
+            "v": v_str,
             "sh": shape_hash,
             "i": input_repr,
-            "s": {k: str(v) for k, v in sorted((dependency_snapshot or {}).items())},
+            "s": {k: str(v) for k, v in sorted(dependency_snapshot.items())} if dependency_snapshot else {},
             "c": contract_repr
         }
 

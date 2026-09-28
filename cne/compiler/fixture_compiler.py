@@ -104,4 +104,9 @@ class FixtureCompiler:
         g.metadata["execution_policy"] = policy
         g._cached_execution_policy = policy
 
+        # Attach compile-time observed sources, observe nodes, and warm contract representation
+        g.get_observed_sources()
+        g.get_observe_nodes()
+        _ = contract.contract_repr
+
         return g, contract

@@ -36,11 +36,12 @@ from cne.optimizer.necessity_engine import ComputationNecessityEngine
 from cne.optimizer.oracle import G2Oracle
 from cne.optimizer.runtime.cost_gate import CostGate
 from cne.optimizer.runtime.dependencies import ChangeType
-from cne.optimizer.static.static_optimizer import StaticOptimizer
+from cne.optimizer.static.static_optimizer import StaticOptimizer, StaticOptimizationResult
 from cne.semantic_ir.evaluator import SemanticEvaluator
 from cne.semantic_ir.nodes import OpKind
 from cne.signature.memo_key import MemoKey
 from cne.state.fabric import LocalStateFabric
+from cne.state.state_entry import StateClass
 
 
 class AblationRunner:
@@ -66,21 +67,32 @@ class AblationRunner:
 
         # ---------------- B(-1): Oracle Upper Bound ----------------
         # Theoretical optimal plan with zero control overhead: sum of optimal execution costs
+        # Harmonized with unified co_measurement.py pipeline
         t_bm1_list = []
         for _ in range(trials):
             fabric_oracle = LocalStateFabric()
             total_optimal_ns = 0.0
             for idx, q in enumerate(workload):
                 g, c = FixtureCompiler.compile_query(q)
-                mk = MemoKey.from_graph(g, input_data=env.get("inputs"))
-                cached = fabric_oracle.get_by_memo_key(mk)
-                if cached is not None and c.satisfies_constraints(cached.value):
-                    c_cost = 0.0
-                else:
-                    ores = oracle.find_recoverable_bound(q["id"], g, c, env)
-                    c_cost = ores.optimal_cost
-                    fabric_oracle.put(f"o_{idx}", None, ores.optimal_cost, memo_key=mk, contract=c)
-                total_optimal_ns += c_cost
+                ores = oracle.find_recoverable_bound(
+                    query_id=q["id"],
+                    graph=g,
+                    contract=c,
+                    env=env,
+                    fabric=fabric_oracle
+                )
+                total_optimal_ns += ores.optimal_cost
+                mk = MemoKey.from_graph(g, env=env, contract=c)
+                if fabric_oracle.get_by_memo_key(mk) is None:
+                    target_g = ores.optimal_graph if ores.optimal_graph is not None else g
+                    val, _ = evaluator.execute(target_g, initial_env=env)
+                    fabric_oracle.put(
+                        entry_id=f"o_{idx}_{q['id']}",
+                        state_class=StateClass.COMPUTATIONAL,
+                        value=val,
+                        memo_key=mk,
+                        contract=c
+                    )
             t_bm1_list.append(total_optimal_ns / 1e6)
         bm1_ms = statistics.mean(t_bm1_list)
 
@@ -127,7 +139,7 @@ class AblationRunner:
         for _ in range(trials):
             fabric_b2 = LocalStateFabric()
             cne_b2 = ComputationNecessityEngine(fabric=fabric_b2, evaluator=evaluator, cost_gate=CostGate(bypass_trivial=False))
-            cne_b2.static_optimizer.optimize = lambda g, c: type('obj', (object,), {'optimized_graph': g, 'static_effects': {}, 'nodes_eliminated': 0, 'nodes_folded': 0})()
+            cne_b2.static_optimizer.optimize = lambda g, c: StaticOptimizationResult(optimized_graph=g, static_effects={}, nodes_eliminated=0, nodes_folded=0)
             t0 = time.perf_counter_ns()
             for idx, q in enumerate(workload):
                 if idx > 0 and idx % 80 == 0:
@@ -144,7 +156,7 @@ class AblationRunner:
         for _ in range(trials):
             fabric_b3 = LocalStateFabric()
             cne_b3 = ComputationNecessityEngine(fabric=fabric_b3, evaluator=evaluator, cost_gate=CostGate(bypass_trivial=False))
-            cne_b3.static_optimizer.optimize = lambda g, c: type('obj', (object,), {'optimized_graph': g, 'static_effects': {}, 'nodes_eliminated': 0, 'nodes_folded': 0})()
+            cne_b3.static_optimizer.optimize = lambda g, c: StaticOptimizationResult(optimized_graph=g, static_effects={}, nodes_eliminated=0, nodes_folded=0)
             t0 = time.perf_counter_ns()
             for idx, q in enumerate(workload):
                 if idx > 0 and idx % 80 == 0:
@@ -268,7 +280,7 @@ class AblationRunner:
         for _ in range(trials):
             fabric_no_b4 = LocalStateFabric()
             cne_no_b4 = ComputationNecessityEngine(fabric=fabric_no_b4, evaluator=evaluator, cost_gate=CostGate(bypass_trivial=True))
-            cne_no_b4.static_optimizer.optimize = lambda g, c: type('obj', (object,), {'optimized_graph': g, 'static_effects': {}, 'nodes_eliminated': 0, 'nodes_folded': 0})()
+            cne_no_b4.static_optimizer.optimize = lambda g, c: StaticOptimizationResult(optimized_graph=g, static_effects={}, nodes_eliminated=0, nodes_folded=0)
             t0 = time.perf_counter_ns()
             for idx, q in enumerate(workload):
                 g, c = FixtureCompiler.compile_query(q)

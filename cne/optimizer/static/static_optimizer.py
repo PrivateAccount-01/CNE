@@ -29,6 +29,8 @@ class StaticOptimizationResult:
     static_effects: Dict[str, EffectSet]
     nodes_eliminated: int
     nodes_folded: int
+    evidence_tier: str = "Certified"
+    contract_repr: str = ""
 
 
 class StaticOptimizer:
@@ -55,10 +57,13 @@ class StaticOptimizer:
         g_final = ContractSimplifier.simplify(g3, contract)
 
         eliminated_count = max(0, initial_node_count - len(g_final.nodes))
+        evidence_tier = g_final.metadata.get("evidence_tier", "Certified")
 
         return StaticOptimizationResult(
             optimized_graph=g_final,
             static_effects=static_effects,
             nodes_eliminated=eliminated_count,
-            nodes_folded=folded_count
+            nodes_folded=folded_count,
+            evidence_tier=evidence_tier,
+            contract_repr=getattr(contract, "contract_repr", "")
         )

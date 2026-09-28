@@ -27,24 +27,29 @@ class CostClass:
 
     @classmethod
     def from_graph(cls, graph: SemanticIRGraph, cardinality_hint: int = 100) -> CostClass:
-        op_count = len(graph.nodes)
-        for r in graph.regions.values():
-            op_count += len(r.nodes)
+        cached_struct = getattr(graph, "_cached_cost_structure", None)
+        if cached_struct is not None:
+            op_count, has_external, has_lazy, has_join, has_reduce = cached_struct
+        else:
+            op_count = len(graph.nodes)
+            for r in graph.regions.values():
+                op_count += len(r.nodes)
 
-        has_external = False
-        has_lazy = False
-        has_join = False
-        has_reduce = False
-        for n in graph.nodes.values():
-            op = n.op
-            if op in (OpKind.OBSERVE, OpKind.CALL):
-                has_external = True
-            elif op in (OpKind.BRANCH, OpKind.ITERATE):
-                has_lazy = True
-            elif op == OpKind.JOIN:
-                has_join = True
-            elif op == OpKind.REDUCE:
-                has_reduce = True
+            has_external = False
+            has_lazy = False
+            has_join = False
+            has_reduce = False
+            for n in graph.nodes.values():
+                op = n.op
+                if op in (OpKind.OBSERVE, OpKind.CALL):
+                    has_external = True
+                elif op in (OpKind.BRANCH, OpKind.ITERATE):
+                    has_lazy = True
+                elif op == OpKind.JOIN:
+                    has_join = True
+                elif op == OpKind.REDUCE:
+                    has_reduce = True
+            graph._cached_cost_structure = (op_count, has_external, has_lazy, has_join, has_reduce)
 
         if cardinality_hint < 10:
             bracket = "<10"

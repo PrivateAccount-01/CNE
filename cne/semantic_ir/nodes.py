@@ -102,7 +102,7 @@ class SemanticIRGraph:
     def invalidate_structural_cache(self) -> None:
         """
         Invalidates all cached structural derivations (topological order,
-        shape hash, descriptors, reachability, execution policy) when graph topology mutates (Doc #10).
+        shape hash, descriptors, reachability, execution policy, physical plan) when graph topology mutates (Doc #10).
         """
         self._cached_topo = None
         self._cached_descriptors = None
@@ -110,7 +110,10 @@ class SemanticIRGraph:
         self._cached_reachable = None
         self._cached_execution_policy = None
         self._cached_observed_sources = None
+        self._cached_observe_nodes = None
         self._cached_physical_plan = None
+        self._cached_cost_structure = None
+        self._cached_static_opt_res = None
 
     def get_observed_sources(self) -> List[str]:
         cached = getattr(self, "_cached_observed_sources", None)
@@ -123,6 +126,14 @@ class SemanticIRGraph:
                         sources.append(src)
             self._cached_observed_sources = sources
             return sources
+        return cached
+
+    def get_observe_nodes(self) -> List[IRNode]:
+        cached = getattr(self, "_cached_observe_nodes", None)
+        if cached is None:
+            obs = [n for n in self.get_all_nodes().values() if n.op == OpKind.OBSERVE]
+            self._cached_observe_nodes = obs
+            return obs
         return cached
 
     def add_node(self, node: IRNode) -> None:

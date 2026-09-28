@@ -152,6 +152,7 @@ class P3ReportRunner:
             "p95_overhead_ratio": co_res["secondary_reporting"]["p95_overhead_ratio"],
             "negative_savings_fraction": co_res["secondary_reporting"]["negative_savings_fraction"],
             "state_reuse_ratio": co_res["secondary_reporting"]["state_reuse_ratio"],
+            "reuse_events_per_created_state": co_res["secondary_reporting"].get("reuse_events_per_created_state", co_res["secondary_reporting"]["state_reuse_ratio"]),
             "amortized_computation_savings_ns": co_res["secondary_reporting"]["amortized_computation_savings_ns"],
             "boundary_verified": co_res["instrumentation_boundary_verified"],
             "co_measurement": co_res
