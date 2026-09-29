@@ -117,6 +117,11 @@ class GateG6Runner:
         fabric = LocalStateFabric()
         cne = ComputationNecessityEngine(fabric=fabric, evaluator=evaluator)
 
+        # Warmup pass (5 queries) to prime caches and enter steady state
+        for q in queries[:5]:
+            gw, cw = FixtureCompiler.compile_query(q)
+            cne.execute_query(gw, cw, env, f"warmup_{q['id']}")
+
         cne_latencies_ms: List[float] = []
         # Realistic session with recurring queries
         session_queries = queries + queries[:40]

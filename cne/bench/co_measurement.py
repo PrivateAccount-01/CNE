@@ -193,18 +193,76 @@ class CoMeasurementRunner:
     _run_single_co_measurement = run_single_trial
 
     @classmethod
+    def run_steady_state_trials(
+        cls,
+        compiled: List[Tuple[Any, Any, Dict[str, Any]]],
+        env: Dict[str, Any],
+        trials: int = 5
+    ) -> List[Dict[str, Any]]:
+        """
+        Runs independent steady-state trials.
+        For EACH trial, creates fresh objects (fabric, evaluator, engine, oracle),
+        pre-warms them identically, then measures the workload.
+        The variance across these trials reflects pure timing noise under identical conditions (§P0.7a).
+        """
+        trial_results = []
+        for t_idx in range(max(1, trials)):
+            fabric = LocalStateFabric()
+            evaluator = SemanticEvaluator()
+            oracle = G2Oracle(evaluator=evaluator)
+            cne = ComputationNecessityEngine(fabric=fabric, evaluator=evaluator)
+
+            # Identical warmup pass to establish steady state
+            cls._run_trial_against(
+                compiled[:15], env, fabric, evaluator, cne, oracle, trial_prefix="warmup"
+            )
+
+            # Measured trial
+            t_res = cls._run_trial_against(
+                compiled, env, fabric, evaluator, cne, oracle, trial_prefix=f"steady_t{t_idx}"
+            )
+            trial_results.append(t_res)
+        return trial_results
+
+    @classmethod
+    def run_session_evolution_experiment(
+        cls,
+        compiled: List[Tuple[Any, Any, Dict[str, Any]]],
+        env: Dict[str, Any],
+        sessions: int = 3
+    ) -> List[Dict[str, Any]]:
+        """
+        Measures state evolution and amortization across sequential sessions (S1 -> S2 -> S3)
+        over a single shared persistent fabric (§P0.7a).
+        """
+        fabric = LocalStateFabric()
+        evaluator = SemanticEvaluator()
+        oracle = G2Oracle(evaluator=evaluator)
+        cne = ComputationNecessityEngine(fabric=fabric, evaluator=evaluator)
+
+        session_results = []
+        for s_idx in range(max(1, sessions)):
+            s_res = cls._run_trial_against(
+                compiled, env, fabric, evaluator, cne, oracle, trial_prefix=f"session_{s_idx}"
+            )
+            session_results.append({
+                "session": s_idx + 1,
+                "a_corpus": s_res["a_corpus"],
+                "net_savings_ms": s_res["net_savings_ms"],
+                "total_cne_ms": s_res["total_cne_ms"],
+                "total_control_ms": s_res["total_control_ms"],
+                "total_exec_ms": s_res["total_exec_ms"],
+                "state_reuse_ratio": s_res["state_reuse_ratio"],
+                "amortized_savings_ns": s_res["amortized_savings_ns"]
+            })
+        return session_results
+
+    @classmethod
     def run_co_measurement(cls, trials: int = 5) -> Dict[str, Any]:
         """
         Runs the full multi-trial unified co-measurement protocol.
-
-        Key design: one persistent set of objects (fabric, evaluator, engine, oracle,
-        compiled graphs) is shared across the warmup pass and ALL measured trials.
-        This ensures graph-level caches populated during warmup persist into the
-        measured trials, reflecting steady-state (warm) control overhead — the regime
-        that matters for amortized savings across a session (§28/§60).
-
-        Cold-start a_corpus (trial 0 with fresh objects) is measured and disclosed
-        as a secondary metric alongside the steady-state number.
+        Decouples steady-state timing noise (independent pre-warmed trials)
+        from multi-session state evolution (sequential S1->S2->S3 amortization).
         """
         corpus = CorpusGenerator.generate_corpus()
         queries = corpus["queries"]
@@ -231,33 +289,17 @@ class CoMeasurementRunner:
         cold_start_res = cls.run_single_trial(eval_workload, env)
         cold_start_a_corpus = cold_start_res["a_corpus"]
 
-        # ---- Build persistent objects for steady-state measurement ----
-        fabric = LocalStateFabric()
-        evaluator = SemanticEvaluator()
-        oracle = G2Oracle(evaluator=evaluator)
-        cne = ComputationNecessityEngine(fabric=fabric, evaluator=evaluator)
-
-        # Pre-compile all queries once — graphs and their caches persist across trials
+        # Pre-compile all queries once
         compiled = []
         for q in eval_workload:
             graph, contract = FixtureCompiler.compile_query(q)
             compiled.append((graph, contract, q))
 
-        # Warmup pass: populate graph-level caches, discard measurements
-        cls._run_trial_against(
-            compiled[:15],
-            env, fabric, evaluator, cne, oracle,
-            trial_prefix="warmup"
-        )
+        # ---- Measured trials: independent steady-state timing-noise averaging ----
+        trial_results = cls.run_steady_state_trials(compiled, env, trials=trials)
 
-        # ---- Measured trials: steady-state timing-noise averaging ----
-        trial_results: List[Dict[str, Any]] = []
-        for t_idx in range(max(1, trials)):
-            trial_res = cls._run_trial_against(
-                compiled, env, fabric, evaluator, cne, oracle,
-                trial_prefix=f"t{t_idx}"
-            )
-            trial_results.append(trial_res)
+        # ---- Multi-session state evolution trajectory ----
+        session_evolution = cls.run_session_evolution_experiment(compiled, env, sessions=3)
 
         baseline_vals = [t["total_baseline_ms"] for t in trial_results]
         oracle_vals = [t["total_oracle_ms"] for t in trial_results]
@@ -343,5 +385,6 @@ class CoMeasurementRunner:
                 "isolated_optimizer_overhead_ratio": round(trial_results[0]["isolated_overhead_ratio"], 4),
                 "cold_start_a_corpus": round(cold_start_a_corpus, 4)
             },
+            "session_state_evolution": session_evolution,
             "trial_runs": trial_results
         }

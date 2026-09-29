@@ -39,7 +39,7 @@ class SemanticShapeKey:
             }
             # Include control structure attributes (regions, joins)
             attrs = d.get("attributes", {})
-            for k in ("then_region", "else_region", "step_region", "granularity", "left_key", "right_key"):
+            for k in ("then_region", "else_region", "step_region", "granularity", "left_key", "right_key", "reducer_kind"):
                 if k in attrs:
                     shape_elem[k] = attrs[k]
             shape_elements.append(shape_elem)

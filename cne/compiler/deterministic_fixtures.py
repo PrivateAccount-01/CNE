@@ -17,25 +17,32 @@ from cne.semantic_ir.types import DependencyKey, SemanticType
 def build_expense_fixture(
     category: str = "Food",
     exclude_transfers: bool = True,
-    threshold: float = 100.0
+    threshold: float = 100.0,
+    aggregation: str = "sum",
+    include_category_filter: bool = True,
+    include_threshold_filter: bool = True,
+    source: str = "transactions",
+    account: Optional[str] = None
 ) -> tuple[SemanticIRGraph, OutcomeContract]:
     """
-    Expense analysis fixture:
+    Expense analysis fixture (compositional):
     - Observe transactions from account store
-    - Filter by category and transfer exclusion
-    - Filter transactions exceeding threshold
-    - Map to extract amount
-    - Reduce to compute total spending
-    - Emit final total
+    - Filter by category and transfer exclusion (optional)
+    - Filter transactions exceeding threshold (optional)
+    - Map to extract amount (for sum/max/avg)
+    - Reduce to compute aggregate (sum / count / max / average)
+    - Emit final result
     """
     g = SemanticIRGraph()
+
+    actual_source = source if account is None else f"transactions_{account}"
 
     # 1. Observe transactions
     obs = IRNode(
         id="obs_tx",
         op=OpKind.OBSERVE,
         attributes={
-            "source": "transactions",
+            "source": actual_source,
             "granularity": "predicate",
             "predicate_desc": f"Category == '{category}' and Amount > {threshold}"
         },
@@ -43,62 +50,127 @@ def build_expense_fixture(
     )
     g.add_node(obs)
 
-    # 2. Filter transactions by category and transfers
-    def category_filter(tx: Dict[str, Any]) -> bool:
-        if tx.get("category") != category:
-            return False
-        if exclude_transfers and tx.get("is_transfer", False):
-            return False
-        return True
+    curr_input = "obs_tx"
+    curr_type = obs.output_type
 
-    filt = IRNode(
-        id="filt_cat",
-        op=OpKind.FILTER,
-        inputs=["obs_tx"],
-        attributes={"predicate": category_filter, "category": category, "exclude_transfers": exclude_transfers},
-        output_type=obs.output_type
-    )
-    g.add_node(filt)
+    # 2. Filter transactions by category and transfers
+    if include_category_filter:
+        def category_filter(tx: Dict[str, Any]) -> bool:
+            if tx.get("category") != category:
+                return False
+            if exclude_transfers and tx.get("is_transfer", False):
+                return False
+            return True
+
+        filt = IRNode(
+            id="filt_cat",
+            op=OpKind.FILTER,
+            inputs=[curr_input],
+            attributes={"predicate": category_filter, "category": category, "exclude_transfers": exclude_transfers},
+            output_type=curr_type
+        )
+        g.add_node(filt)
+        curr_input = "filt_cat"
 
     # 3. Filter high-value transactions
-    def threshold_filter(tx: Dict[str, Any]) -> bool:
-        return tx.get("amount", 0.0) >= threshold
+    if include_threshold_filter:
+        def threshold_filter(tx: Dict[str, Any]) -> bool:
+            return tx.get("amount", 0.0) >= threshold
 
-    filt_thresh = IRNode(
-        id="filt_thresh",
-        op=OpKind.FILTER,
-        inputs=["filt_cat"],
-        attributes={"predicate": threshold_filter, "threshold": threshold},
-        output_type=obs.output_type
-    )
-    g.add_node(filt_thresh)
+        filt_thresh = IRNode(
+            id="filt_thresh",
+            op=OpKind.FILTER,
+            inputs=[curr_input],
+            attributes={"predicate": threshold_filter, "threshold": threshold},
+            output_type=curr_type
+        )
+        g.add_node(filt_thresh)
+        curr_input = "filt_thresh"
 
-    # 4. Map to extract amount
-    map_amt = IRNode(
-        id="map_amt",
-        op=OpKind.MAP,
-        inputs=["filt_thresh"],
-        attributes={"fn": lambda tx: tx.get("amount", 0.0)},
-        output_type=SemanticType.collection(SemanticType.numeric())
-    )
-    g.add_node(map_amt)
-
-    # 5. Reduce to sum
-    red_sum = IRNode(
-        id="red_sum",
-        op=OpKind.REDUCE,
-        inputs=["map_amt"],
-        attributes={"op": lambda a, b: a + b, "init": 0.0},
-        output_type=SemanticType.numeric()
-    )
-    g.add_node(red_sum)
+    # 4 & 5. Aggregation pipeline
+    if aggregation == "count":
+        red_count = IRNode(
+            id="red_count",
+            op=OpKind.REDUCE,
+            inputs=[curr_input],
+            attributes={"op": lambda acc, _: acc + 1, "init": 0, "reducer_kind": "count"},
+            output_type=SemanticType.numeric("Integer")
+        )
+        g.add_node(red_count)
+        emit_input = "red_count"
+        emit_type = SemanticType.numeric("Integer")
+    elif aggregation == "max":
+        map_amt = IRNode(
+            id="map_amt",
+            op=OpKind.MAP,
+            inputs=[curr_input],
+            attributes={"fn": lambda tx: float(tx.get("amount", 0.0))},
+            output_type=SemanticType.collection(SemanticType.numeric())
+        )
+        g.add_node(map_amt)
+        red_max = IRNode(
+            id="red_max",
+            op=OpKind.REDUCE,
+            inputs=["map_amt"],
+            attributes={"op": lambda a, b: max(a, b), "init": 0.0, "reducer_kind": "max"},
+            output_type=SemanticType.numeric()
+        )
+        g.add_node(red_max)
+        emit_input = "red_max"
+        emit_type = SemanticType.numeric()
+    elif aggregation == "average":
+        map_pair = IRNode(
+            id="map_pair",
+            op=OpKind.MAP,
+            inputs=[curr_input],
+            attributes={"fn": lambda tx: (float(tx.get("amount", 0.0)), 1)},
+            output_type=SemanticType.collection(SemanticType.any())
+        )
+        g.add_node(map_pair)
+        red_pair = IRNode(
+            id="red_pair",
+            op=OpKind.REDUCE,
+            inputs=["map_pair"],
+            attributes={"op": lambda a, b: (a[0] + b[0], a[1] + b[1]), "init": (0.0, 0), "reducer_kind": "average"},
+            output_type=SemanticType.any()
+        )
+        g.add_node(red_pair)
+        map_avg = IRNode(
+            id="map_avg",
+            op=OpKind.MAP,
+            inputs=["red_pair"],
+            attributes={"fn": lambda p: (p[0] / p[1]) if (isinstance(p, (list, tuple)) and len(p) == 2 and p[1] > 0) else 0.0},
+            output_type=SemanticType.numeric()
+        )
+        g.add_node(map_avg)
+        emit_input = "map_avg"
+        emit_type = SemanticType.numeric()
+    else:  # sum (default)
+        map_amt = IRNode(
+            id="map_amt",
+            op=OpKind.MAP,
+            inputs=[curr_input],
+            attributes={"fn": lambda tx: float(tx.get("amount", 0.0))},
+            output_type=SemanticType.collection(SemanticType.numeric())
+        )
+        g.add_node(map_amt)
+        red_sum = IRNode(
+            id="red_sum",
+            op=OpKind.REDUCE,
+            inputs=["map_amt"],
+            attributes={"op": lambda a, b: a + b, "init": 0.0, "reducer_kind": "sum"},
+            output_type=SemanticType.numeric()
+        )
+        g.add_node(red_sum)
+        emit_input = "red_sum"
+        emit_type = SemanticType.numeric()
 
     # 6. Emit result
     emit = IRNode(
         id="emit_res",
         op=OpKind.EMIT,
-        inputs=["red_sum"],
-        output_type=SemanticType.numeric()
+        inputs=[emit_input],
+        output_type=emit_type
     )
     g.add_node(emit)
     g.root_id = "emit_res"
@@ -375,14 +447,14 @@ def build_scheduling_fixture(
 
 def build_habit_fitness_fixture(
     activity_type: str = "running",
-    goal: float = 30.0
+    goal: float = 30.0,
+    aggregation: str = "sum"
 ) -> tuple[SemanticIRGraph, OutcomeContract]:
     """
-    Habit / fitness tracking fixture:
+    Habit / fitness tracking fixture (compositional):
     - Observe activities log
     - Filter by activity type
-    - Map to extract duration
-    - Reduce to compute total duration
+    - Map/Reduce to compute activity metric (sum / count / max / average)
     - Branch to check if goal is met
     - Emit status record
     """
@@ -405,23 +477,78 @@ def build_habit_fitness_fixture(
     )
     g.add_node(filt)
 
-    map_dur = IRNode(
-        id="map_duration",
-        op=OpKind.MAP,
-        inputs=["filt_activity"],
-        attributes={"fn": lambda a: float(a.get("duration", 0.0))},
-        output_type=SemanticType.collection(SemanticType.numeric())
-    )
-    g.add_node(map_dur)
-
-    red_total = IRNode(
-        id="red_total_duration",
-        op=OpKind.REDUCE,
-        inputs=["map_duration"],
-        attributes={"op": lambda a, b: a + b, "init": 0.0},
-        output_type=SemanticType.numeric()
-    )
-    g.add_node(red_total)
+    if aggregation == "count":
+        red_metric = IRNode(
+            id="red_count_activity",
+            op=OpKind.REDUCE,
+            inputs=["filt_activity"],
+            attributes={"op": lambda acc, _: acc + 1, "init": 0, "reducer_kind": "count"},
+            output_type=SemanticType.numeric("Integer")
+        )
+        g.add_node(red_metric)
+        branch_input = "red_count_activity"
+    elif aggregation == "max":
+        map_dur = IRNode(
+            id="map_duration",
+            op=OpKind.MAP,
+            inputs=["filt_activity"],
+            attributes={"fn": lambda a: float(a.get("duration", 0.0))},
+            output_type=SemanticType.collection(SemanticType.numeric())
+        )
+        g.add_node(map_dur)
+        red_metric = IRNode(
+            id="red_max_duration",
+            op=OpKind.REDUCE,
+            inputs=["map_duration"],
+            attributes={"op": lambda a, b: max(a, b), "init": 0.0, "reducer_kind": "max"},
+            output_type=SemanticType.numeric()
+        )
+        g.add_node(red_metric)
+        branch_input = "red_max_duration"
+    elif aggregation == "average":
+        map_pair = IRNode(
+            id="map_duration_pair",
+            op=OpKind.MAP,
+            inputs=["filt_activity"],
+            attributes={"fn": lambda a: (float(a.get("duration", 0.0)), 1)},
+            output_type=SemanticType.collection(SemanticType.any())
+        )
+        g.add_node(map_pair)
+        red_pair = IRNode(
+            id="red_duration_pair",
+            op=OpKind.REDUCE,
+            inputs=["map_duration_pair"],
+            attributes={"op": lambda a, b: (a[0] + b[0], a[1] + b[1]), "init": (0.0, 0), "reducer_kind": "average"},
+            output_type=SemanticType.any()
+        )
+        g.add_node(red_pair)
+        map_avg = IRNode(
+            id="map_avg_duration",
+            op=OpKind.MAP,
+            inputs=["red_duration_pair"],
+            attributes={"fn": lambda p: (p[0] / p[1]) if (isinstance(p, (list, tuple)) and len(p) == 2 and p[1] > 0) else 0.0},
+            output_type=SemanticType.numeric()
+        )
+        g.add_node(map_avg)
+        branch_input = "map_avg_duration"
+    else:  # sum (default)
+        map_dur = IRNode(
+            id="map_duration",
+            op=OpKind.MAP,
+            inputs=["filt_activity"],
+            attributes={"fn": lambda a: float(a.get("duration", 0.0))},
+            output_type=SemanticType.collection(SemanticType.numeric())
+        )
+        g.add_node(map_dur)
+        red_metric = IRNode(
+            id="red_total_duration",
+            op=OpKind.REDUCE,
+            inputs=["map_duration"],
+            attributes={"op": lambda a, b: a + b, "init": 0.0, "reducer_kind": "sum"},
+            output_type=SemanticType.numeric()
+        )
+        g.add_node(red_metric)
+        branch_input = "red_total_duration"
 
     # Lazy branch: then (goal_met) / else (goal_pending)
     branch_reg_then = SemanticRegion(id="reg_then_goal")
@@ -442,7 +569,7 @@ def build_habit_fitness_fixture(
     branch_goal = IRNode(
         id="branch_goal_check",
         op=OpKind.BRANCH,
-        inputs=["red_total_duration"],
+        inputs=[branch_input],
         attributes={
             "condition": lambda tot: float(tot or 0.0) >= goal,
             "then_region": "reg_then_goal",
@@ -597,16 +724,17 @@ def build_recommendation_fixture(
 
 
 def build_cross_source_join_fixture(
-    min_quantity: int = 5
+    min_quantity: int = 5,
+    aggregation: str = "sum"
 ) -> tuple[SemanticIRGraph, OutcomeContract]:
     """
-    Structural Outlier Fixture: Cross-Source Join & Reconciliation
+    Structural Outlier Fixture: Cross-Source Join & Reconciliation (compositional)
     Exercises a materially different primitive combination:
     - 2 Observers (orders, inventory)
     - Join on item_id == sku
     - Filter by order quantity
     - Map to line cost (quantity * unit_price)
-    - Reduce to compute total cost
+    - Reduce to compute total cost (or count / max / average)
     - Emit final total
     """
     g = SemanticIRGraph()
@@ -659,29 +787,88 @@ def build_cross_source_join_fixture(
         order, inv = pair
         return float(order.get("quantity", 0) * inv.get("unit_price", 0.0))
 
-    map_cost = IRNode(
-        id="map_line_cost",
-        op=OpKind.MAP,
-        inputs=["filt_min_quantity"],
-        attributes={"fn": compute_cost},
-        output_type=SemanticType.collection(SemanticType.numeric())
-    )
-    g.add_node(map_cost)
-
-    red_sum = IRNode(
-        id="red_total_cost",
-        op=OpKind.REDUCE,
-        inputs=["map_line_cost"],
-        attributes={"op": lambda a, b: a + b, "init": 0.0},
-        output_type=SemanticType.numeric()
-    )
-    g.add_node(red_sum)
+    if aggregation == "count":
+        red_count = IRNode(
+            id="red_count_reconciliation",
+            op=OpKind.REDUCE,
+            inputs=["filt_min_quantity"],
+            attributes={"op": lambda acc, _: acc + 1, "init": 0, "reducer_kind": "count"},
+            output_type=SemanticType.numeric("Integer")
+        )
+        g.add_node(red_count)
+        emit_input = "red_count_reconciliation"
+        emit_type = SemanticType.numeric("Integer")
+    elif aggregation == "max":
+        map_cost = IRNode(
+            id="map_line_cost",
+            op=OpKind.MAP,
+            inputs=["filt_min_quantity"],
+            attributes={"fn": compute_cost},
+            output_type=SemanticType.collection(SemanticType.numeric())
+        )
+        g.add_node(map_cost)
+        red_max = IRNode(
+            id="red_max_cost",
+            op=OpKind.REDUCE,
+            inputs=["map_line_cost"],
+            attributes={"op": lambda a, b: max(a, b), "init": 0.0, "reducer_kind": "max"},
+            output_type=SemanticType.numeric()
+        )
+        g.add_node(red_max)
+        emit_input = "red_max_cost"
+        emit_type = SemanticType.numeric()
+    elif aggregation == "average":
+        map_pair = IRNode(
+            id="map_cost_pair",
+            op=OpKind.MAP,
+            inputs=["filt_min_quantity"],
+            attributes={"fn": lambda pair: (compute_cost(pair), 1)},
+            output_type=SemanticType.collection(SemanticType.any())
+        )
+        g.add_node(map_pair)
+        red_pair = IRNode(
+            id="red_cost_pair",
+            op=OpKind.REDUCE,
+            inputs=["map_cost_pair"],
+            attributes={"op": lambda a, b: (a[0] + b[0], a[1] + b[1]), "init": (0.0, 0), "reducer_kind": "average"},
+            output_type=SemanticType.any()
+        )
+        g.add_node(red_pair)
+        map_avg = IRNode(
+            id="map_avg_cost",
+            op=OpKind.MAP,
+            inputs=["red_cost_pair"],
+            attributes={"fn": lambda p: (p[0] / p[1]) if (isinstance(p, (list, tuple)) and len(p) == 2 and p[1] > 0) else 0.0},
+            output_type=SemanticType.numeric()
+        )
+        g.add_node(map_avg)
+        emit_input = "map_avg_cost"
+        emit_type = SemanticType.numeric()
+    else:  # sum (default)
+        map_cost = IRNode(
+            id="map_line_cost",
+            op=OpKind.MAP,
+            inputs=["filt_min_quantity"],
+            attributes={"fn": compute_cost},
+            output_type=SemanticType.collection(SemanticType.numeric())
+        )
+        g.add_node(map_cost)
+        red_sum = IRNode(
+            id="red_total_cost",
+            op=OpKind.REDUCE,
+            inputs=["map_line_cost"],
+            attributes={"op": lambda a, b: a + b, "init": 0.0, "reducer_kind": "sum"},
+            output_type=SemanticType.numeric()
+        )
+        g.add_node(red_sum)
+        emit_input = "red_total_cost"
+        emit_type = SemanticType.numeric()
 
     emit = IRNode(
         id="emit_reconciliation",
         op=OpKind.EMIT,
-        inputs=["red_total_cost"],
-        output_type=SemanticType.numeric()
+        inputs=[emit_input],
+        output_type=emit_type
     )
     g.add_node(emit)
     g.root_id = "emit_reconciliation"

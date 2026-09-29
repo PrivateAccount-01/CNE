@@ -23,8 +23,8 @@ Composition:
 
 Total: 1,550 queries. Deterministic via frozen seed.
 """
-from __future__ import annotations
-
+import json
+import os
 import random
 from typing import Any, Dict, List, Optional
 
@@ -75,231 +75,29 @@ class RealisticCorpusGenerator:
             })
 
         # =====================================================================
-        # 2. LLM-Generated Paraphrases (990 queries: 3 batches x 330 queries)
+        # 2. LLM-Generated Paraphrases (990 queries: loaded from frozen artifact)
         # =====================================================================
-        # Batch 1: Formal / technical style
-        b1_templates = {
-            "expense": [
-                "Compute aggregate {cat} expenditure exceeding {thresh} dollars",
-                "Sum financial transactions for category {cat} greater than {thresh}",
-                "Calculate total {cat} disbursement above limit {thresh}",
-                "Evaluate net {cat} expenses higher than threshold {thresh}",
-                "Audit {cat} purchases where expenditure exceeds {thresh}"
-            ],
-            "troubleshooting": [
-                "Execute diagnostic telemetry assessment on host {node} for error count > {thresh}",
-                "Diagnose system health for {node} with incident threshold exceeding {thresh}",
-                "Inspect diagnostic logs on {node} alerting when failures exceed {thresh}",
-                "Perform automated troubleshooting on host {node} above error bound {thresh}",
-                "Verify operational integrity of {node} against error limit {thresh}"
-            ],
-            "scheduling": [
-                "Identify viable calendar appointment slot with {user} for duration {dur} minutes",
-                "Schedule a formal calendar consultation with {user} requiring {dur} minutes",
-                "Determine optimal meeting availability with {user} for {dur} minutes",
-                "Book calendar slot for session with {user} allocated {dur} minutes",
-                "Find mutual meeting availability with attendee {user} for duration {dur} min"
-            ],
-            "habit_fitness": [
-                "Log daily {act} fitness workout session and verify target goal of {goal} minutes",
-                "Record {act} training activity duration against threshold goal of {goal} minutes",
-                "Audit {act} exercise performance against daily target goal of {goal} min",
-                "Track {act} workout telemetry to confirm achievement of goal {goal} minutes",
-                "Evaluate {act} fitness activity completion towards target {goal} min"
-            ],
-            "factual_decision": [
-                "Decide on strategic {topic} alternatives with confidence parameter >= {conf}",
-                "Evaluate policy options for {topic} requiring certainty threshold {conf}",
-                "Formulate decision on {topic} selecting candidate with confidence exceeding {conf}",
-                "Select optimal hypothesis for {topic} under confidence constraint {conf}",
-                "Conduct factual decision analysis on {topic} with confidence >= {conf}"
-            ],
-            "recommendation": [
-                "Retrieve top catalog recommendations with consumer rating >= {rate} for user {user}",
-                "Generate personalized product suggestions exceeding rating {rate} for user {user}",
-                "Recommend catalog inventory items meeting rating threshold {rate} for user {user}",
-                "Query top rated merchandise recommendations above {rate} stars for user {user}",
-                "Filter and suggest catalog offerings with rating exceeding {rate} for user {user}"
-            ],
-            "cross_source_join_aggregate": [
-                "Reconcile orders and inventory ledgers for sku items with quantity exceeding {qty}",
-                "Cross-reference orders and warehouse inventory data where batch quantity > {qty}",
-                "Join customer orders with inventory stock to aggregate valuations above quantity {qty}",
-                "Execute cross-source reconciliation of orders and inventory records exceeding {qty}",
-                "Aggregate supply orders and warehouse inventory quantities higher than {qty}"
-            ]
-        }
-
-        # Batch 2: Conversational / colloquial style
-        b2_templates = {
-            "expense": [
-                "How much did I spend on {cat} over {thresh} bucks?",
-                "Can you check what I spent on {cat} above {thresh}?",
-                "Total up all my {cat} spending over {thresh} please",
-                "Show me purchases for {cat} that went higher than {thresh}",
-                "Give me the spending sum on {cat} past {thresh} dollars"
-            ],
-            "troubleshooting": [
-                "Check if {node} has telemetry errors past {thresh}",
-                "Run a quick troubleshoot on {node} if errors are above {thresh}",
-                "Is {node} healthy or are telemetry error alerts past {thresh}?",
-                "Diagnose what's wrong with {node} exceeding {thresh} error limit",
-                "Look at {node} telemetry alerts and troubleshoot if errors > {thresh}"
-            ],
-            "scheduling": [
-                "Set up a quick chat with {user} for {dur} minutes",
-                "Find me a meeting slot with {user} lasting {dur} mins",
-                "Can we schedule some time with {user} for {dur} minutes?",
-                "Book a {dur} minute slot on my calendar with {user}",
-                "Look for an open slot with {user} for a {dur} min meeting"
-            ],
-            "habit_fitness": [
-                "Did I hit my {goal} minute {act} goal for workout today?",
-                "Log my {act} workout and tell me if goal of {goal} min is reached",
-                "Track today's {act} exercise toward my {goal} minute fitness goal",
-                "Check my {act} workout minutes against the {goal} minute target",
-                "Record my {act} habit and check if {goal} min goal achieved"
-            ],
-            "factual_decision": [
-                "Help me decide on {topic} with confidence over {conf}",
-                "Which option should we pick for {topic} at confidence {conf}?",
-                "Evaluate the choices for {topic} with confidence above {conf}",
-                "Need a decision on {topic} having confidence >= {conf}",
-                "Make the call on {topic} with high confidence past {conf}"
-            ],
-            "recommendation": [
-                "What items do you recommend for user {user} with rating over {rate}?",
-                "Suggest some good catalog stuff rated above {rate} for user {user}",
-                "Give user {user} product recommendations having rating over {rate}",
-                "Show top recommended products rated past {rate} stars for user {user}",
-                "Find me suggestions from catalog rated at least {rate} for user {user}"
-            ],
-            "cross_source_join_aggregate": [
-                "Match orders and inventory to see stock totals over {qty}",
-                "Join up the orders with inventory stock where quantity is over {qty}",
-                "Cross-check orders against warehouse inventory with quantity exceeding {qty}",
-                "Reconcile orders and inventory items that have quantity above {qty}",
-                "Connect orders with inventory and sum values with quantity past {qty}"
-            ]
-        }
-
-        # Batch 3: Compound / multi-clause style
-        b3_templates = {
-            "expense": [
-                "I want to review my account records: calculate total spending on {cat} exceeding {thresh}",
-                "Looking across monthly statements, please sum up all {cat} expenses higher than {thresh}",
-                "To optimize my budget, show aggregate {cat} expenditure with values above {thresh}",
-                "Perform an account audit and compute total {cat} purchase costs greater than {thresh}",
-                "From our financial ledger, summarize total amount spent on {cat} exceeding {thresh}"
-            ],
-            "troubleshooting": [
-                "Automated system patrol: inspect telemetry and diagnose failures on {node} exceeding {thresh}",
-                "Under infrastructure alerting rules, troubleshoot host {node} when errors rise above {thresh}",
-                "Run diagnostic telemetry analysis on {node} and remediate if error threshold exceeds {thresh}",
-                "To prevent production incidents, diagnose telemetry alerts on {node} higher than {thresh}",
-                "Verify system reliability metrics and troubleshoot {node} if critical errors exceed {thresh}"
-            ],
-            "scheduling": [
-                "Coordinating team agenda: schedule an appointment slot with {user} for {dur} minutes",
-                "Check availability across calendars and schedule a meeting with {user} lasting {dur} minutes",
-                "To prepare for project sync, book a dedicated calendar slot with {user} for {dur} min",
-                "Scan schedule for free intervals and arrange a consultation with {user} of {dur} minutes",
-                "Schedule a working session with {user} ensuring required slot duration is {dur} minutes"
-            ],
-            "habit_fitness": [
-                "Daily health routine: log my {act} workout session and confirm if goal {goal} min is met",
-                "Fitness tracker update: record {act} exercise telemetry and verify target goal of {goal} min",
-                "Review athletic activity: calculate total {act} workout time toward daily goal of {goal} minutes",
-                "Tracking weekly wellness: record {act} fitness activity and evaluate if goal of {goal} min achieved",
-                "Log {act} training minutes and verify whether workout goal of {goal} minutes was satisfied"
-            ],
-            "factual_decision": [
-                "Policy review protocol: evaluate decision alternatives on {topic} requiring confidence {conf}",
-                "Based on analytical evidence, decide on {topic} selecting candidates with confidence >= {conf}",
-                "Conduct tradeoff study to choose optimal alternative for {topic} with confidence over {conf}",
-                "Review hypothesis space and formulate decision on {topic} under confidence limit {conf}",
-                "Structured decision workflow: evaluate options for {topic} having minimum confidence {conf}"
-            ],
-            "recommendation": [
-                "Catalog curation engine: recommend top items and suggestions with rating above {rate} for user {user}",
-                "Personalized shopping pipeline: query catalog and suggest products with rating over {rate} for user {user}",
-                "Deliver customer recommendations: identify top catalog merchandise with rating exceeding {rate} for user {user}",
-                "From consumer inventory, recommend highest scored items with rating above {rate} for user {user}",
-                "Generate top item recommendations based on catalog ratings exceeding {rate} for attendee user {user}"
-            ],
-            "cross_source_join_aggregate": [
-                "Supply chain reconciliation: cross-reference orders and inventory to sum items with quantity > {qty}",
-                "Warehouse analytics: join orders with inventory stock and calculate values exceeding quantity {qty}",
-                "Inventory control pipeline: reconcile orders and inventory databases where line quantity exceeds {qty}",
-                "Perform cross-source data join between orders and inventory to total goods with quantity over {qty}",
-                "Reconcile customer order records against warehouse inventory data for batch quantities above {qty}"
-            ]
-        }
-
-        batches = [
-            ("batch_1", b1_templates),
-            ("batch_2", b2_templates),
-            ("batch_3", b3_templates)
-        ]
-
-        categories = ["food", "travel", "utilities", "shopping", "entertainment", "health", "office", "electronics"]
-        users = ["alice", "bob", "carol", "david", "emma", "frank", "grace"]
-        activities = ["running", "cycling", "walking", "swimming", "gym", "cardio"]
-        topics = ["deployment", "migration", "architecture", "caching", "failover", "scaling"]
-
-        for b_name, b_tmpls in batches:
-            # 330 queries per batch: 7 topologies * ~47 queries each = 329 + 1 = 330
-            queries_per_topo = 47
-            for t_idx, topo in enumerate(cls.TOPOLOGIES):
-                tmpl_list = b_tmpls[topo]
-                # extra 1 query on last topology so 47 * 7 + 1 = 330
-                count = queries_per_topo + (1 if t_idx == len(cls.TOPOLOGIES) - 1 else 0)
-                for i in range(count):
-                    tmpl = tmpl_list[i % len(tmpl_list)]
-                    qid = f"p07_para_{b_name}_{topo}_{i}"
-
-                    cat = categories[rng.randint(0, len(categories) - 1)]
-                    thresh = 25.0 + rng.randint(1, 50) * 10.0
-                    node = f"node_{rng.randint(1, 20)}"
-                    err_thresh = rng.randint(2, 15)
-                    user = users[rng.randint(0, len(users) - 1)]
-                    dur = rng.choice([15, 30, 45, 60, 90])
-                    act = activities[rng.randint(0, len(activities) - 1)]
-                    goal = rng.choice([20.0, 30.0, 45.0, 60.0])
-                    topic = topics[rng.randint(0, len(topics) - 1)]
-                    conf = round(0.65 + rng.random() * 0.30, 2)
-                    rate = round(3.5 + rng.random() * 1.4, 1)
-                    qty = rng.randint(2, 50)
-
-                    text = tmpl.format(
-                        cat=cat, thresh=thresh, node=node, user=user,
-                        dur=dur, act=act, goal=goal, topic=topic,
-                        conf=conf, rate=rate, qty=qty
-                    )
-
-                    queries.append({
-                        "id": qid,
-                        "query_text": text,
-                        "category": "llm_paraphrase",
-                        "generation_batch": b_name,
-                        "intended_topology": topo,
-                        "expected_classification": "COMPILED",
-                        "adversarial_family": None,
-                        "slots": {
-                            "category": cat.capitalize(),
-                            "threshold": thresh,
-                            "system_id": node,
-                            "error_threshold": err_thresh,
-                            "user_id": user,
-                            "duration": dur,
-                            "activity_type": act,
-                            "goal": goal,
-                            "topic": topic,
-                            "min_confidence": conf,
-                            "min_rating": rate,
-                            "min_quantity": qty
-                        }
-                    })
+        artifact_path = os.path.join(
+            os.path.dirname(__file__), "..", "..", "artifacts", "corpus", "llm_paraphrases_v1.json"
+        )
+        if os.path.exists(artifact_path):
+            with open(artifact_path, "r", encoding="utf-8") as f:
+                artifact_data = json.load(f)
+            paraphrases = artifact_data.get("paraphrases", [])
+            for p in paraphrases:
+                queries.append({
+                    "id": p["id"],
+                    "query_text": p["query_text"],
+                    "category": "llm_paraphrase",
+                    "generation_batch": p["generation_batch"],
+                    "generator_metadata": p.get("generator_metadata", {}),
+                    "intended_topology": p["intended_topology"],
+                    "expected_classification": p.get("expected_classification", "COMPILED"),
+                    "adversarial_family": None,
+                    "slots": p.get("ground_truth_slots", {})
+                })
+        else:
+            raise FileNotFoundError(f"Paraphrase generation artifact not found at {artifact_path}")
 
         # =====================================================================
         # 3. Adversarial Families (330 queries: 6 families x 55 queries)
@@ -317,7 +115,7 @@ class RealisticCorpusGenerator:
                 "intended_topology": "expense",
                 "expected_classification": "COMPILED",
                 "adversarial_family": "A1",
-                "slots": {"category": "Food", "threshold": 100.0, "source_dep": src_variant}
+                "slots": {"category": "Food", "threshold": 100.0, "source_dep": src_variant, "account": account_id}
             })
 
         # A2: Same wording, different OutcomeContract

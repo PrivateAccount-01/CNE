@@ -83,17 +83,33 @@ class NLCompiler:
 
     INTENT_KEYWORDS: Dict[str, Dict[str, Any]] = {
         "expense": {
-            "primary": ["spend", "spent", "spending", "expense", "expenses", "purchase", "purchases", "cost", "total spend"],
-            "secondary": ["food", "travel", "groceries", "utilities", "shopping", "entertainment", "dining", "above", "exceeding", "over", "threshold", "dollars", "amount", "budget"],
+            "primary": [
+                "spend", "spent", "spending", "expense", "expenses", "expenditure", "expenditures",
+                "disbursement", "disbursements", "purchase", "purchases", "cost", "costs",
+                "transaction", "transactions", "debit", "debits", "charge", "charges", "ledger",
+                "total spend", "net total"
+            ],
+            "secondary": [
+                "food", "travel", "groceries", "utilities", "shopping", "entertainment", "dining",
+                "health", "office", "electronics", "above", "exceeding", "over", "threshold",
+                "dollars", "amount", "budget", "single", "peak", "largest", "mean", "count"
+            ],
             "patterns": [
-                r"(?:spent|spending|expenses?|purchases?)\s+(?:on\s+)?([a-z]+)",
+                r"(?:spent|spending|expenses?|purchases?|disbursements?|expenditures?)\s+(?:on\s+|for\s+)?([a-z]+)",
                 r"(?:above|over|exceeding|higher than|greater than)\s+\$?([0-9]+(?:\.[0-9]+)?)",
-                r"total\s+([a-z]+)\s+spend",
+                r"total\s+([a-z]+)\s+(?:spend|cost|expenditure)",
             ]
         },
         "troubleshooting": {
-            "primary": ["diagnose", "diagnosing", "troubleshoot", "troubleshooting", "telemetry", "remediate", "diagnostic", "error limit"],
-            "secondary": ["node", "server", "host", "errors", "alerts", "health", "system", "critical", "threshold", "failure", "incident"],
+            "primary": [
+                "diagnose", "diagnosing", "troubleshoot", "troubleshooting", "telemetry", "remediate",
+                "diagnostic", "error limit", "incident", "failure", "health check", "health status",
+                "operational integrity"
+            ],
+            "secondary": [
+                "node", "server", "host", "errors", "alerts", "health", "system", "critical",
+                "threshold", "failure", "incident", "trouble", "failing", "spikes"
+            ],
             "patterns": [
                 r"(?:node|server|host|system)[_\s]+([a-z0-9]+)",
                 r"(?:error[s]?|alerts?)\s+(?:exceeding|above|over|>)\s+([0-9]+)",
@@ -101,48 +117,79 @@ class NLCompiler:
             ]
         },
         "scheduling": {
-            "primary": ["schedule", "meeting", "calendar", "appointment", "slot", "availability", "book time"],
-            "secondary": ["alice", "bob", "carol", "minutes", "duration", "hours", "free", "time", "invite", "find a slot"],
+            "primary": [
+                "schedule", "meeting", "calendar", "appointment", "slot", "availability", "book time",
+                "consultation", "session", "catchup", "collaborative session", "meet with"
+            ],
+            "secondary": [
+                "alice", "bob", "carol", "david", "dave", "emma", "frank", "grace", "minutes",
+                "duration", "hours", "free", "time", "invite", "find a slot", "open slot"
+            ],
             "patterns": [
                 r"(?:with|for)\s+([a-z]+)",
                 r"(?:duration|slot)\s+(?:of\s+)?([0-9]+)\s*(?:min|minutes)?",
-                r"schedule\s+(?:a\s+)?meeting",
+                r"schedule\s+(?:a\s+)?(?:meeting|consultation|session)",
             ]
         },
         "habit_fitness": {
-            "primary": ["fitness", "workout", "exercise", "habit", "activity", "activities", "active time"],
-            "secondary": ["running", "cycling", "walking", "swimming", "gym", "cardio", "minutes", "goal", "achieved", "target", "calories"],
+            "primary": [
+                "fitness", "workout", "exercise", "habit", "activity", "activities", "active time",
+                "training", "wellness", "athletic activity", "active duration"
+            ],
+            "secondary": [
+                "running", "cycling", "walking", "swimming", "gym", "cardio", "minutes", "goal",
+                "achieved", "target", "calories", "session", "compliance", "telemetry"
+            ],
             "patterns": [
                 r"(?:running|cycling|walking|swimming|gym|cardio)",
-                r"goal\s+(?:of\s+)?([0-9]+)\s*(?:min|minutes|cal)?",
+                r"goal\s+(?:of\s+)?([0-9]+(?:\.[0-9]+)?)\s*(?:min|minutes|cal)?",
                 r"(?:total|log)\s+(?:workout|exercise|activity)",
             ]
         },
         "factual_decision": {
-            "primary": ["decide", "decision", "choose option", "best alternative", "evaluate alternative", "pick option"],
-            "secondary": ["confidence", "criteria", "tradeoff", "utility", "options", "deployment", "strategy", "policy", "hypothesis"],
+            "primary": [
+                "decide", "decision", "choose option", "best alternative", "evaluate alternative",
+                "pick option", "decision matrix", "hypothesis", "strategic alternatives", "tradeoff"
+            ],
+            "secondary": [
+                "confidence", "certainty", "criteria", "tradeoff", "utility", "options", "deployment",
+                "strategy", "policy", "hypothesis", "infrastructure", "release", "architecture"
+            ],
             "patterns": [
                 r"decide\s+(?:on\s+)?([a-z_]+)",
-                r"(?:confidence|certainty)\s+(?:above|>=|over)\s+([0-9]+(?:\.[0-9]+)?)",
-                r"evaluate\s+(?:options|alternatives)",
+                r"(?:confidence|certainty)\s+(?:above|>=|over|exceeds?)\s+([0-9]+(?:\.[0-9]+)?)",
+                r"evaluate\s+(?:options|alternatives|decision)",
             ]
         },
         "recommendation": {
-            "primary": ["recommend", "recommendation", "recommendations", "suggest", "suggestions", "top items", "top rated"],
-            "secondary": ["catalog", "rating", "rated", "stars", "preference", "items", "score", "products", "top"],
+            "primary": [
+                "recommend", "recommendation", "recommendations", "suggest", "suggestions", "top items",
+                "top rated", "picks", "personalized", "curated", "product suggestions"
+            ],
+            "secondary": [
+                "catalog", "rating", "rated", "stars", "preference", "items", "score", "products",
+                "top", "inventory", "client", "customer"
+            ],
             "patterns": [
-                r"recommend\s+(?:items|products|movies|books)",
-                r"rating\s+(?:above|>=|over)\s+([0-9]+(?:\.[0-9]+)?)",
+                r"recommend\s+(?:items|products|catalog|merchandise)",
+                r"rating\s+(?:above|>=|over|exceeds?)\s+([0-9]+(?:\.[0-9]+)?)",
                 r"for\s+(?:user\s+)?([a-z0-9_]+)",
             ]
         },
         "cross_source_join_aggregate": {
-            "primary": ["reconcile", "cross-reference", "join orders", "orders and inventory", "inventory matching", "cross source"],
-            "secondary": ["orders", "inventory", "stock", "sku", "warehouse", "quantity", "unit price", "line total", "suppliers", "item_id"],
+            "primary": [
+                "reconcile", "reconciliation", "cross-reference", "join orders", "orders and inventory",
+                "inventory matching", "cross source", "match orders", "connect orders", "cross-check",
+                "multi-table", "cross-source"
+            ],
+            "secondary": [
+                "orders", "inventory", "stock", "sku", "warehouse", "quantity", "unit price",
+                "line total", "suppliers", "item_id", "units", "items"
+            ],
             "patterns": [
                 r"(?:orders?\s+(?:and|with)\s+inventory|inventory\s+(?:and|with)\s+orders?)",
                 r"reconcile\s+(?:orders?|inventory|stock)",
-                r"quantity\s+(?:exceeding|above|over|>=)\s+([0-9]+)",
+                r"quantity\s+(?:exceeding|above|over|>=|higher than)\s+([0-9]+)",
             ]
         }
     }
@@ -302,24 +349,49 @@ class NLCompiler:
     def _extract_slots(cls, intent: str, text: str) -> Dict[str, Any]:
         slots: Dict[str, Any] = {}
 
+        # Extract general aggregation modifier
+        agg = "sum"
+        if re.search(r"\b(count|how many|number of|tally|enumerate)\b", text):
+            agg = "count"
+        elif re.search(r"\b(max|maximum|highest|peak|largest)\b", text):
+            agg = "max"
+        elif re.search(r"\b(average|mean)\b", text):
+            agg = "average"
+        slots["aggregation"] = agg
+
         if intent == "expense":
             # Extract category
             cat_candidates = ["food", "travel", "utilities", "shopping", "entertainment", "health", "office", "electronics", "dining", "groceries"]
+            has_cat = False
             for cat in cat_candidates:
                 if cat in text:
                     slots["category"] = cat.capitalize()
+                    has_cat = True
                     break
-            if "category" not in slots:
+            if not has_cat:
                 slots["category"] = "Food"
+
+            # Check account specification (e.g. for user account account_101)
+            m_acc = re.search(r"\b(?:account|sensor)[_\s]+([a-z0-9_]+)\b", text)
+            if m_acc:
+                slots["account"] = m_acc.group(1).replace(" ", "_")
 
             # Extract threshold
             m = re.search(r"(?:above|over|exceeding|higher than|greater than|\$|>)\s*\$?([0-9]+(?:\.[0-9]+)?)", text)
+            has_thresh = False
             if m:
                 slots["threshold"] = float(m.group(1))
+                has_thresh = True
             else:
                 m2 = re.search(r"\b([0-9]{2,4})\b", text)
-                slots["threshold"] = float(m2.group(1)) if m2 else 100.0
+                if m2:
+                    slots["threshold"] = float(m2.group(1))
+                    has_thresh = True
+                else:
+                    slots["threshold"] = 100.0
 
+            slots["include_category_filter"] = has_cat
+            slots["include_threshold_filter"] = has_thresh
             slots["exclude_transfers"] = ("include transfers" not in text)
 
         elif intent == "troubleshooting":
@@ -378,7 +450,11 @@ class NLCompiler:
             return build_expense_fixture(
                 category=slots.get("category", "Food"),
                 exclude_transfers=slots.get("exclude_transfers", True),
-                threshold=slots.get("threshold", 100.0)
+                threshold=slots.get("threshold", 100.0),
+                aggregation=slots.get("aggregation", "sum"),
+                include_category_filter=slots.get("include_category_filter", True),
+                include_threshold_filter=slots.get("include_threshold_filter", True),
+                account=slots.get("account")
             )
         elif intent == "troubleshooting":
             return build_troubleshooting_fixture(
@@ -393,7 +469,8 @@ class NLCompiler:
         elif intent == "habit_fitness":
             return build_habit_fitness_fixture(
                 activity_type=slots.get("activity_type", "running"),
-                goal=slots.get("goal", 30.0)
+                goal=slots.get("goal", 30.0),
+                aggregation=slots.get("aggregation", "sum")
             )
         elif intent == "factual_decision":
             return build_factual_decision_fixture(
@@ -407,7 +484,8 @@ class NLCompiler:
             )
         elif intent == "cross_source_join_aggregate":
             return build_cross_source_join_fixture(
-                min_quantity=slots.get("min_quantity", 5)
+                min_quantity=slots.get("min_quantity", 5),
+                aggregation=slots.get("aggregation", "sum")
             )
         else:
             raise ValueError(f"Unknown intent {intent}")

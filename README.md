@@ -2,7 +2,7 @@
 
 [![Python Version](https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-blue.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-Apache_2.0-green.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Tests](https://img.shields.io/badge/Tests-201%2F201%20Passed-brightgreen.svg)](#extreme-black-box-testing)
+[![Tests](https://img.shields.io/badge/Tests-215%2F215%20Passed-brightgreen.svg)](#extreme-black-box-testing)
 [![Architecture](https://img.shields.io/badge/Architecture-Frozen%20v1.5-orange.svg)](system.md)
 [![Execution Target](https://img.shields.io/badge/Target-Mobile%20ARM%20%7C%20Android%206--8GB-purple.svg)](#target-execution-envelope)
 
@@ -150,6 +150,28 @@ $$B(-1)\text{ Oracle (0.52 ms)} \to B0\text{ Baseline (29.1 ms)} \to B1\text{ Se
 See [docs/BENCHMARK_REPORT.md](docs/BENCHMARK_REPORT.md) for full empirical distributions, trial logs, and Leave-One-Out (LOO) non-linear interaction proofs.
 
 
+### Phase P0.7 Realistic Language & Shape Validation (Revision 3)
+
+Phase P0.7 empirically validates whether natural language queries cluster into reusable computational topologies across a **1,550-query corpus** generated across three distinct frontier LLM architectures (`gpt-4o-mini`, `gemini-1.5-flash`, `claude-3-haiku`):
+
+| Gate / Metric | Specification | Empirical Result | Status |
+| :--- | :---: | :---: | :---: |
+| **Measurement Ordering & Decoupling** | Zero oracle leak; fresh pre-warmed fabric | Verified: Baseline $\to$ Oracle $\to$ CNE write | **PASS** |
+| **Semantic Gold Topology Routing** | Routing Accuracy $\ge 90.0\%$ | **99.12%** (Precision 99.2%, Recall 93.8%, F1 96.4%) | **PASS** |
+| **Compiler Coverage** | Transparent empirical disclosure | **80.9%** (1,254 compiled / 1,550 submitted) | **DISCLOSED** |
+| **Non-Trivial Shape Diversity $D(N)$** | $D(N) \le 0.40$ | **$D = 0.0129$** (16 distinct compositional shapes) | **PASS** |
+| **Normalized Shape Entropy** | $H / H_{\max}$ | $H = 3.5371$ bits, $H_{\max} = 4.0000$ ($H/H_{\max} = 0.8843$) | **REPORTED** |
+| **Cross-Batch Canonicalization Stability** | $\Delta D \le 0.05$, Jaccard $\ge 65\%$ | Jaccard = **68.8%**, $\Delta D = 0.0022$ | **PASS** |
+| **Adversarial Families (A1–A6)** | End-to-end verification | **6/6 Families Passed** (runtime double execution) | **PASS** |
+| **Extended G0 (7 Topologies)** | Frozen primitives, $\le 2$ new prims | **100% frozen primitives**, 0 new primitives | **PASS** |
+| **Structural Outlier Topology** | Cross-source join & aggregation | $O(N + M)$ relational equijoin, distinct shape key | **PASS** |
+| **Steady-State G2 Recoverable Mass ($R^*$)** | $R^* \ge 25.0\%$ | **73.95%** | **PASS** |
+| **Steady-State G3 Control Overhead ($A$)** | $A_{\text{corpus}} \le 20.0\%$ | **9.53%** | **PASS** |
+| **Steady-State Net Savings ($\Delta C$)** | $\Delta C > 0$ | **+114.24 ms** | **PASS** |
+| **Optimization Capture Ratio** | $\le 100.0\%$ | **85.16%** | **PASS** |
+
+See [docs/P07_VALIDATION_REPORT.md](docs/P07_VALIDATION_REPORT.md) for full confusion matrices, multi-session state evolution trajectories, and provenance metadata.
+
 ---
 
 ## 6. Quickstart
@@ -196,8 +218,11 @@ print(f"Run 2 value: {res2.value}, reused: {res2.reused_state}")
 ### Running Tests
 
 ```bash
-# Run all 148 extreme stress tests
+# Run all 154 extreme stress tests
 pytest cne/tests/extreme -v
+
+# Run Phase P0.7 realistic validation report
+python -m cne.bench.p07_report
 
 # Run master benchmark gate suite (G0 - G7)
 python -m cne.bench.run_all_gates
@@ -228,12 +253,13 @@ CNE/
 │       ├── unit/                   # Deterministic executor, contracts, effects
 │       ├── property/               # Hypothesis-based property tests
 │       ├── gate/                   # Automated gate validation tests
-│       └── extreme/                # 148 black-box extreme stress tests
+│       └── extreme/                # 154 black-box extreme stress tests
 ├── docs/                           # In-depth architectural & theoretical documentation
 │   ├── ARCHITECTURE.md             # 10-stage execution pipeline deep dive
 │   ├── THEORY.md                   # Formal mathematical formulation of computational necessity
-│   ├── EXTREME_TESTING_REPORT.md   # Complete 148-test extreme stress report & analysis
+│   ├── EXTREME_TESTING_REPORT.md   # Complete 154-test extreme stress report & analysis
 │   ├── BENCHMARK_REPORT.md         # Phase P3 empirical benchmark report & ablations
+│   ├── P07_VALIDATION_REPORT.md    # Phase P0.7 realistic language & shape validation report
 │   ├── API_REFERENCE.md            # Comprehensive Python API documentation
 │   └── GETTING_STARTED.md          # Step-by-step developer tutorial
 ├── system.md                       # Master implementation specification (Frozen v1.5)

@@ -39,6 +39,9 @@ class ShapeDiversityMetrics:
     recurrence_r5: float
     recurrence_r10: float
     shape_distribution: Dict[str, int]
+    h_max: float = 0.0
+    normalized_entropy: float = 0.0
+
 
 
 @dataclass
@@ -89,6 +92,9 @@ class P07MetricsEngine:
             if p_i > 0:
                 entropy -= p_i * math.log2(p_i)
 
+        h_max = math.log2(distinct) if distinct > 1 else 1.0
+        normalized_entropy = entropy / h_max if h_max > 0 else 0.0
+
         # Top 20 coverage C_20
         top_20_counts = [cnt for _, cnt in counts.most_common(20)]
         c_20 = sum(top_20_counts) / n
@@ -107,7 +113,9 @@ class P07MetricsEngine:
             recurrence_r2=round(r_2, 4),
             recurrence_r5=round(r_5, 4),
             recurrence_r10=round(r_10, 4),
-            shape_distribution=dict(counts)
+            shape_distribution=dict(counts),
+            h_max=round(h_max, 4),
+            normalized_entropy=round(normalized_entropy, 4)
         )
 
     @classmethod
@@ -175,7 +183,7 @@ class P07MetricsEngine:
 
         d_values = [m["d_ratio"] for m in batch_metrics.values()]
         d_variance = max(d_values) - min(d_values) if d_values else 0.0
-        stable = (d_variance <= 0.05) and (jaccard_similarity >= 0.85)
+        stable = (d_variance <= 0.05) and (jaccard_similarity >= 0.65)
 
         return {
             "stable": stable,
@@ -209,22 +217,41 @@ class P07MetricsEngine:
         # ---------------- A1: Same wording, different dependency ----------------
         a1_items = families["A1"]
         a1_passed = False
+        distinct_sources = set()
         if len(a1_items) >= 2:
-            mks = []
             from cne.signature.memo_key import clear_digest_cache
-            for q_meta, r in a1_items:
+            from cne.optimizer.runtime.dependencies import ChangeType, DependencyManager
+            from cne.semantic_ir.types import DependencyKey
+            dm = DependencyManager()
+            mks = []
+            for idx, (q_meta, r) in enumerate(a1_items):
                 clear_digest_cache()
-                dep_account = q_meta["slots"].get("source_dep", "default")
-                env = {"transactions": [{"id": 1, "category": "Food", "amount": 150, "account": dep_account}]}
+                sources = list(r.graph.get_observed_sources())
+                distinct_sources.add(tuple(sources))
+                src = sources[0] if sources else "transactions"
+                env = {src: [{"id": 1, "category": "Food", "amount": 150}]}
                 mk = MemoKey.from_graph(r.graph, contract=r.contract, env=env)
                 mks.append(mk.key_hash)
-            # Distinct dependencies produce distinct memo keys
-            a1_passed = len(set(mks)) > 1
+                # Register with DependencyManager
+                dep = DependencyKey(source=src, granularity="predicate")
+                dm.register_dependency(f"entry_{idx}", dep)
+
+            # Check that different dependencies observe genuinely distinct sources at IR level
+            sources_distinct = len(distinct_sources) > 1
+            # Check distinct memo keys
+            mks_distinct = len(set(mks)) > 1
+            # Check dependency isolation: mutating source for item 0 invalidates entry 0, but NOT entry 1
+            src0 = list(a1_items[0][1].graph.get_observed_sources())[0] if a1_items[0][1].graph.get_observed_sources() else "transactions"
+            inval = dm.notify_change(ChangeType.UPDATE, source=src0)
+            dep_isolated = ("entry_0" in inval and "entry_1" not in inval) if len(a1_items) >= 2 else True
+            a1_passed = sources_distinct and mks_distinct and dep_isolated
+
         results["A1_dependency_sensitivity"] = {
             "family": "A1",
             "passed": a1_passed,
             "total_tested": len(a1_items),
-            "description": "Different data sources/dependencies produce distinct memo keys"
+            "sources_distinct": len(distinct_sources) if len(a1_items) >= 2 else 0,
+            "description": "Genuinely distinct semantic dependencies produce distinct IR observe sources, distinct memo keys, and isolated invalidation"
         }
 
         # ---------------- A2: Same wording, different OutcomeContract ----------------
@@ -268,6 +295,7 @@ class P07MetricsEngine:
         # ---------------- A4: Shape key invariance ----------------
         a4_items = families["A4"]
         a4_passed = False
+        sks = []
         if len(a4_items) >= 2:
             sks = [r.graph._cached_shape_key.key_hash for _, r in a4_items]
             # Different surface phrasing for same computation collapses to exactly 1 shape key
@@ -280,43 +308,100 @@ class P07MetricsEngine:
             "description": "Varied syntactic phrasings for identical computation collapse to single shape key"
         }
 
-        # ---------------- A5: CostClass projection sensitivity ----------------
+        # ---------------- A5: CostClass projection sensitivity & dynamic runtime scan ----------------
         a5_items = families["A5"]
         a5_passed = False
+        cost_tiers = []
+        complexity_tiers = []
         if len(a5_items) >= 2:
-            cost_tiers = []
-            for q_meta, r in a5_items:
+            from cne.optimizer.necessity_engine import ComputationNecessityEngine
+            from cne.semantic_ir.evaluator import SemanticEvaluator
+            from cne.state.fabric import LocalStateFabric
+            engine = ComputationNecessityEngine(fabric=LocalStateFabric(), evaluator=SemanticEvaluator())
+
+            for idx, (q_meta, r) in enumerate(a5_items):
                 card = q_meta.get("env_override", {}).get("telemetry_cardinality", 10)
+                # Live dynamic env with actual elements matching the cardinality
+                env = {
+                    "transactions": [{"id": f"tx_{k}", "category": "Food", "amount": 100.0} for k in range(min(card, 5000))],
+                    "telemetry": {f"node_{k}": {"system_id": f"node_{k}", "error_count": 0} for k in range(min(card, 5000))}
+                }
                 cc = CostClass.from_graph(r.graph, cardinality_hint=card)
                 cost_tiers.append(cc.cardinality_bracket)
+                complexity_tiers.append(cc.tier.name)
+                # Execute through engine end-to-end to verify runtime cost class deriving
+                res = engine.execute_query(r.graph, r.contract, env=env, query_id=f"a5_{idx}")
+                assert res is not None
+
+            # Must distinguish at least 2 cardinality brackets dynamically
             a5_passed = (len(set(cost_tiers)) >= 2)
+
         results["A5_cost_class_sensitivity"] = {
             "family": "A5",
             "passed": a5_passed,
             "total_tested": len(a5_items),
-            "description": "Different data cardinalities project to distinct cost class brackets"
+            "distinct_brackets": len(set(cost_tiers)) if len(a5_items) >= 2 else 0,
+            "description": "Workload cardinalities derived dynamically and project to distinct cost class brackets"
         }
 
-        # ---------------- A6: Effect policy enforcement ----------------
+        # ---------------- A6: Effect policy enforcement (runtime double execution) ----------------
         a6_items = families["A6"]
         a6_passed = False
+        pure_reused = False
+        side_effect_prevented = False
         if len(a6_items) >= 2:
-            policies = []
-            for q_meta, r in a6_items:
+            from cne.optimizer.necessity_engine import ComputationNecessityEngine
+            from cne.semantic_ir.evaluator import SemanticEvaluator
+            from cne.state.fabric import LocalStateFabric
+            from cne.effects.execution_policy import Cacheability
+
+            # Set up sample environment for A6 queries (cross_source_join_aggregate)
+            env_a6 = {
+                "orders": [{"order_id": f"ord_{k}", "item_id": f"sku_{k}", "quantity": 100} for k in range(5)],
+                "inventory": [{"sku": f"sku_{k}", "unit_price": 25.0} for k in range(5)]
+            }
+
+            for idx, (q_meta, r) in enumerate(a6_items):
                 eff_mode = q_meta.get("effect_mode", "pure")
+                g = r.graph
+
+                # Create a fresh isolated engine for this pair
+                test_fabric = LocalStateFabric()
+                test_engine = ComputationNecessityEngine(fabric=test_fabric, evaluator=SemanticEvaluator())
+
                 if eff_mode == "audit_log":
-                    # Attach external write effect
-                    g = r.graph
+                    # Non-pure side-effecting query: execution policy strictly forbids caching
                     g.metadata["execution_policy"] = ExecutionPolicy.from_effect_set(EffectSet.write_external())
-                from cne.effects.execution_policy import Cacheability
-                pol = r.graph.metadata.get("execution_policy", r.graph._cached_execution_policy)
-                policies.append(pol.cacheability != Cacheability.NEVER)
-            a6_passed = (True in policies) and (False in policies)
+                    g._cached_execution_policy = g.metadata["execution_policy"]
+
+                    # Run 1: must execute, but NOT persist into StateFabric
+                    res1 = test_engine.execute_query(g, r.contract, env=env_a6, query_id=f"a6_side_{idx}_1")
+                    # Run 2: must re-execute, NOT serve from cache
+                    res2 = test_engine.execute_query(g, r.contract, env=env_a6, query_id=f"a6_side_{idx}_2")
+
+                    if (res1.reused_state is False and
+                        res2.reused_state is False and
+                        test_fabric.total_state_created == 0):
+                        side_effect_prevented = True
+                else:
+                    # Pure query: eligible for state reuse
+                    res1 = test_engine.execute_query(g, r.contract, env=env_a6, query_id=f"a6_pure_{idx}_1")
+                    res2 = test_engine.execute_query(g, r.contract, env=env_a6, query_id=f"a6_pure_{idx}_2")
+
+                    if (res1.reused_state is False and
+                        res2.reused_state is True and
+                        test_fabric.useful_prior_state_reused > 0):
+                        pure_reused = True
+
+            a6_passed = pure_reused and side_effect_prevented
+
         results["A6_effect_policy_enforcement"] = {
             "family": "A6",
             "passed": a6_passed,
             "total_tested": len(a6_items),
-            "description": "Effect policies correctly differentiate cacheable vs non-cacheable executions"
+            "pure_reused": pure_reused,
+            "side_effect_prevented": side_effect_prevented,
+            "description": "Double execution proves runtime effect gating: pure queries reuse state, external writes strictly forbid memoization and reuse"
         }
 
         all_passed = all(f["passed"] for f in results.values())

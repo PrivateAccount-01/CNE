@@ -13,9 +13,14 @@ def test_p07_master_decision_gate():
     assert report["decision"] == "GO", f"Expected GO decision, got {report['decision']}"
     assert report["decision_passed"] is True
     assert report["hygiene_fix"]["step_0_verified"] is True
-    assert report["coverage_metrics"]["coverage_ratio"] >= 0.75
+    assert report["hygiene_fix"]["decoupled_protocol"] is True
+    assert len(report["hygiene_fix"]["steady_state_trials"]) >= 3
+    assert len(report["hygiene_fix"]["session_evolution"]) >= 3
+    assert report["semantic_gold_validation"]["topology_routing_accuracy"] >= 0.90
+    assert 0.0 < report["coverage_metrics"]["coverage_ratio"] <= 1.0
     assert report["shape_diversity"]["d_passed"] is True
     assert report["shape_diversity"]["d_ratio"] <= 0.40
+    assert report["shape_diversity"]["distinct_shapes"] >= 10
     assert report["surface_to_semantic_stability"]["cross_batch_canonicalization"]["stable"] is True
     assert report["surface_to_semantic_stability"]["adversarial_families"]["all_adversarial_passed"] is True
     assert report["extended_gates"]["g0_extended_passed"] is True

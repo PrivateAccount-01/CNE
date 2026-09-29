@@ -172,13 +172,8 @@ class SemanticEvaluator:
             right_key = node.attributes.get("right_key")
 
             res = []
-            if on_fn:
-                for l in left_val:
-                    for r in right_val:
-                        if on_fn(l, r):
-                            res.append((l, r))
-            elif left_key and right_key:
-                # Relational equijoin
+            if left_key and right_key:
+                # Fast relational equijoin using hash map O(N + M)
                 right_lookup: Dict[Any, List[Any]] = {}
                 for r in right_val:
                     rk = r.get(right_key) if isinstance(r, dict) else getattr(r, right_key, None)
@@ -186,10 +181,13 @@ class SemanticEvaluator:
                 for l in left_val:
                     lk = l.get(left_key) if isinstance(l, dict) else getattr(l, left_key, None)
                     for r in right_lookup.get(lk, []):
-                        merged = {}
-                        if isinstance(l, dict): merged.update(l)
-                        if isinstance(r, dict): merged.update(r)
-                        res.append(merged if merged else (l, r))
+                        if on_fn is None or on_fn(l, r):
+                            res.append((l, r))
+            elif on_fn:
+                for l in left_val:
+                    for r in right_val:
+                        if on_fn(l, r):
+                            res.append((l, r))
             else:
                 # Cartesian product
                 for l in left_val:
