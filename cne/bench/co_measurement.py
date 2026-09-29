@@ -70,7 +70,19 @@ class CoMeasurementRunner:
             c_base = max(1.0, float(time.perf_counter_ns() - t0))
             baseline_costs_ns.append(c_base)
 
-            # 2. CNE Execution (runs FIRST to ensure zero warm-up from Oracle)
+            # 2. Closed-world benchmark oracle bound over A_benchmark(G, S, C)
+            # Evaluated BEFORE CNE write lands for this query, preventing self-memo leak
+            # while legitimately allowing inspection of prior queries' fabric state (P0.7 §4).
+            ores = oracle.find_recoverable_bound(
+                query_id=q["id"],
+                graph=graph,
+                contract=contract,
+                env=env,
+                fabric=fabric
+            )
+            oracle_costs_ns.append(ores.optimal_cost)
+
+            # 3. CNE Execution & Fabric Population
             cne_res = cne.execute_query(
                 graph=graph,
                 contract=contract,
@@ -94,16 +106,6 @@ class CoMeasurementRunner:
             delta_c = c_base - total_cne
             per_query_savings_ns.append(delta_c)
             per_query_overhead_ratios.append(ctrl_cost / c_base)
-
-            # 3. Closed-world benchmark oracle bound over A_benchmark(G, S, C)
-            ores = oracle.find_recoverable_bound(
-                query_id=q["id"],
-                graph=graph,
-                contract=contract,
-                env=env,
-                fabric=fabric
-            )
-            oracle_costs_ns.append(ores.optimal_cost)
 
         total_baseline = sum(baseline_costs_ns)
         total_oracle = sum(oracle_costs_ns)

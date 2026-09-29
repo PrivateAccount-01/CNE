@@ -1,0 +1,206 @@
+{
+  "phase": "P0.7",
+  "decision": "GO",
+  "decision_passed": true,
+  "duration_seconds": 47.13,
+  "narrowed_claim": "The reuse assumption is supported under the tested synthetic linguistic distribution (LLM-generated paraphrases across >=3 independent batches, plus structured adversarial families). Generalization to real user workload distributions remains untested until real-usage data is available.",
+  "hygiene_fix": {
+    "step_0_verified": true,
+    "leak_eliminated": true,
+    "ordering": "1. Baseline -> 2. Oracle -> 3. CNE execution & fabric write"
+  },
+  "coverage_metrics": {
+    "total_submitted": 1550,
+    "compiled_count": 1185,
+    "coverage_ratio": 0.7645,
+    "unsupported_count": 293,
+    "unsupported_rate": 0.189,
+    "ambiguous_count": 40,
+    "ambiguous_rate": 0.0258,
+    "low_confidence_count": 32,
+    "low_confidence_rate": 0.0206
+  },
+  "shape_diversity": {
+    "subset": "covered_non_trivial (llm_paraphrase + adversarial)",
+    "total_queries": 1168,
+    "distinct_shapes": 7,
+    "d_ratio": 0.006,
+    "d_threshold": 0.4,
+    "d_passed": true,
+    "entropy_h": 2.7583,
+    "c_20": 1.0,
+    "r_2": 1.0,
+    "r_5": 1.0,
+    "r_10": 1.0,
+    "category_breakdown": {
+      "llm_paraphrase": {
+        "count": 838,
+        "distinct_shapes": 7,
+        "d_ratio": 0.0084,
+        "entropy_h": 2.7811,
+        "c20": 1.0,
+        "r2": 1.0,
+        "r5": 1.0,
+        "r10": 1.0
+      },
+      "adversarial": {
+        "count": 330,
+        "distinct_shapes": 4,
+        "d_ratio": 0.0121,
+        "entropy_h": 1.7925,
+        "c20": 1.0,
+        "r2": 1.0,
+        "r5": 1.0,
+        "r10": 1.0
+      },
+      "template_canonical": {
+        "count": 7,
+        "distinct_shapes": 7,
+        "d_ratio": 1.0,
+        "entropy_h": 2.8074,
+        "c20": 1.0,
+        "r2": 0.0,
+        "r5": 0.0,
+        "r10": 0.0
+      }
+    }
+  },
+  "surface_to_semantic_stability": {
+    "cross_batch_canonicalization": {
+      "stable": true,
+      "batches": {
+        "batch_1": {
+          "num_compiled": 263,
+          "distinct_shapes": 7,
+          "d_ratio": 0.0266,
+          "entropy_h": 2.7355,
+          "top_20_c20": 1.0,
+          "r_2": 1.0,
+          "r_5": 1.0,
+          "r_10": 1.0,
+          "top_shapes": [
+            "5c90b2a88caedce4",
+            "d9ace5f6a0884cc7",
+            "f6d27c8cd82ddd52",
+            "0a4e99131c11cd5b",
+            "4c7ddecfd583d134"
+          ]
+        },
+        "batch_2": {
+          "num_compiled": 263,
+          "distinct_shapes": 7,
+          "d_ratio": 0.0266,
+          "entropy_h": 2.7217,
+          "top_20_c20": 1.0,
+          "r_2": 1.0,
+          "r_5": 1.0,
+          "r_10": 1.0,
+          "top_shapes": [
+            "5c90b2a88caedce4",
+            "d9ace5f6a0884cc7",
+            "f6d27c8cd82ddd52",
+            "0a4e99131c11cd5b",
+            "4c7ddecfd583d134"
+          ]
+        },
+        "batch_3": {
+          "num_compiled": 312,
+          "distinct_shapes": 7,
+          "d_ratio": 0.0224,
+          "entropy_h": 2.8008,
+          "top_20_c20": 1.0,
+          "r_2": 1.0,
+          "r_5": 1.0,
+          "r_10": 1.0,
+          "top_shapes": [
+            "5c90b2a88caedce4",
+            "d9ace5f6a0884cc7",
+            "f6d27c8cd82ddd52",
+            "0a4e99131c11cd5b",
+            "4c7ddecfd583d134"
+          ]
+        }
+      },
+      "common_shape_count": 7,
+      "total_unique_shapes": 7,
+      "jaccard_similarity": 1.0,
+      "d_ratio_range": [
+        0.0224,
+        0.0266
+      ],
+      "d_ratio_variance": 0.0042
+    },
+    "adversarial_families": {
+      "all_adversarial_passed": true,
+      "families": {
+        "A1_dependency_sensitivity": {
+          "family": "A1",
+          "passed": true,
+          "total_tested": 55,
+          "description": "Different data sources/dependencies produce distinct memo keys"
+        },
+        "A2_contract_identity": {
+          "family": "A2",
+          "passed": true,
+          "total_tested": 55,
+          "description": "Distinct outcome contracts produce distinct memo keys"
+        },
+        "A3_parameter_sensitivity": {
+          "family": "A3",
+          "passed": true,
+          "total_tested": 55,
+          "description": "Micro-parameter threshold changes (0.01) produce distinct memo keys"
+        },
+        "A4_shape_invariance": {
+          "family": "A4",
+          "passed": true,
+          "total_tested": 55,
+          "unique_shapes": 1,
+          "description": "Varied syntactic phrasings for identical computation collapse to single shape key"
+        },
+        "A5_cost_class_sensitivity": {
+          "family": "A5",
+          "passed": true,
+          "total_tested": 55,
+          "description": "Different data cardinalities project to distinct cost class brackets"
+        },
+        "A6_effect_policy_enforcement": {
+          "family": "A6",
+          "passed": true,
+          "total_tested": 55,
+          "description": "Effect policies correctly differentiate cacheable vs non-cacheable executions"
+        }
+      }
+    }
+  },
+  "extended_gates": {
+    "g0_extended_passed": true,
+    "structural_outlier_g0_passed": true,
+    "g1b_extended_passed": true,
+    "num_distinct_topologies": 7,
+    "num_unique_shape_keys": 7,
+    "shape_keys": {
+      "expense": "5c90b2a88caedce4",
+      "troubleshooting": "d9ace5f6a0884cc7",
+      "scheduling": "f6d27c8cd82ddd52",
+      "habit_fitness": "0a4e99131c11cd5b",
+      "factual_decision": "4c7ddecfd583d134",
+      "recommendation": "1f201c593c265f64",
+      "cross_source_join_aggregate": "7bb491e85f2d1ba7"
+    }
+  },
+  "realistic_co_measurement": {
+    "g2_passed": true,
+    "g3_passed": true,
+    "p3_passed": true,
+    "baseline_cost_ms": 519.081,
+    "oracle_cost_ms": 2.937,
+    "cne_cost_ms": 11.596,
+    "control_cost_ms": 9.359,
+    "execution_cost_ms": 2.237,
+    "net_savings_ms": 507.485,
+    "a_corpus": 0.018,
+    "r_star": 0.9945,
+    "opt_capture": 0.9833
+  }
+}

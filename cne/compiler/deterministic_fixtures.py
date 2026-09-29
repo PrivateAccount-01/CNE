@@ -371,3 +371,323 @@ def build_scheduling_fixture(
         ) if (isinstance(cand, dict) and "slot_id" in cand) else (cand == ref)
     )
     return g, contract
+
+
+def build_habit_fitness_fixture(
+    activity_type: str = "running",
+    goal: float = 30.0
+) -> tuple[SemanticIRGraph, OutcomeContract]:
+    """
+    Habit / fitness tracking fixture:
+    - Observe activities log
+    - Filter by activity type
+    - Map to extract duration
+    - Reduce to compute total duration
+    - Branch to check if goal is met
+    - Emit status record
+    """
+    g = SemanticIRGraph()
+
+    obs = IRNode(
+        id="obs_activities",
+        op=OpKind.OBSERVE,
+        attributes={"source": "activities", "granularity": "predicate", "predicate_desc": f"type == '{activity_type}'"},
+        output_type=SemanticType.collection(SemanticType.record({"type": SemanticType.string(), "duration": SemanticType.numeric()}))
+    )
+    g.add_node(obs)
+
+    filt = IRNode(
+        id="filt_activity",
+        op=OpKind.FILTER,
+        inputs=["obs_activities"],
+        attributes={"predicate": lambda a: a.get("type") == activity_type, "activity_type": activity_type},
+        output_type=obs.output_type
+    )
+    g.add_node(filt)
+
+    map_dur = IRNode(
+        id="map_duration",
+        op=OpKind.MAP,
+        inputs=["filt_activity"],
+        attributes={"fn": lambda a: float(a.get("duration", 0.0))},
+        output_type=SemanticType.collection(SemanticType.numeric())
+    )
+    g.add_node(map_dur)
+
+    red_total = IRNode(
+        id="red_total_duration",
+        op=OpKind.REDUCE,
+        inputs=["map_duration"],
+        attributes={"op": lambda a, b: a + b, "init": 0.0},
+        output_type=SemanticType.numeric()
+    )
+    g.add_node(red_total)
+
+    # Lazy branch: then (goal_met) / else (goal_pending)
+    branch_reg_then = SemanticRegion(id="reg_then_goal")
+    branch_reg_then.nodes["node_then"] = IRNode(
+        id="node_then", op=OpKind.LITERAL, attributes={"value": "goal_achieved"}, output_type=SemanticType.string()
+    )
+    branch_reg_then.root_id = "node_then"
+
+    branch_reg_else = SemanticRegion(id="reg_else_goal")
+    branch_reg_else.nodes["node_else"] = IRNode(
+        id="node_else", op=OpKind.LITERAL, attributes={"value": "goal_pending"}, output_type=SemanticType.string()
+    )
+    branch_reg_else.root_id = "node_else"
+
+    g.add_region(branch_reg_then)
+    g.add_region(branch_reg_else)
+
+    branch_goal = IRNode(
+        id="branch_goal_check",
+        op=OpKind.BRANCH,
+        inputs=["red_total_duration"],
+        attributes={
+            "condition": lambda tot: float(tot or 0.0) >= goal,
+            "then_region": "reg_then_goal",
+            "else_region": "reg_else_goal"
+        },
+        output_type=SemanticType.string()
+    )
+    g.add_node(branch_goal)
+
+    emit = IRNode(
+        id="emit_fitness",
+        op=OpKind.EMIT,
+        inputs=["branch_goal_check"],
+        output_type=SemanticType.string()
+    )
+    g.add_node(emit)
+    g.root_id = "emit_fitness"
+
+    contract = OutcomeContract(contract_type=ContractType.EXACT)
+    return g, contract
+
+
+def build_factual_decision_fixture(
+    topic: str = "deployment",
+    min_confidence: float = 0.75
+) -> tuple[SemanticIRGraph, OutcomeContract]:
+    """
+    Factual decision / hypothesis selection fixture:
+    - Observe candidate options
+    - Filter options by minimum confidence
+    - Choose best alternative under latency/utility budget
+    - Emit selected option
+    """
+    g = SemanticIRGraph()
+
+    obs = IRNode(
+        id="obs_options",
+        op=OpKind.OBSERVE,
+        attributes={"source": "decision_options", "topic": topic, "granularity": "key"},
+        output_type=SemanticType.collection(SemanticType.record({"id": SemanticType.string(), "confidence": SemanticType.numeric(), "expected_utility": SemanticType.numeric()}))
+    )
+    g.add_node(obs)
+
+    filt = IRNode(
+        id="filt_confidence",
+        op=OpKind.FILTER,
+        inputs=["obs_options"],
+        attributes={"predicate": lambda opt: opt.get("confidence", 0.0) >= min_confidence, "min_confidence": min_confidence},
+        output_type=obs.output_type
+    )
+    g.add_node(filt)
+
+    choose = IRNode(
+        id="choose_decision",
+        op=OpKind.CHOOSE,
+        inputs=["filt_confidence"],
+        attributes={
+            "utility_fn": lambda opt, b: opt.get("expected_utility", 0.0) if isinstance(opt, dict) else 0.0,
+            "budget": {"latency": 5.0}
+        },
+        output_type=SemanticType.record({"id": SemanticType.string()})
+    )
+    g.add_node(choose)
+
+    emit = IRNode(
+        id="emit_decision",
+        op=OpKind.EMIT,
+        inputs=["choose_decision"],
+        output_type=SemanticType.record({"id": SemanticType.string()})
+    )
+    g.add_node(emit)
+    g.root_id = "emit_decision"
+
+    contract = OutcomeContract(
+        contract_type=ContractType.DECISION,
+        acceptable_equivalence=lambda cand, ref: (
+            cand.get("id") == ref.get("id") if (isinstance(cand, dict) and isinstance(ref, dict)) else (cand == ref)
+        )
+    )
+    return g, contract
+
+
+def build_recommendation_fixture(
+    user_id: str = "user_1",
+    min_rating: float = 4.0
+) -> tuple[SemanticIRGraph, OutcomeContract]:
+    """
+    Recommendation / top-k retrieval fixture:
+    - Observe catalog items
+    - Filter items above rating threshold
+    - Map to item ids
+    - Reduce to ordered collection
+    - Emit recommendation set
+    """
+    g = SemanticIRGraph()
+
+    obs = IRNode(
+        id="obs_items",
+        op=OpKind.OBSERVE,
+        attributes={"source": "catalog_items", "user_id": user_id, "granularity": "unconstrained"},
+        output_type=SemanticType.collection(SemanticType.record({"item_id": SemanticType.string(), "rating": SemanticType.numeric()}))
+    )
+    g.add_node(obs)
+
+    filt = IRNode(
+        id="filt_rating",
+        op=OpKind.FILTER,
+        inputs=["obs_items"],
+        attributes={"predicate": lambda item: item.get("rating", 0.0) >= min_rating, "min_rating": min_rating},
+        output_type=obs.output_type
+    )
+    g.add_node(filt)
+
+    map_id = IRNode(
+        id="map_item_id",
+        op=OpKind.MAP,
+        inputs=["filt_rating"],
+        attributes={"fn": lambda item: item.get("item_id")},
+        output_type=SemanticType.collection(SemanticType.string())
+    )
+    g.add_node(map_id)
+
+    def accumulate_items(acc: List[Any], item_id: Any) -> List[Any]:
+        res = list(acc)
+        if item_id is not None:
+            res.append(item_id)
+        return res
+
+    red_coll = IRNode(
+        id="red_recommendations",
+        op=OpKind.REDUCE,
+        inputs=["map_item_id"],
+        attributes={"op": accumulate_items, "init": []},
+        output_type=SemanticType.collection(SemanticType.string())
+    )
+    g.add_node(red_coll)
+
+    emit = IRNode(
+        id="emit_recs",
+        op=OpKind.EMIT,
+        inputs=["red_recommendations"],
+        output_type=SemanticType.collection(SemanticType.string())
+    )
+    g.add_node(emit)
+    g.root_id = "emit_recs"
+
+    contract = OutcomeContract(
+        contract_type=ContractType.SET_VALUED,
+        acceptable_equivalence=lambda cand, ref: set(cand or []) == set(ref or [])
+    )
+    return g, contract
+
+
+def build_cross_source_join_fixture(
+    min_quantity: int = 5
+) -> tuple[SemanticIRGraph, OutcomeContract]:
+    """
+    Structural Outlier Fixture: Cross-Source Join & Reconciliation
+    Exercises a materially different primitive combination:
+    - 2 Observers (orders, inventory)
+    - Join on item_id == sku
+    - Filter by order quantity
+    - Map to line cost (quantity * unit_price)
+    - Reduce to compute total cost
+    - Emit final total
+    """
+    g = SemanticIRGraph()
+
+    obs_orders = IRNode(
+        id="obs_orders",
+        op=OpKind.OBSERVE,
+        attributes={"source": "orders", "granularity": "unconstrained"},
+        output_type=SemanticType.collection(SemanticType.record({"order_id": SemanticType.string(), "item_id": SemanticType.string(), "quantity": SemanticType.numeric()}))
+    )
+    g.add_node(obs_orders)
+
+    obs_inv = IRNode(
+        id="obs_inventory",
+        op=OpKind.OBSERVE,
+        attributes={"source": "inventory", "granularity": "unconstrained"},
+        output_type=SemanticType.collection(SemanticType.record({"sku": SemanticType.string(), "unit_price": SemanticType.numeric()}))
+    )
+    g.add_node(obs_inv)
+
+    join_nodes = IRNode(
+        id="join_orders_inventory",
+        op=OpKind.JOIN,
+        inputs=["obs_orders", "obs_inventory"],
+        attributes={
+            "left_key": "item_id",
+            "right_key": "sku",
+            "on": lambda order, inv: order.get("item_id") == inv.get("sku")
+        },
+        output_type=SemanticType.collection(SemanticType.any())
+    )
+    g.add_node(join_nodes)
+
+    def qty_filter(pair: Any) -> bool:
+        if not isinstance(pair, (list, tuple)) or len(pair) < 2:
+            return False
+        order, _ = pair
+        return order.get("quantity", 0) >= min_quantity
+
+    filt_qty = IRNode(
+        id="filt_min_quantity",
+        op=OpKind.FILTER,
+        inputs=["join_orders_inventory"],
+        attributes={"predicate": qty_filter, "min_quantity": min_quantity},
+        output_type=join_nodes.output_type
+    )
+    g.add_node(filt_qty)
+
+    def compute_cost(pair: Any) -> float:
+        order, inv = pair
+        return float(order.get("quantity", 0) * inv.get("unit_price", 0.0))
+
+    map_cost = IRNode(
+        id="map_line_cost",
+        op=OpKind.MAP,
+        inputs=["filt_min_quantity"],
+        attributes={"fn": compute_cost},
+        output_type=SemanticType.collection(SemanticType.numeric())
+    )
+    g.add_node(map_cost)
+
+    red_sum = IRNode(
+        id="red_total_cost",
+        op=OpKind.REDUCE,
+        inputs=["map_line_cost"],
+        attributes={"op": lambda a, b: a + b, "init": 0.0},
+        output_type=SemanticType.numeric()
+    )
+    g.add_node(red_sum)
+
+    emit = IRNode(
+        id="emit_reconciliation",
+        op=OpKind.EMIT,
+        inputs=["red_total_cost"],
+        output_type=SemanticType.numeric()
+    )
+    g.add_node(emit)
+    g.root_id = "emit_reconciliation"
+
+    contract = OutcomeContract(
+        contract_type=ContractType.APPROXIMATE_NUMERIC,
+        tolerances={"rel_tol": 1e-4, "abs_tol": 1e-6}
+    )
+    return g, contract
