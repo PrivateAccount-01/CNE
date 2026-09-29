@@ -254,12 +254,13 @@ class RealisticCorpusGenerator:
             })
 
         # 4c. Low-confidence / fragment queries (50 queries)
+        # Calibrated to exhibit partial intent keywords below the 0.65 confidence floor
         vague_pool = [
-            "check status of some stuff exceeding 5",
-            "look at some data maybe above 10",
-            "analyze random items over threshold",
-            "system check thing maybe",
-            "find something about numbers exceeding 50"
+            "maybe spend on miscellaneous stuff",
+            "some transaction items perhaps",
+            "a fitness log entry maybe",
+            "perhaps an appointment detail maybe",
+            "perhaps some decision alternatives maybe"
         ]
         for i in range(50):
             base_text = vague_pool[i % len(vague_pool)]

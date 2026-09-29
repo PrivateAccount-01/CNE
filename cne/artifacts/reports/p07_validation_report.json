@@ -2,10 +2,12 @@
   "phase": "P0.7",
   "decision": "GO",
   "decision_passed": true,
-  "duration_seconds": 18.66,
+  "duration_seconds": 23.27,
   "narrowed_claim": "The reuse assumption is supported under the tested synthetic linguistic distribution (LLM-generated paraphrases across >=3 independent batches, plus structured adversarial families). P0.7 demonstrates compiler convergence into parameterized semantic IR topologies; generalization to unconstrained open-world workload distributions remains untested until real user data is collected.",
   "hygiene_fix": {
     "step_0_verified": true,
+    "dynamic_runtime_proof_passed": true,
+    "inverted_adversarial_contamination_verified": true,
     "ordering": "1. Baseline -> 2. Oracle -> 3. CNE execution & fabric write",
     "decoupled_protocol": true,
     "steady_state_trials": [
@@ -14,104 +16,104 @@
         "g3_passed": true,
         "p3_passed": true,
         "boundary_verified": true,
-        "total_baseline_ms": 80.31,
-        "total_oracle_ms": 17.562,
-        "total_cne_ms": 30.208,
-        "total_control_ms": 9.824,
-        "total_exec_ms": 20.384,
-        "net_savings_ms": 50.102,
-        "delta_c_oracle_ms": 62.748,
-        "a_corpus": 0.1223,
-        "r_star": 0.7813,
-        "opt_capture": 0.7985,
-        "median_savings_ns": 71050.0,
-        "p95_overhead_ratio": 3.8009,
-        "negative_savings_fraction": 0.4196,
-        "state_reuse_ratio": 1.3091,
-        "reuse_events_per_created_state": 1.3091,
-        "amortized_savings_ns": 522457.14,
-        "isolated_overhead_ratio": 1.6906
+        "total_baseline_ms": 86.771,
+        "total_oracle_ms": 0.563,
+        "total_cne_ms": 11.406,
+        "total_control_ms": 7.499,
+        "total_exec_ms": 3.907,
+        "net_savings_ms": 75.365,
+        "delta_c_oracle_ms": 86.208,
+        "a_corpus": 0.0864,
+        "r_star": 0.9935,
+        "opt_capture": 0.8742,
+        "median_savings_ns": 137600.0,
+        "p95_overhead_ratio": 1.3571,
+        "negative_savings_fraction": 0.1786,
+        "state_reuse_ratio": 5.6667,
+        "reuse_events_per_created_state": 5.6667,
+        "amortized_savings_ns": 1234804.46,
+        "isolated_overhead_ratio": 1.1881
       },
       {
         "g2_passed": true,
         "g3_passed": true,
         "p3_passed": true,
         "boundary_verified": true,
-        "total_baseline_ms": 94.768,
-        "total_oracle_ms": 20.692,
-        "total_cne_ms": 34.723,
-        "total_control_ms": 9.951,
-        "total_exec_ms": 24.771,
-        "net_savings_ms": 60.045,
-        "delta_c_oracle_ms": 74.075,
-        "a_corpus": 0.105,
-        "r_star": 0.7817,
-        "opt_capture": 0.8106,
-        "median_savings_ns": 81500.0,
-        "p95_overhead_ratio": 2.2876,
-        "negative_savings_fraction": 0.3929,
-        "state_reuse_ratio": 1.3091,
-        "reuse_events_per_created_state": 1.3091,
-        "amortized_savings_ns": 622253.57,
-        "isolated_overhead_ratio": 1.0599
+        "total_baseline_ms": 85.308,
+        "total_oracle_ms": 0.52,
+        "total_cne_ms": 9.637,
+        "total_control_ms": 6.68,
+        "total_exec_ms": 2.957,
+        "net_savings_ms": 75.671,
+        "delta_c_oracle_ms": 84.788,
+        "a_corpus": 0.0783,
+        "r_star": 0.9939,
+        "opt_capture": 0.8925,
+        "median_savings_ns": 117650.0,
+        "p95_overhead_ratio": 1.402,
+        "negative_savings_fraction": 0.1518,
+        "state_reuse_ratio": 5.6667,
+        "reuse_events_per_created_state": 5.6667,
+        "amortized_savings_ns": 1231383.93,
+        "isolated_overhead_ratio": 1.4632
       },
       {
         "g2_passed": true,
         "g3_passed": true,
         "p3_passed": true,
         "boundary_verified": true,
-        "total_baseline_ms": 86.115,
-        "total_oracle_ms": 20.205,
-        "total_cne_ms": 31.874,
-        "total_control_ms": 8.636,
-        "total_exec_ms": 23.238,
-        "net_savings_ms": 54.24,
-        "delta_c_oracle_ms": 65.91,
-        "a_corpus": 0.1003,
-        "r_star": 0.7654,
-        "opt_capture": 0.823,
-        "median_savings_ns": 71300.0,
-        "p95_overhead_ratio": 1.6,
-        "negative_savings_fraction": 0.3571,
-        "state_reuse_ratio": 1.3091,
-        "reuse_events_per_created_state": 1.3091,
-        "amortized_savings_ns": 546541.07,
-        "isolated_overhead_ratio": 0.8945
+        "total_baseline_ms": 90.817,
+        "total_oracle_ms": 0.562,
+        "total_cne_ms": 10.423,
+        "total_control_ms": 7.844,
+        "total_exec_ms": 2.579,
+        "net_savings_ms": 80.394,
+        "delta_c_oracle_ms": 90.255,
+        "a_corpus": 0.0864,
+        "r_star": 0.9938,
+        "opt_capture": 0.8907,
+        "median_savings_ns": 138000.0,
+        "p95_overhead_ratio": 1.2994,
+        "negative_savings_fraction": 0.1607,
+        "state_reuse_ratio": 5.6667,
+        "reuse_events_per_created_state": 5.6667,
+        "amortized_savings_ns": 1263366.07,
+        "isolated_overhead_ratio": 1.1612
       }
     ],
     "session_evolution": [
       {
         "session": 1,
-        "a_corpus": 0.1117,
-        "net_savings_ms": 38.361,
-        "total_cne_ms": 42.785,
-        "total_control_ms": 9.068,
-        "total_exec_ms": 33.717,
-        "state_reuse_ratio": 1.0364,
-        "amortized_savings_ns": 404011.61,
-        "reuse_events_per_created_state": 1.0364
+        "a_corpus": 0.0862,
+        "net_savings_ms": 51.448,
+        "total_cne_ms": 39.517,
+        "total_control_ms": 7.841,
+        "total_exec_ms": 31.675,
+        "state_reuse_ratio": 2.3333,
+        "amortized_savings_ns": 524205.36,
+        "reuse_events_per_created_state": 2.3333
       },
       {
         "session": 2,
-        "a_corpus": 0.1021,
-        "net_savings_ms": 79.504,
-        "total_cne_ms": 9.036,
-        "total_control_ms": 9.036,
-        "total_exec_ms": 0.0,
-        "state_reuse_ratio": 3.0727,
-        "amortized_savings_ns": 1186915.18,
-        "reuse_events_per_created_state": 3.0727
+        "a_corpus": 0.0882,
+        "net_savings_ms": 76.983,
+        "total_cne_ms": 10.312,
+        "total_control_ms": 7.702,
+        "total_exec_ms": 2.61,
+        "state_reuse_ratio": 5.6667,
+        "amortized_savings_ns": 1271020.54,
+        "reuse_events_per_created_state": 5.6667
       },
       {
         "session": 3,
-        "a_corpus": 0.1049,
-        "net_savings_ms": 76.508,
-        "total_cne_ms": 8.966,
-        "total_control_ms": 8.966,
-        "total_exec_ms": 0.0,
-        "state_reuse_ratio": 5.1091,
-        "amortized_savings_ns": 1943068.75,
-        "reuse_events_per_created_state": 5.1091
+        "a_corpus": 0.0807,
+        "net_savings_ms": 76.541,
+        "total_cne_ms": 11.104,
+        "total_control_ms": 7.072,
+        "total_exec_ms": 4.032,
+        "state_reuse_ratio": 9.0,
+        "amortized_savings_ns": 2016923.21,
+        "reuse_events_per_created_state": 9.0
       }
     ]
   },
@@ -119,16 +121,16 @@
     "total_submitted": 1550,
     "compiled_count": 1254,
     "coverage_ratio": 0.809,
-    "unsupported_count": 197,
-    "unsupported_rate": 0.1271,
+    "unsupported_count": 147,
+    "unsupported_rate": 0.0948,
     "ambiguous_count": 52,
     "ambiguous_rate": 0.0335,
-    "low_confidence_count": 47,
-    "low_confidence_rate": 0.0303
+    "low_confidence_count": 97,
+    "low_confidence_rate": 0.0626
   },
   "semantic_gold_validation": {
     "total_evaluated": 1550,
-    "overall_accuracy": 0.9077,
+    "overall_accuracy": 0.94,
     "confusion_matrix": {
       "COMPILED": {
         "COMPILED": 1244,
@@ -150,9 +152,9 @@
       },
       "LOW_CONFIDENCE_MAPPING": {
         "COMPILED": 0,
-        "UNSUPPORTED_INTENT": 50,
+        "UNSUPPORTED_INTENT": 0,
         "AMBIGUOUS_INTENT": 0,
-        "LOW_CONFIDENCE_MAPPING": 0
+        "LOW_CONFIDENCE_MAPPING": 50
       }
     },
     "class_metrics": {
@@ -168,12 +170,12 @@
       },
       "UNSUPPORTED_INTENT": {
         "tp": 123,
-        "fp": 74,
+        "fp": 24,
         "fn": 0,
-        "tn": 1353,
-        "precision": 0.6244,
+        "tn": 1403,
+        "precision": 0.8367,
         "recall": 1.0,
-        "f1": 0.7687,
+        "f1": 0.9111,
         "support": 123
       },
       "AMBIGUOUS_INTENT": {
@@ -187,13 +189,13 @@
         "support": 50
       },
       "LOW_CONFIDENCE_MAPPING": {
-        "tp": 0,
+        "tp": 50,
         "fp": 47,
-        "fn": 50,
+        "fn": 0,
         "tn": 1453,
-        "precision": 0.0,
-        "recall": 0.0,
-        "f1": 0.0,
+        "precision": 0.5155,
+        "recall": 1.0,
+        "f1": 0.6803,
         "support": 50
       }
     },
@@ -210,12 +212,12 @@
       },
       "UNSUPPORTED_INTENT": {
         "tp": 123,
-        "fp": 74,
+        "fp": 24,
         "fn": 0,
-        "tn": 1353,
-        "precision": 0.6244,
+        "tn": 1403,
+        "precision": 0.8367,
         "recall": 1.0,
-        "f1": 0.7687,
+        "f1": 0.9111,
         "support": 123
       },
       "AMBIGUOUS_INTENT": {
@@ -229,13 +231,13 @@
         "support": 50
       },
       "LOW_CONFIDENCE_MAPPING": {
-        "tp": 0,
+        "tp": 50,
         "fp": 47,
-        "fn": 50,
+        "fn": 0,
         "tn": 1453,
-        "precision": 0.0,
-        "recall": 0.0,
-        "f1": 0.0,
+        "precision": 0.5155,
+        "recall": 1.0,
+        "f1": 0.6803,
         "support": 50
       }
     },
@@ -328,37 +330,222 @@
     }
   },
   "open_world_blind_evaluation": {
-    "total_blind_queries": 300,
-    "compiled_count": 144,
-    "coverage_ratio": 0.48,
-    "rejection_count": 156,
-    "blind_rejection_rate": 0.52,
-    "blind_unsupported_rate": 0.3767,
-    "blind_ambiguous_rate": 0.01,
-    "blind_low_confidence_rate": 0.1333,
+    "total_blind_queries": 600,
+    "domains_evaluated": [
+      "finances",
+      "schedule",
+      "health_fitness",
+      "shopping_inventory",
+      "system_settings_device",
+      "communication_messaging",
+      "file_data_management",
+      "home_automation_iot",
+      "media_entertainment",
+      "open_web_search_knowledge",
+      "math_calculations",
+      "creative_brainstorming"
+    ],
+    "compiled_count": 84,
+    "coverage_ratio": 0.14,
+    "rejection_count": 516,
+    "blind_rejection_rate": 0.86,
+    "unsupported_count": 486,
+    "blind_unsupported_rate": 0.81,
+    "ambiguous_count": 7,
+    "blind_ambiguous_rate": 0.0117,
+    "low_confidence_count": 23,
+    "blind_low_confidence_rate": 0.0383,
     "anchored_rejection_rate": 0.191,
-    "distinct_blind_shapes": 9,
-    "novel_shapes_count": 2,
-    "novel_shape_rate": 0.2222,
+    "distinct_blind_shapes": 7,
+    "novel_shapes_count": 3,
+    "novel_shape_rate": 0.4286,
+    "total_novel_query_mass": 44,
+    "novel_shape_query_mass": 0.5238,
+    "novel_query_mass_rate": 0.5238,
+    "semantically_valid_novel_queries": 13,
+    "semantically_valid_novel_mass": 0.1548,
+    "semantically_valid_novel_mass_rate": 0.1548,
+    "misinterpreted_novel_queries": 31,
+    "misinterpreted_novel_mass": 0.369,
+    "misinterpreted_novel_mass_rate": 0.369,
     "blind_shapes": [
       "1f201c593c265f64",
       "2343cb1e47255012",
       "3ab9e8eaeb027de0",
-      "4b88ceedde4a47d5",
-      "652d50bc27874acc",
       "8532756b1866b3bf",
-      "d9ace5f6a0884cc7",
+      "ca8795889386c53c",
       "f5fb271f46843b98",
       "f6d27c8cd82ddd52"
     ],
     "novel_shapes": [
       "8532756b1866b3bf",
+      "ca8795889386c53c",
       "f5fb271f46843b98"
     ],
-    "blind_d_ratio": 0.0625,
-    "blind_entropy_h": 2.6691,
-    "blind_h_max": 3.1699,
-    "blind_normalized_entropy": 0.842
+    "blind_d_ratio": 0.0833,
+    "blind_entropy_h": 2.2003,
+    "blind_h_max": 2.8074,
+    "blind_normalized_entropy": 0.7838,
+    "domain_breakdown": {
+      "finances": {
+        "total": 50,
+        "compiled": 30,
+        "unsupported": 20,
+        "ambiguous": 0,
+        "low_confidence": 0
+      },
+      "schedule": {
+        "total": 50,
+        "compiled": 24,
+        "unsupported": 16,
+        "ambiguous": 0,
+        "low_confidence": 10
+      },
+      "health_fitness": {
+        "total": 50,
+        "compiled": 10,
+        "unsupported": 34,
+        "ambiguous": 0,
+        "low_confidence": 6
+      },
+      "shopping_inventory": {
+        "total": 50,
+        "compiled": 10,
+        "unsupported": 37,
+        "ambiguous": 0,
+        "low_confidence": 3
+      },
+      "system_settings_device": {
+        "total": 50,
+        "compiled": 0,
+        "unsupported": 50,
+        "ambiguous": 0,
+        "low_confidence": 0
+      },
+      "communication_messaging": {
+        "total": 50,
+        "compiled": 0,
+        "unsupported": 50,
+        "ambiguous": 0,
+        "low_confidence": 0
+      },
+      "file_data_management": {
+        "total": 50,
+        "compiled": 0,
+        "unsupported": 50,
+        "ambiguous": 0,
+        "low_confidence": 0
+      },
+      "home_automation_iot": {
+        "total": 50,
+        "compiled": 0,
+        "unsupported": 50,
+        "ambiguous": 0,
+        "low_confidence": 0
+      },
+      "media_entertainment": {
+        "total": 50,
+        "compiled": 0,
+        "unsupported": 46,
+        "ambiguous": 0,
+        "low_confidence": 4
+      },
+      "open_web_search_knowledge": {
+        "total": 50,
+        "compiled": 0,
+        "unsupported": 50,
+        "ambiguous": 0,
+        "low_confidence": 0
+      },
+      "math_calculations": {
+        "total": 50,
+        "compiled": 4,
+        "unsupported": 46,
+        "ambiguous": 0,
+        "low_confidence": 0
+      },
+      "creative_brainstorming": {
+        "total": 50,
+        "compiled": 6,
+        "unsupported": 37,
+        "ambiguous": 7,
+        "low_confidence": 0
+      }
+    },
+    "shape_audits": [
+      {
+        "shape_hash": "8532756b1866b3bf",
+        "query_count": 17,
+        "sample_queries": [
+          "Show me all recurring subscription charges debited this month",
+          "Compare my grocery expenditures in Q1 versus Q2 and identify biggest inflationary price increases",
+          "Categorize all uncategorized debit purchases from my weekend trip to Seattle"
+        ],
+        "graph_ops": [
+          "Observe",
+          "Map",
+          "Reduce",
+          "Emit"
+        ],
+        "valid_count": 0,
+        "misinterpreted_count": 17,
+        "valid_reasons": [],
+        "misinterpretation_reasons": [
+          "Query semantics do not match the instantiated fixture topology",
+          "Query requested comparative/trend analysis, but compiler produced a non-comparative scalar reduction",
+          "Query requested categorical classification/tagging, but compiler produced an aggregation sum",
+          "Query requested predictive notification, but compiler generated a static reduction"
+        ]
+      },
+      {
+        "shape_hash": "ca8795889386c53c",
+        "query_count": 3,
+        "sample_queries": [
+          "What was my largest single expense in the last 90 days?",
+          "Please what was my largest single expense in the last 90 days?",
+          "Can you what was my largest single expense in the last 90 days?"
+        ],
+        "graph_ops": [
+          "Observe",
+          "Filter",
+          "Map",
+          "Reduce",
+          "Emit"
+        ],
+        "valid_count": 0,
+        "misinterpreted_count": 3,
+        "valid_reasons": [],
+        "misinterpretation_reasons": [
+          "Time duration '90 days' was erroneously extracted as a monetary amount threshold"
+        ]
+      },
+      {
+        "shape_hash": "f5fb271f46843b98",
+        "query_count": 24,
+        "sample_queries": [
+          "How much money did I spend on restaurant dining over the weekend?",
+          "Alert me if my monthly utility expenses increase by more than 20% compared to last year",
+          "Can you project my bank savings balance for next quarter if I reduce discretionary spending by 15%?"
+        ],
+        "graph_ops": [
+          "Observe",
+          "Filter",
+          "Map",
+          "Reduce",
+          "Emit"
+        ],
+        "valid_count": 13,
+        "misinterpreted_count": 11,
+        "valid_reasons": [
+          "Valid compositional single-filter category aggregation (filtered by category without arbitrary threshold)"
+        ],
+        "misinterpretation_reasons": [
+          "Query requested comparative/trend analysis, but compiler produced a non-comparative scalar reduction",
+          "Query requested financial forecasting/projection, but compiler produced an historical aggregation",
+          "Query semantics do not match the instantiated fixture topology"
+        ]
+      }
+    ]
   },
   "surface_to_semantic_stability": {
     "cross_batch_canonicalization": {
@@ -492,16 +679,16 @@
     "g2_passed": true,
     "g3_passed": true,
     "p3_passed": true,
-    "baseline_mean_ms": 87.064,
-    "baseline_std_ms": 5.941,
-    "oracle_mean_ms": 19.486,
-    "cne_mean_ms": 32.268,
-    "cne_std_ms": 1.864,
-    "control_mean_ms": 9.47,
-    "execution_mean_ms": 22.798,
-    "net_savings_mean_ms": 54.796,
-    "a_corpus_mean": 0.1092,
-    "r_star_mean": 0.7761,
-    "opt_capture_mean": 0.8107
+    "baseline_mean_ms": 87.632,
+    "baseline_std_ms": 2.33,
+    "oracle_mean_ms": 0.548,
+    "cne_mean_ms": 10.489,
+    "cne_std_ms": 0.724,
+    "control_mean_ms": 7.341,
+    "execution_mean_ms": 3.148,
+    "net_savings_mean_ms": 77.143,
+    "a_corpus_mean": 0.0837,
+    "r_star_mean": 0.9937,
+    "opt_capture_mean": 0.8858
   }
 }

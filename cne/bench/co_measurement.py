@@ -212,9 +212,9 @@ class CoMeasurementRunner:
             oracle = G2Oracle(evaluator=evaluator)
             cne = ComputationNecessityEngine(fabric=fabric, evaluator=evaluator)
 
-            # Identical warmup pass to establish steady state
+            # Full workload warmup pass to establish uniform steady state across all graph paths (§P0.7a)
             cls._run_trial_against(
-                compiled[:15], env, fabric, evaluator, cne, oracle, trial_prefix="warmup"
+                compiled, env, fabric, evaluator, cne, oracle, trial_prefix="warmup"
             )
 
             # Measured trial

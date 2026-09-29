@@ -508,3 +508,16 @@ def test_state_reuse_ratio_and_reuse_events_alias():
     assert fabric.reuse_events_per_created_state == 3.0
 
 
+def test_dynamic_hygiene_and_inverted_adversarial_contamination():
+    """Dynamic runtime proof that:
+    1. In normal execution (Baseline -> Oracle -> CNE), when Oracle runs, query i is absent from fabric.
+    2. In inverted adversarial execution (CNE -> Oracle), Oracle accesses CNE's state, causing contamination.
+    """
+    from cne.bench.p07_report import P07ReportRunner
+    hygiene = P07ReportRunner._verify_measurement_hygiene()
+    assert hygiene["verified"] is True
+    assert hygiene["dynamic_runtime_proof_passed"] is True
+    assert hygiene["inverted_adversarial_contamination_verified"] is True
+
+
+

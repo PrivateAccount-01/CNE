@@ -13,6 +13,8 @@ def test_p07_master_decision_gate():
     assert report["decision"] == "GO", f"Expected GO decision, got {report['decision']}"
     assert report["decision_passed"] is True
     assert report["hygiene_fix"]["step_0_verified"] is True
+    assert report["hygiene_fix"]["dynamic_runtime_proof_passed"] is True
+    assert report["hygiene_fix"]["inverted_adversarial_contamination_verified"] is True
     assert report["hygiene_fix"]["decoupled_protocol"] is True
     assert len(report["hygiene_fix"]["steady_state_trials"]) >= 3
     assert len(report["hygiene_fix"]["session_evolution"]) >= 3
@@ -22,17 +24,21 @@ def test_p07_master_decision_gate():
     assert report["shape_diversity"]["d_ratio"] <= 0.40
     assert report["shape_diversity"]["distinct_shapes"] >= 10
 
-    # Open-world topology-blind evaluation assertions (Issue 1)
+    # Multi-domain topology-blind evaluation assertions (Negative Points 1-4)
     assert "open_world_blind_evaluation" in report
     blind_eval = report["open_world_blind_evaluation"]
-    assert blind_eval["total_blind_queries"] == 300
+    assert blind_eval["total_blind_queries"] == 600
+    assert len(blind_eval["domains_evaluated"]) == 12
     assert 0.0 <= blind_eval["blind_rejection_rate"] <= 1.0
-    assert blind_eval["blind_rejection_rate"] >= 0.30  # Rejection is higher on unguided open requests
-    assert "novel_shapes_count" in blind_eval
-    assert "novel_shape_rate" in blind_eval
+    assert blind_eval["blind_rejection_rate"] >= 0.70  # Broad multi-domain workload rejection is ~86%
+    assert blind_eval["novel_shapes_count"] > 0
+    assert blind_eval["novel_shape_rate"] > 0.0
+    assert blind_eval["novel_shape_query_mass"] > 0.0
+    assert blind_eval["semantically_valid_novel_mass"] > 0.0
+    assert blind_eval["misinterpreted_novel_mass"] > 0.0
     assert len(blind_eval["blind_shapes"]) > 0
 
-    # Multi-session reuse disambiguation (Issue 2)
+    # Multi-session reuse disambiguation
     for s in report["hygiene_fix"]["session_evolution"]:
         assert "reuse_events_per_created_state" in s
         assert s["reuse_events_per_created_state"] == s["state_reuse_ratio"]
