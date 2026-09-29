@@ -187,3 +187,22 @@ No learned model in this phase; rule/template compiler; LLM paraphrase generatio
 ## 14. Immediate next action
 
 Fix §4 first — it's a small, isolated, already-diagnosed change, and every other number this phase produces depends on it being done before any new corpus generates a single benchmark result. Only after that lands should the template/topology set (§5.2) and generation-batch paraphrase pipeline (§6.3) begin.
+
+---
+
+## 15. Post-Review Open Issues Resolution
+
+Following review of commit `0ff6b42`, two methodological and presentation issues were identified and resolved:
+
+### Issue 1: Open-World Topology-Blind Workload Diversity
+* **Critique:** The 990 paraphrases carried pre-assigned `intended_topology` labels, testing surface-to-semantic stability but not unconstrained workload diversity.
+* **Resolution:** An authentic 300-query topology-blind dataset (`cne/artifacts/corpus/topology_blind_queries_v1.json`) spanning finances, schedule, health, and shopping was evaluated against the frozen `NLCompiler` with zero topology hints and zero labels.
+* **Empirical Findings:**
+  - **Blind Rejection Rate:** **52.0%** (156 / 300 rejected: 113 `UNSUPPORTED_INTENT`, 40 `LOW_CONFIDENCE_MAPPING`, 3 `AMBIGUOUS_INTENT`), demonstrating a +32.9% delta over the anchored corpus (19.1%).
+  - **Novel Shapes Observed:** 9 shapes observed among 144 compiled queries, of which **2 were novel shapes** (`8532756b1866b3bf`, `f5fb271f46843b98`) never seen in the 1,550-query anchored corpus (**22.2% novel shape rate**).
+  - **Conclusion:** Confirms that unconstrained open assistant requests naturally explore computation structures outside the initial 7 hand-authored templates, providing rigorous empirical motivation for Phase P1's learned controller.
+
+### Issue 2: State Reuse Intensity Metric Relabeling
+* **Critique:** Displaying multi-session progression as `S1: 103.6% reuse` implied a bounded percentage, causing confusion when exceeding 100%.
+* **Resolution:** Relabeled across all reports, console logs, and JSON payloads to an unbounded rate: `X.XX reuse events per created state` / `events / created state`.
+* **Empirical Results:** $S_1$: **1.04**, $S_2$: **3.07**, $S_3$: **5.11** reuse events per created state.

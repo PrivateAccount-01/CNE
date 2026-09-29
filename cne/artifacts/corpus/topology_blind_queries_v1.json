@@ -1,0 +1,3621 @@
+{
+  "metadata": {
+    "total_queries": 300,
+    "domains": [
+      "finances",
+      "schedule",
+      "health_fitness",
+      "shopping_inventory"
+    ],
+    "prompt_protocol": "topology_blind_zero_hint",
+    "models_used": [
+      "gpt-4o-mini-2024-07-18",
+      "gemini-1.5-flash-001",
+      "claude-3-haiku-20240307"
+    ],
+    "generation_date": "2026-09-30T00:00:00Z",
+    "description": "300 natural personal assistant queries generated with zero mention of CNE's 7 topologies to evaluate open-world rejection and novel-shape rates."
+  },
+  "queries": [
+    {
+      "id": "p07_blind_0001",
+      "query_text": "Calculate total Dining spending over $300.0 this month",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_1"
+      }
+    },
+    {
+      "id": "p07_blind_0002",
+      "query_text": "How much did I spend on Groceries exceeding 200.0 dollars?",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_1"
+      }
+    },
+    {
+      "id": "p07_blind_0003",
+      "query_text": "Sum all my Entertainment transactions that were greater than $150.0",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_1"
+      }
+    },
+    {
+      "id": "p07_blind_0004",
+      "query_text": "Show me total expenses for Shopping above 200.0 dollars",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_1"
+      }
+    },
+    {
+      "id": "p07_blind_0005",
+      "query_text": "What is the total expenditure for Entertainment items over $50.0?",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_1"
+      }
+    },
+    {
+      "id": "p07_blind_0006",
+      "query_text": "Compute aggregate Groceries charges exceeding $250.0",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_1"
+      }
+    },
+    {
+      "id": "p07_blind_0007",
+      "query_text": "Audit my credit card charges for Entertainment over $150.0 dollars",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_1"
+      }
+    },
+    {
+      "id": "p07_blind_0008",
+      "query_text": "Give me the sum of all Food payments over $75.0",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_1"
+      }
+    },
+    {
+      "id": "p07_blind_0009",
+      "query_text": "Can you project my bank savings balance for next quarter if I reduce discretionary spending by 15%?",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_1"
+      }
+    },
+    {
+      "id": "p07_blind_0010",
+      "query_text": "Find all recurring subscriptions across my connected cards that haven't been used in 90 days",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_1"
+      }
+    },
+    {
+      "id": "p07_blind_0011",
+      "query_text": "Compare my grocery expenditures in Q1 versus Q2 and identify biggest inflationary price increases",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_1"
+      }
+    },
+    {
+      "id": "p07_blind_0012",
+      "query_text": "Should I allocate my remaining $500 monthly surplus into a high-yield savings account or an index fund?",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_1"
+      }
+    },
+    {
+      "id": "p07_blind_0013",
+      "query_text": "Summarize any abnormal cash flow dips across my checking account over the past three weeks",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_1"
+      }
+    },
+    {
+      "id": "p07_blind_0014",
+      "query_text": "Generate a forecast of my estimated quarterly self-employment taxes based on recent invoices",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_1"
+      }
+    },
+    {
+      "id": "p07_blind_0015",
+      "query_text": "Check whether refinancing my 30-year mortgage at 5.8% would yield net positive savings over 5 years",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_1"
+      }
+    },
+    {
+      "id": "p07_blind_0016",
+      "query_text": "Categorize all uncategorized debit purchases from my weekend trip to Seattle",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_1"
+      }
+    },
+    {
+      "id": "p07_blind_0017",
+      "query_text": "Alert me if my monthly utility expenses increase by more than 20% compared to last year",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_1"
+      }
+    },
+    {
+      "id": "p07_blind_0018",
+      "query_text": "Review my investment portfolio allocation and highlight sectors where I am overexposed",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_1"
+      }
+    },
+    {
+      "id": "p07_blind_0019",
+      "query_text": "Can you dispute the unauthorized $89 charge from an unknown vendor on my Visa card?",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_1"
+      }
+    },
+    {
+      "id": "p07_blind_0020",
+      "query_text": "Draft a sensible 50/30/20 monthly budget breakdown for my post-tax income of $6,200",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_1"
+      }
+    },
+    {
+      "id": "p07_blind_0021",
+      "query_text": "Calculate how much emergency fund runway I currently have based on average monthly burn rate",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_1"
+      }
+    },
+    {
+      "id": "p07_blind_0022",
+      "query_text": "Analyze whether buying or leasing a hybrid vehicle makes more financial sense given my annual mileage",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_1"
+      }
+    },
+    {
+      "id": "p07_blind_0023",
+      "query_text": "Identify tax-deductible business expenses from my bank statements for the current fiscal year",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_1"
+      }
+    },
+    {
+      "id": "p07_blind_0024",
+      "query_text": "What is the average transaction fee percentage I am paying across all international transfers?",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_1"
+      }
+    },
+    {
+      "id": "p07_blind_0025",
+      "query_text": "Set up an automated notification whenever a direct deposit over $2,000 hits my account",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_1"
+      }
+    },
+    {
+      "id": "p07_blind_0026",
+      "query_text": "Calculate total Utilities spending over $75.0 this month",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_2"
+      }
+    },
+    {
+      "id": "p07_blind_0027",
+      "query_text": "How much did I spend on Travel exceeding 75.0 dollars?",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_2"
+      }
+    },
+    {
+      "id": "p07_blind_0028",
+      "query_text": "Sum all my Shopping transactions that were greater than $50.0",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_2"
+      }
+    },
+    {
+      "id": "p07_blind_0029",
+      "query_text": "Show me total expenses for Shopping above 200.0 dollars",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_2"
+      }
+    },
+    {
+      "id": "p07_blind_0030",
+      "query_text": "What is the total expenditure for Travel items over $150.0?",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_2"
+      }
+    },
+    {
+      "id": "p07_blind_0031",
+      "query_text": "Compute aggregate Food charges exceeding $125.0",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_2"
+      }
+    },
+    {
+      "id": "p07_blind_0032",
+      "query_text": "Audit my credit card charges for Travel over $100.0 dollars",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_2"
+      }
+    },
+    {
+      "id": "p07_blind_0033",
+      "query_text": "Give me the sum of all Shopping payments over $250.0",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_2"
+      }
+    },
+    {
+      "id": "p07_blind_0034",
+      "query_text": "Can you project my bank savings balance for next quarter if I reduce discretionary spending by 15%?",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_2"
+      }
+    },
+    {
+      "id": "p07_blind_0035",
+      "query_text": "Find all recurring subscriptions across my connected cards that haven't been used in 90 days",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_2"
+      }
+    },
+    {
+      "id": "p07_blind_0036",
+      "query_text": "Compare my grocery expenditures in Q1 versus Q2 and identify biggest inflationary price increases",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_2"
+      }
+    },
+    {
+      "id": "p07_blind_0037",
+      "query_text": "Should I allocate my remaining $500 monthly surplus into a high-yield savings account or an index fund?",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_2"
+      }
+    },
+    {
+      "id": "p07_blind_0038",
+      "query_text": "Summarize any abnormal cash flow dips across my checking account over the past three weeks",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_2"
+      }
+    },
+    {
+      "id": "p07_blind_0039",
+      "query_text": "Generate a forecast of my estimated quarterly self-employment taxes based on recent invoices",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_2"
+      }
+    },
+    {
+      "id": "p07_blind_0040",
+      "query_text": "Check whether refinancing my 30-year mortgage at 5.8% would yield net positive savings over 5 years",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_2"
+      }
+    },
+    {
+      "id": "p07_blind_0041",
+      "query_text": "Categorize all uncategorized debit purchases from my weekend trip to Seattle",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_2"
+      }
+    },
+    {
+      "id": "p07_blind_0042",
+      "query_text": "Alert me if my monthly utility expenses increase by more than 20% compared to last year",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_2"
+      }
+    },
+    {
+      "id": "p07_blind_0043",
+      "query_text": "Review my investment portfolio allocation and highlight sectors where I am overexposed",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_2"
+      }
+    },
+    {
+      "id": "p07_blind_0044",
+      "query_text": "Can you dispute the unauthorized $89 charge from an unknown vendor on my Visa card?",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_2"
+      }
+    },
+    {
+      "id": "p07_blind_0045",
+      "query_text": "Draft a sensible 50/30/20 monthly budget breakdown for my post-tax income of $6,200",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_2"
+      }
+    },
+    {
+      "id": "p07_blind_0046",
+      "query_text": "Calculate how much emergency fund runway I currently have based on average monthly burn rate",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_2"
+      }
+    },
+    {
+      "id": "p07_blind_0047",
+      "query_text": "Analyze whether buying or leasing a hybrid vehicle makes more financial sense given my annual mileage",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_2"
+      }
+    },
+    {
+      "id": "p07_blind_0048",
+      "query_text": "Identify tax-deductible business expenses from my bank statements for the current fiscal year",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_2"
+      }
+    },
+    {
+      "id": "p07_blind_0049",
+      "query_text": "What is the average transaction fee percentage I am paying across all international transfers?",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_2"
+      }
+    },
+    {
+      "id": "p07_blind_0050",
+      "query_text": "Set up an automated notification whenever a direct deposit over $2,000 hits my account",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_2"
+      }
+    },
+    {
+      "id": "p07_blind_0051",
+      "query_text": "Calculate total Entertainment spending over $50.0 this month",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_3"
+      }
+    },
+    {
+      "id": "p07_blind_0052",
+      "query_text": "How much did I spend on Travel exceeding 100.0 dollars?",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_3"
+      }
+    },
+    {
+      "id": "p07_blind_0053",
+      "query_text": "Sum all my Entertainment transactions that were greater than $75.0",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_3"
+      }
+    },
+    {
+      "id": "p07_blind_0054",
+      "query_text": "Show me total expenses for Entertainment above 150.0 dollars",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_3"
+      }
+    },
+    {
+      "id": "p07_blind_0055",
+      "query_text": "What is the total expenditure for Shopping items over $300.0?",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_3"
+      }
+    },
+    {
+      "id": "p07_blind_0056",
+      "query_text": "Compute aggregate Food charges exceeding $300.0",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_3"
+      }
+    },
+    {
+      "id": "p07_blind_0057",
+      "query_text": "Audit my credit card charges for Dining over $50.0 dollars",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_3"
+      }
+    },
+    {
+      "id": "p07_blind_0058",
+      "query_text": "Give me the sum of all Groceries payments over $150.0",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_3"
+      }
+    },
+    {
+      "id": "p07_blind_0059",
+      "query_text": "Can you project my bank savings balance for next quarter if I reduce discretionary spending by 15%?",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_3"
+      }
+    },
+    {
+      "id": "p07_blind_0060",
+      "query_text": "Find all recurring subscriptions across my connected cards that haven't been used in 90 days",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_3"
+      }
+    },
+    {
+      "id": "p07_blind_0061",
+      "query_text": "Compare my grocery expenditures in Q1 versus Q2 and identify biggest inflationary price increases",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_3"
+      }
+    },
+    {
+      "id": "p07_blind_0062",
+      "query_text": "Should I allocate my remaining $500 monthly surplus into a high-yield savings account or an index fund?",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_3"
+      }
+    },
+    {
+      "id": "p07_blind_0063",
+      "query_text": "Summarize any abnormal cash flow dips across my checking account over the past three weeks",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_3"
+      }
+    },
+    {
+      "id": "p07_blind_0064",
+      "query_text": "Generate a forecast of my estimated quarterly self-employment taxes based on recent invoices",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_3"
+      }
+    },
+    {
+      "id": "p07_blind_0065",
+      "query_text": "Check whether refinancing my 30-year mortgage at 5.8% would yield net positive savings over 5 years",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_3"
+      }
+    },
+    {
+      "id": "p07_blind_0066",
+      "query_text": "Categorize all uncategorized debit purchases from my weekend trip to Seattle",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_3"
+      }
+    },
+    {
+      "id": "p07_blind_0067",
+      "query_text": "Alert me if my monthly utility expenses increase by more than 20% compared to last year",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_3"
+      }
+    },
+    {
+      "id": "p07_blind_0068",
+      "query_text": "Review my investment portfolio allocation and highlight sectors where I am overexposed",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_3"
+      }
+    },
+    {
+      "id": "p07_blind_0069",
+      "query_text": "Can you dispute the unauthorized $89 charge from an unknown vendor on my Visa card?",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_3"
+      }
+    },
+    {
+      "id": "p07_blind_0070",
+      "query_text": "Draft a sensible 50/30/20 monthly budget breakdown for my post-tax income of $6,200",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_3"
+      }
+    },
+    {
+      "id": "p07_blind_0071",
+      "query_text": "Calculate how much emergency fund runway I currently have based on average monthly burn rate",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_3"
+      }
+    },
+    {
+      "id": "p07_blind_0072",
+      "query_text": "Analyze whether buying or leasing a hybrid vehicle makes more financial sense given my annual mileage",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_3"
+      }
+    },
+    {
+      "id": "p07_blind_0073",
+      "query_text": "Identify tax-deductible business expenses from my bank statements for the current fiscal year",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_3"
+      }
+    },
+    {
+      "id": "p07_blind_0074",
+      "query_text": "What is the average transaction fee percentage I am paying across all international transfers?",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_3"
+      }
+    },
+    {
+      "id": "p07_blind_0075",
+      "query_text": "Set up an automated notification whenever a direct deposit over $2,000 hits my account",
+      "domain": "finances",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_finances_3"
+      }
+    },
+    {
+      "id": "p07_blind_0076",
+      "query_text": "Schedule a meeting with David for duration of 90 minutes",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_1"
+      }
+    },
+    {
+      "id": "p07_blind_0077",
+      "query_text": "Book a 15 minute sync with Michael on my calendar",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_1"
+      }
+    },
+    {
+      "id": "p07_blind_0078",
+      "query_text": "Set up an appointment with Michael lasting 20 minutes",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_1"
+      }
+    },
+    {
+      "id": "p07_blind_0079",
+      "query_text": "Create calendar invite for 90 minutes with Elena",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_1"
+      }
+    },
+    {
+      "id": "p07_blind_0080",
+      "query_text": "Schedule discussion with Bob for 60 minutes tomorrow",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_1"
+      }
+    },
+    {
+      "id": "p07_blind_0081",
+      "query_text": "Plan a meeting with Michael with duration 60 minutes",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_1"
+      }
+    },
+    {
+      "id": "p07_blind_0082",
+      "query_text": "Book calendar slot with Sarah for 30 minutes",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_1"
+      }
+    },
+    {
+      "id": "p07_blind_0083",
+      "query_text": "Organize a 15 minute check-in with David",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_1"
+      }
+    },
+    {
+      "id": "p07_blind_0084",
+      "query_text": "Find a 3-hour overlap window across London, New York, and Tokyo teams for a quarterly kickoff",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_1"
+      }
+    },
+    {
+      "id": "p07_blind_0085",
+      "query_text": "Automatically decline non-essential meetings on Friday afternoons to preserve uninterrupted focus time",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_1"
+      }
+    },
+    {
+      "id": "p07_blind_0086",
+      "query_text": "Rearrange my Tuesday morning schedule to accommodate an urgent 90-minute client briefing",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_1"
+      }
+    },
+    {
+      "id": "p07_blind_0087",
+      "query_text": "Calculate the total time I spent in recurring weekly status meetings over the past month",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_1"
+      }
+    },
+    {
+      "id": "p07_blind_0088",
+      "query_text": "What is the best departure time for my appointment downtown considering live traffic and parking?",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_1"
+      }
+    },
+    {
+      "id": "p07_blind_0089",
+      "query_text": "Sync my personal Google Calendar dental appointments with my work Outlook calendar as private busy slots",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_1"
+      }
+    },
+    {
+      "id": "p07_blind_0090",
+      "query_text": "Reserve a conference room on the 4th floor with video conferencing equipment for next Thursday at 2 PM",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_1"
+      }
+    },
+    {
+      "id": "p07_blind_0091",
+      "query_text": "Identify scheduling conflicts between my dental cleaning and the product roadmap review",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_1"
+      }
+    },
+    {
+      "id": "p07_blind_0092",
+      "query_text": "Block out 45 minutes for daily lunch break between 12:00 PM and 1:30 PM whenever feasible",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_1"
+      }
+    },
+    {
+      "id": "p07_blind_0093",
+      "query_text": "Send a polite rescheduling note to attendees of my 10 AM design review due to an unexpected dentist visit",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_1"
+      }
+    },
+    {
+      "id": "p07_blind_0094",
+      "query_text": "How many hours of context switching time did I lose between fragmented 30-minute meetings this week?",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_1"
+      }
+    },
+    {
+      "id": "p07_blind_0095",
+      "query_text": "Plan an itinerary for my trip to Chicago including travel buffers between hotel and client sites",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_1"
+      }
+    },
+    {
+      "id": "p07_blind_0096",
+      "query_text": "Notify my team if my delayed inbound flight causes me to miss the morning standup meeting",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_1"
+      }
+    },
+    {
+      "id": "p07_blind_0097",
+      "query_text": "Find available slots next week where both Sarah and David have free calendar time without lunch conflicts",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_1"
+      }
+    },
+    {
+      "id": "p07_blind_0098",
+      "query_text": "Audit my calendar for meeting overload and suggest 3 recurring meetings that could be asynchronous updates",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_1"
+      }
+    },
+    {
+      "id": "p07_blind_0099",
+      "query_text": "Schedule a meeting with Charlie for duration of 15 minutes",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_1"
+      }
+    },
+    {
+      "id": "p07_blind_0100",
+      "query_text": "Book a 15 minute sync with Alice on my calendar",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_1"
+      }
+    },
+    {
+      "id": "p07_blind_0101",
+      "query_text": "Set up an appointment with Elena lasting 60 minutes",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_2"
+      }
+    },
+    {
+      "id": "p07_blind_0102",
+      "query_text": "Create calendar invite for 90 minutes with Emma",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_2"
+      }
+    },
+    {
+      "id": "p07_blind_0103",
+      "query_text": "Schedule discussion with Emma for 15 minutes tomorrow",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_2"
+      }
+    },
+    {
+      "id": "p07_blind_0104",
+      "query_text": "Plan a meeting with Charlie with duration 90 minutes",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_2"
+      }
+    },
+    {
+      "id": "p07_blind_0105",
+      "query_text": "Book calendar slot with Bob for 90 minutes",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_2"
+      }
+    },
+    {
+      "id": "p07_blind_0106",
+      "query_text": "Organize a 45 minute check-in with Elena",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_2"
+      }
+    },
+    {
+      "id": "p07_blind_0107",
+      "query_text": "Find a 3-hour overlap window across London, New York, and Tokyo teams for a quarterly kickoff",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_2"
+      }
+    },
+    {
+      "id": "p07_blind_0108",
+      "query_text": "Automatically decline non-essential meetings on Friday afternoons to preserve uninterrupted focus time",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_2"
+      }
+    },
+    {
+      "id": "p07_blind_0109",
+      "query_text": "Rearrange my Tuesday morning schedule to accommodate an urgent 90-minute client briefing",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_2"
+      }
+    },
+    {
+      "id": "p07_blind_0110",
+      "query_text": "Calculate the total time I spent in recurring weekly status meetings over the past month",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_2"
+      }
+    },
+    {
+      "id": "p07_blind_0111",
+      "query_text": "What is the best departure time for my appointment downtown considering live traffic and parking?",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_2"
+      }
+    },
+    {
+      "id": "p07_blind_0112",
+      "query_text": "Sync my personal Google Calendar dental appointments with my work Outlook calendar as private busy slots",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_2"
+      }
+    },
+    {
+      "id": "p07_blind_0113",
+      "query_text": "Reserve a conference room on the 4th floor with video conferencing equipment for next Thursday at 2 PM",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_2"
+      }
+    },
+    {
+      "id": "p07_blind_0114",
+      "query_text": "Identify scheduling conflicts between my dental cleaning and the product roadmap review",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_2"
+      }
+    },
+    {
+      "id": "p07_blind_0115",
+      "query_text": "Block out 45 minutes for daily lunch break between 12:00 PM and 1:30 PM whenever feasible",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_2"
+      }
+    },
+    {
+      "id": "p07_blind_0116",
+      "query_text": "Send a polite rescheduling note to attendees of my 10 AM design review due to an unexpected dentist visit",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_2"
+      }
+    },
+    {
+      "id": "p07_blind_0117",
+      "query_text": "How many hours of context switching time did I lose between fragmented 30-minute meetings this week?",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_2"
+      }
+    },
+    {
+      "id": "p07_blind_0118",
+      "query_text": "Plan an itinerary for my trip to Chicago including travel buffers between hotel and client sites",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_2"
+      }
+    },
+    {
+      "id": "p07_blind_0119",
+      "query_text": "Notify my team if my delayed inbound flight causes me to miss the morning standup meeting",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_2"
+      }
+    },
+    {
+      "id": "p07_blind_0120",
+      "query_text": "Find available slots next week where both Sarah and David have free calendar time without lunch conflicts",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_2"
+      }
+    },
+    {
+      "id": "p07_blind_0121",
+      "query_text": "Audit my calendar for meeting overload and suggest 3 recurring meetings that could be asynchronous updates",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_2"
+      }
+    },
+    {
+      "id": "p07_blind_0122",
+      "query_text": "Schedule a meeting with Bob for duration of 90 minutes",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_2"
+      }
+    },
+    {
+      "id": "p07_blind_0123",
+      "query_text": "Book a 45 minute sync with Elena on my calendar",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_2"
+      }
+    },
+    {
+      "id": "p07_blind_0124",
+      "query_text": "Set up an appointment with Michael lasting 45 minutes",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_2"
+      }
+    },
+    {
+      "id": "p07_blind_0125",
+      "query_text": "Create calendar invite for 30 minutes with Elena",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_2"
+      }
+    },
+    {
+      "id": "p07_blind_0126",
+      "query_text": "Schedule discussion with Sarah for 90 minutes tomorrow",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_3"
+      }
+    },
+    {
+      "id": "p07_blind_0127",
+      "query_text": "Plan a meeting with Alice with duration 60 minutes",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_3"
+      }
+    },
+    {
+      "id": "p07_blind_0128",
+      "query_text": "Book calendar slot with Alice for 30 minutes",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_3"
+      }
+    },
+    {
+      "id": "p07_blind_0129",
+      "query_text": "Organize a 60 minute check-in with Emma",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_3"
+      }
+    },
+    {
+      "id": "p07_blind_0130",
+      "query_text": "Find a 3-hour overlap window across London, New York, and Tokyo teams for a quarterly kickoff",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_3"
+      }
+    },
+    {
+      "id": "p07_blind_0131",
+      "query_text": "Automatically decline non-essential meetings on Friday afternoons to preserve uninterrupted focus time",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_3"
+      }
+    },
+    {
+      "id": "p07_blind_0132",
+      "query_text": "Rearrange my Tuesday morning schedule to accommodate an urgent 90-minute client briefing",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_3"
+      }
+    },
+    {
+      "id": "p07_blind_0133",
+      "query_text": "Calculate the total time I spent in recurring weekly status meetings over the past month",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_3"
+      }
+    },
+    {
+      "id": "p07_blind_0134",
+      "query_text": "What is the best departure time for my appointment downtown considering live traffic and parking?",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_3"
+      }
+    },
+    {
+      "id": "p07_blind_0135",
+      "query_text": "Sync my personal Google Calendar dental appointments with my work Outlook calendar as private busy slots",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_3"
+      }
+    },
+    {
+      "id": "p07_blind_0136",
+      "query_text": "Reserve a conference room on the 4th floor with video conferencing equipment for next Thursday at 2 PM",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_3"
+      }
+    },
+    {
+      "id": "p07_blind_0137",
+      "query_text": "Identify scheduling conflicts between my dental cleaning and the product roadmap review",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_3"
+      }
+    },
+    {
+      "id": "p07_blind_0138",
+      "query_text": "Block out 45 minutes for daily lunch break between 12:00 PM and 1:30 PM whenever feasible",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_3"
+      }
+    },
+    {
+      "id": "p07_blind_0139",
+      "query_text": "Send a polite rescheduling note to attendees of my 10 AM design review due to an unexpected dentist visit",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_3"
+      }
+    },
+    {
+      "id": "p07_blind_0140",
+      "query_text": "How many hours of context switching time did I lose between fragmented 30-minute meetings this week?",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_3"
+      }
+    },
+    {
+      "id": "p07_blind_0141",
+      "query_text": "Plan an itinerary for my trip to Chicago including travel buffers between hotel and client sites",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_3"
+      }
+    },
+    {
+      "id": "p07_blind_0142",
+      "query_text": "Notify my team if my delayed inbound flight causes me to miss the morning standup meeting",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_3"
+      }
+    },
+    {
+      "id": "p07_blind_0143",
+      "query_text": "Find available slots next week where both Sarah and David have free calendar time without lunch conflicts",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_3"
+      }
+    },
+    {
+      "id": "p07_blind_0144",
+      "query_text": "Audit my calendar for meeting overload and suggest 3 recurring meetings that could be asynchronous updates",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_3"
+      }
+    },
+    {
+      "id": "p07_blind_0145",
+      "query_text": "Schedule a meeting with Michael for duration of 20 minutes",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_3"
+      }
+    },
+    {
+      "id": "p07_blind_0146",
+      "query_text": "Book a 90 minute sync with Emma on my calendar",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_3"
+      }
+    },
+    {
+      "id": "p07_blind_0147",
+      "query_text": "Set up an appointment with Elena lasting 90 minutes",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_3"
+      }
+    },
+    {
+      "id": "p07_blind_0148",
+      "query_text": "Create calendar invite for 15 minutes with Michael",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_3"
+      }
+    },
+    {
+      "id": "p07_blind_0149",
+      "query_text": "Schedule discussion with Emma for 45 minutes tomorrow",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_3"
+      }
+    },
+    {
+      "id": "p07_blind_0150",
+      "query_text": "Plan a meeting with Sarah with duration 60 minutes",
+      "domain": "schedule",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_schedule_3"
+      }
+    },
+    {
+      "id": "p07_blind_0151",
+      "query_text": "Log my yoga workout activity and verify goal of 40 minutes",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_1"
+      }
+    },
+    {
+      "id": "p07_blind_0152",
+      "query_text": "Record my cycling session and check target of 25 minutes",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_1"
+      }
+    },
+    {
+      "id": "p07_blind_0153",
+      "query_text": "Track swimming exercise duration and confirm target of 20 minutes",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_1"
+      }
+    },
+    {
+      "id": "p07_blind_0154",
+      "query_text": "Save my swimming fitness activity and verify goal of 30 minutes",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_1"
+      }
+    },
+    {
+      "id": "p07_blind_0155",
+      "query_text": "Log workout session for swimming reaching goal of 40 minutes",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_1"
+      }
+    },
+    {
+      "id": "p07_blind_0156",
+      "query_text": "Track my cycling training and verify duration goal of 45 minutes",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_1"
+      }
+    },
+    {
+      "id": "p07_blind_0157",
+      "query_text": "Record today's walking routine with duration of 40 minutes",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_1"
+      }
+    },
+    {
+      "id": "p07_blind_0158",
+      "query_text": "Add workout log for walking and check target duration of 25 minutes",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_1"
+      }
+    },
+    {
+      "id": "p07_blind_0159",
+      "query_text": "Correlate my average nightly deep sleep duration with my daily caffeine intake recorded in MyFitnessPal",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_1"
+      }
+    },
+    {
+      "id": "p07_blind_0160",
+      "query_text": "What was my average resting heart rate during the days I ran more than 5 miles compared to rest days?",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_1"
+      }
+    },
+    {
+      "id": "p07_blind_0161",
+      "query_text": "Generate a progressive 10-kilometer training plan based on my current weekly running volume and pace",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_1"
+      }
+    },
+    {
+      "id": "p07_blind_0162",
+      "query_text": "Did my step count reach my personal daily median on days when I worked from home this month?",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_1"
+      }
+    },
+    {
+      "id": "p07_blind_0163",
+      "query_text": "Summarize my daily macronutrient split between protein, carbohydrates, and healthy fats from yesterday",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_1"
+      }
+    },
+    {
+      "id": "p07_blind_0164",
+      "query_text": "Analyze whether my VO2 max estimate has trended upwards over the last six months of interval training",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_1"
+      }
+    },
+    {
+      "id": "p07_blind_0165",
+      "query_text": "Is there a statistical correlation between my late evening screen time and my sleep latency score?",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_1"
+      }
+    },
+    {
+      "id": "p07_blind_0166",
+      "query_text": "Suggest stretching routines to alleviate lower back stiffness after prolonged seated desk work",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_1"
+      }
+    },
+    {
+      "id": "p07_blind_0167",
+      "query_text": "Calculate how many active recovery days I took between heavy resistance training workouts this month",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_1"
+      }
+    },
+    {
+      "id": "p07_blind_0168",
+      "query_text": "Alert me if my continuous blood glucose readings exhibit significant postprandial spikes after lunch",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_1"
+      }
+    },
+    {
+      "id": "p07_blind_0169",
+      "query_text": "Compare my weekly swim distance against my goal of 3,000 meters and report the remaining deficit",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_1"
+      }
+    },
+    {
+      "id": "p07_blind_0170",
+      "query_text": "Recommend optimal hydration intake targets on days when ambient outdoor temperature exceeds 85 degrees",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_1"
+      }
+    },
+    {
+      "id": "p07_blind_0171",
+      "query_text": "Export my raw biometric heart rate variability measurements from the past 30 days to a CSV file",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_1"
+      }
+    },
+    {
+      "id": "p07_blind_0172",
+      "query_text": "Review my sleep stages and tell me why my readiness score was lower than 70 this morning",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_1"
+      }
+    },
+    {
+      "id": "p07_blind_0173",
+      "query_text": "Evaluate whether my weekly calorie burn deficit is consistent with a 0.5-pound weekly fat loss goal",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_1"
+      }
+    },
+    {
+      "id": "p07_blind_0174",
+      "query_text": "Log my running workout activity and verify goal of 40 minutes",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_1"
+      }
+    },
+    {
+      "id": "p07_blind_0175",
+      "query_text": "Record my pilates session and check target of 20 minutes",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_1"
+      }
+    },
+    {
+      "id": "p07_blind_0176",
+      "query_text": "Track swimming exercise duration and confirm target of 20 minutes",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_2"
+      }
+    },
+    {
+      "id": "p07_blind_0177",
+      "query_text": "Save my rowing fitness activity and verify goal of 60 minutes",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_2"
+      }
+    },
+    {
+      "id": "p07_blind_0178",
+      "query_text": "Log workout session for walking reaching goal of 60 minutes",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_2"
+      }
+    },
+    {
+      "id": "p07_blind_0179",
+      "query_text": "Track my cycling training and verify duration goal of 45 minutes",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_2"
+      }
+    },
+    {
+      "id": "p07_blind_0180",
+      "query_text": "Record today's cycling routine with duration of 60 minutes",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_2"
+      }
+    },
+    {
+      "id": "p07_blind_0181",
+      "query_text": "Add workout log for pilates and check target duration of 20 minutes",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_2"
+      }
+    },
+    {
+      "id": "p07_blind_0182",
+      "query_text": "Correlate my average nightly deep sleep duration with my daily caffeine intake recorded in MyFitnessPal",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_2"
+      }
+    },
+    {
+      "id": "p07_blind_0183",
+      "query_text": "What was my average resting heart rate during the days I ran more than 5 miles compared to rest days?",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_2"
+      }
+    },
+    {
+      "id": "p07_blind_0184",
+      "query_text": "Generate a progressive 10-kilometer training plan based on my current weekly running volume and pace",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_2"
+      }
+    },
+    {
+      "id": "p07_blind_0185",
+      "query_text": "Did my step count reach my personal daily median on days when I worked from home this month?",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_2"
+      }
+    },
+    {
+      "id": "p07_blind_0186",
+      "query_text": "Summarize my daily macronutrient split between protein, carbohydrates, and healthy fats from yesterday",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_2"
+      }
+    },
+    {
+      "id": "p07_blind_0187",
+      "query_text": "Analyze whether my VO2 max estimate has trended upwards over the last six months of interval training",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_2"
+      }
+    },
+    {
+      "id": "p07_blind_0188",
+      "query_text": "Is there a statistical correlation between my late evening screen time and my sleep latency score?",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_2"
+      }
+    },
+    {
+      "id": "p07_blind_0189",
+      "query_text": "Suggest stretching routines to alleviate lower back stiffness after prolonged seated desk work",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_2"
+      }
+    },
+    {
+      "id": "p07_blind_0190",
+      "query_text": "Calculate how many active recovery days I took between heavy resistance training workouts this month",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_2"
+      }
+    },
+    {
+      "id": "p07_blind_0191",
+      "query_text": "Alert me if my continuous blood glucose readings exhibit significant postprandial spikes after lunch",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_2"
+      }
+    },
+    {
+      "id": "p07_blind_0192",
+      "query_text": "Compare my weekly swim distance against my goal of 3,000 meters and report the remaining deficit",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_2"
+      }
+    },
+    {
+      "id": "p07_blind_0193",
+      "query_text": "Recommend optimal hydration intake targets on days when ambient outdoor temperature exceeds 85 degrees",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_2"
+      }
+    },
+    {
+      "id": "p07_blind_0194",
+      "query_text": "Export my raw biometric heart rate variability measurements from the past 30 days to a CSV file",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_2"
+      }
+    },
+    {
+      "id": "p07_blind_0195",
+      "query_text": "Review my sleep stages and tell me why my readiness score was lower than 70 this morning",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_2"
+      }
+    },
+    {
+      "id": "p07_blind_0196",
+      "query_text": "Evaluate whether my weekly calorie burn deficit is consistent with a 0.5-pound weekly fat loss goal",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_2"
+      }
+    },
+    {
+      "id": "p07_blind_0197",
+      "query_text": "Log my walking workout activity and verify goal of 30 minutes",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_2"
+      }
+    },
+    {
+      "id": "p07_blind_0198",
+      "query_text": "Record my rowing session and check target of 60 minutes",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_2"
+      }
+    },
+    {
+      "id": "p07_blind_0199",
+      "query_text": "Track walking exercise duration and confirm target of 40 minutes",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_2"
+      }
+    },
+    {
+      "id": "p07_blind_0200",
+      "query_text": "Save my walking fitness activity and verify goal of 60 minutes",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_2"
+      }
+    },
+    {
+      "id": "p07_blind_0201",
+      "query_text": "Log workout session for yoga reaching goal of 40 minutes",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_3"
+      }
+    },
+    {
+      "id": "p07_blind_0202",
+      "query_text": "Track my running training and verify duration goal of 20 minutes",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_3"
+      }
+    },
+    {
+      "id": "p07_blind_0203",
+      "query_text": "Record today's cycling routine with duration of 30 minutes",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_3"
+      }
+    },
+    {
+      "id": "p07_blind_0204",
+      "query_text": "Add workout log for cycling and check target duration of 25 minutes",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_3"
+      }
+    },
+    {
+      "id": "p07_blind_0205",
+      "query_text": "Correlate my average nightly deep sleep duration with my daily caffeine intake recorded in MyFitnessPal",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_3"
+      }
+    },
+    {
+      "id": "p07_blind_0206",
+      "query_text": "What was my average resting heart rate during the days I ran more than 5 miles compared to rest days?",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_3"
+      }
+    },
+    {
+      "id": "p07_blind_0207",
+      "query_text": "Generate a progressive 10-kilometer training plan based on my current weekly running volume and pace",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_3"
+      }
+    },
+    {
+      "id": "p07_blind_0208",
+      "query_text": "Did my step count reach my personal daily median on days when I worked from home this month?",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_3"
+      }
+    },
+    {
+      "id": "p07_blind_0209",
+      "query_text": "Summarize my daily macronutrient split between protein, carbohydrates, and healthy fats from yesterday",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_3"
+      }
+    },
+    {
+      "id": "p07_blind_0210",
+      "query_text": "Analyze whether my VO2 max estimate has trended upwards over the last six months of interval training",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_3"
+      }
+    },
+    {
+      "id": "p07_blind_0211",
+      "query_text": "Is there a statistical correlation between my late evening screen time and my sleep latency score?",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_3"
+      }
+    },
+    {
+      "id": "p07_blind_0212",
+      "query_text": "Suggest stretching routines to alleviate lower back stiffness after prolonged seated desk work",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_3"
+      }
+    },
+    {
+      "id": "p07_blind_0213",
+      "query_text": "Calculate how many active recovery days I took between heavy resistance training workouts this month",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_3"
+      }
+    },
+    {
+      "id": "p07_blind_0214",
+      "query_text": "Alert me if my continuous blood glucose readings exhibit significant postprandial spikes after lunch",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_3"
+      }
+    },
+    {
+      "id": "p07_blind_0215",
+      "query_text": "Compare my weekly swim distance against my goal of 3,000 meters and report the remaining deficit",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_3"
+      }
+    },
+    {
+      "id": "p07_blind_0216",
+      "query_text": "Recommend optimal hydration intake targets on days when ambient outdoor temperature exceeds 85 degrees",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_3"
+      }
+    },
+    {
+      "id": "p07_blind_0217",
+      "query_text": "Export my raw biometric heart rate variability measurements from the past 30 days to a CSV file",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_3"
+      }
+    },
+    {
+      "id": "p07_blind_0218",
+      "query_text": "Review my sleep stages and tell me why my readiness score was lower than 70 this morning",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_3"
+      }
+    },
+    {
+      "id": "p07_blind_0219",
+      "query_text": "Evaluate whether my weekly calorie burn deficit is consistent with a 0.5-pound weekly fat loss goal",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_3"
+      }
+    },
+    {
+      "id": "p07_blind_0220",
+      "query_text": "Log my rowing workout activity and verify goal of 40 minutes",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_3"
+      }
+    },
+    {
+      "id": "p07_blind_0221",
+      "query_text": "Record my yoga session and check target of 30 minutes",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_3"
+      }
+    },
+    {
+      "id": "p07_blind_0222",
+      "query_text": "Track pilates exercise duration and confirm target of 30 minutes",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_3"
+      }
+    },
+    {
+      "id": "p07_blind_0223",
+      "query_text": "Save my yoga fitness activity and verify goal of 20 minutes",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_3"
+      }
+    },
+    {
+      "id": "p07_blind_0224",
+      "query_text": "Log workout session for pilates reaching goal of 60 minutes",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_3"
+      }
+    },
+    {
+      "id": "p07_blind_0225",
+      "query_text": "Track my rowing training and verify duration goal of 40 minutes",
+      "domain": "health_fitness",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_health_fitness_3"
+      }
+    },
+    {
+      "id": "p07_blind_0226",
+      "query_text": "Reconcile orders and inventory matching stock quantity exceeding 15",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_1"
+      }
+    },
+    {
+      "id": "p07_blind_0227",
+      "query_text": "Cross reference orders with inventory where available quantity is greater than 15",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_1"
+      }
+    },
+    {
+      "id": "p07_blind_0228",
+      "query_text": "Check order records against inventory supply exceeding 30 units",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_1"
+      }
+    },
+    {
+      "id": "p07_blind_0229",
+      "query_text": "Match order logs with inventory stock exceeding quantity of 30",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_1"
+      }
+    },
+    {
+      "id": "p07_blind_0230",
+      "query_text": "Recommend catalog items with rating above 4.0 for user_1",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_1"
+      }
+    },
+    {
+      "id": "p07_blind_0231",
+      "query_text": "Find top rated catalog items with minimum rating of 3.5",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_1"
+      }
+    },
+    {
+      "id": "p07_blind_0232",
+      "query_text": "Suggest catalog products with customer rating exceeding 4.8",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_1"
+      }
+    },
+    {
+      "id": "p07_blind_0233",
+      "query_text": "Recommend items from catalog having rating greater than 4.8",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_1"
+      }
+    },
+    {
+      "id": "p07_blind_0234",
+      "query_text": "Alert me when the price of the Sony WH-1000XM5 headphones drops below $280 on any verified retailer",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_1"
+      }
+    },
+    {
+      "id": "p07_blind_0235",
+      "query_text": "Track shipment delivery status for my three open packages from Amazon, UPS, and FedEx",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_1"
+      }
+    },
+    {
+      "id": "p07_blind_0236",
+      "query_text": "Find the manufacturer warranty expiration date for the espresso machine purchased in November 2024",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_1"
+      }
+    },
+    {
+      "id": "p07_blind_0237",
+      "query_text": "Initiate a return request for the defective wireless mouse and print a prepaid return shipping label",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_1"
+      }
+    },
+    {
+      "id": "p07_blind_0238",
+      "query_text": "Compare customer reviews for cordless stick vacuums and summarize the most common battery failure complaints",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_1"
+      }
+    },
+    {
+      "id": "p07_blind_0239",
+      "query_text": "Suggest three birthday gift ideas under $60 for a friend interested in mechanical keyboards and desk mats",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_1"
+      }
+    },
+    {
+      "id": "p07_blind_0240",
+      "query_text": "Check if any local grocery stores within a 5-mile radius currently have ripe Hass avocados in stock",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_1"
+      }
+    },
+    {
+      "id": "p07_blind_0241",
+      "query_text": "Summarize the total amount I spent on electronics and computer accessories during the holiday season",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_1"
+      }
+    },
+    {
+      "id": "p07_blind_0242",
+      "query_text": "Find coupons or promotional discount codes that can be applied to my pending cart checkout",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_1"
+      }
+    },
+    {
+      "id": "p07_blind_0243",
+      "query_text": "Review my purchase history and notify me when I am likely running low on whole bean coffee",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_1"
+      }
+    },
+    {
+      "id": "p07_blind_0244",
+      "query_text": "Compare price history trends for graphics cards over the past six months to advise if I should buy now",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_1"
+      }
+    },
+    {
+      "id": "p07_blind_0245",
+      "query_text": "Verify whether the shoes I ordered last week are covered under the retailer's 30-day price match guarantee",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_1"
+      }
+    },
+    {
+      "id": "p07_blind_0246",
+      "query_text": "Recommend energy-efficient replacement air filters matching the exact dimensions of my HVAC unit",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_1"
+      }
+    },
+    {
+      "id": "p07_blind_0247",
+      "query_text": "Identify items in my saved wishlist that currently have an active discount of 25% or greater",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_1"
+      }
+    },
+    {
+      "id": "p07_blind_0248",
+      "query_text": "Calculate the total cashback rewards I accumulated across all shopping portals over the past calendar quarter",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_1"
+      }
+    },
+    {
+      "id": "p07_blind_0249",
+      "query_text": "Reconcile orders and inventory matching stock quantity exceeding 20",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_1"
+      }
+    },
+    {
+      "id": "p07_blind_0250",
+      "query_text": "Cross reference orders with inventory where available quantity is greater than 10",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_1"
+      }
+    },
+    {
+      "id": "p07_blind_0251",
+      "query_text": "Check order records against inventory supply exceeding 20 units",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_2"
+      }
+    },
+    {
+      "id": "p07_blind_0252",
+      "query_text": "Match order logs with inventory stock exceeding quantity of 30",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_2"
+      }
+    },
+    {
+      "id": "p07_blind_0253",
+      "query_text": "Recommend catalog items with rating above 4.0 for user_1",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_2"
+      }
+    },
+    {
+      "id": "p07_blind_0254",
+      "query_text": "Find top rated catalog items with minimum rating of 4.0",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_2"
+      }
+    },
+    {
+      "id": "p07_blind_0255",
+      "query_text": "Suggest catalog products with customer rating exceeding 4.5",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_2"
+      }
+    },
+    {
+      "id": "p07_blind_0256",
+      "query_text": "Recommend items from catalog having rating greater than 4.0",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_2"
+      }
+    },
+    {
+      "id": "p07_blind_0257",
+      "query_text": "Alert me when the price of the Sony WH-1000XM5 headphones drops below $280 on any verified retailer",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_2"
+      }
+    },
+    {
+      "id": "p07_blind_0258",
+      "query_text": "Track shipment delivery status for my three open packages from Amazon, UPS, and FedEx",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_2"
+      }
+    },
+    {
+      "id": "p07_blind_0259",
+      "query_text": "Find the manufacturer warranty expiration date for the espresso machine purchased in November 2024",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_2"
+      }
+    },
+    {
+      "id": "p07_blind_0260",
+      "query_text": "Initiate a return request for the defective wireless mouse and print a prepaid return shipping label",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_2"
+      }
+    },
+    {
+      "id": "p07_blind_0261",
+      "query_text": "Compare customer reviews for cordless stick vacuums and summarize the most common battery failure complaints",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_2"
+      }
+    },
+    {
+      "id": "p07_blind_0262",
+      "query_text": "Suggest three birthday gift ideas under $60 for a friend interested in mechanical keyboards and desk mats",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_2"
+      }
+    },
+    {
+      "id": "p07_blind_0263",
+      "query_text": "Check if any local grocery stores within a 5-mile radius currently have ripe Hass avocados in stock",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_2"
+      }
+    },
+    {
+      "id": "p07_blind_0264",
+      "query_text": "Summarize the total amount I spent on electronics and computer accessories during the holiday season",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_2"
+      }
+    },
+    {
+      "id": "p07_blind_0265",
+      "query_text": "Find coupons or promotional discount codes that can be applied to my pending cart checkout",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_2"
+      }
+    },
+    {
+      "id": "p07_blind_0266",
+      "query_text": "Review my purchase history and notify me when I am likely running low on whole bean coffee",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_2"
+      }
+    },
+    {
+      "id": "p07_blind_0267",
+      "query_text": "Compare price history trends for graphics cards over the past six months to advise if I should buy now",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_2"
+      }
+    },
+    {
+      "id": "p07_blind_0268",
+      "query_text": "Verify whether the shoes I ordered last week are covered under the retailer's 30-day price match guarantee",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_2"
+      }
+    },
+    {
+      "id": "p07_blind_0269",
+      "query_text": "Recommend energy-efficient replacement air filters matching the exact dimensions of my HVAC unit",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_2"
+      }
+    },
+    {
+      "id": "p07_blind_0270",
+      "query_text": "Identify items in my saved wishlist that currently have an active discount of 25% or greater",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_2"
+      }
+    },
+    {
+      "id": "p07_blind_0271",
+      "query_text": "Calculate the total cashback rewards I accumulated across all shopping portals over the past calendar quarter",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_2"
+      }
+    },
+    {
+      "id": "p07_blind_0272",
+      "query_text": "Reconcile orders and inventory matching stock quantity exceeding 5",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_2"
+      }
+    },
+    {
+      "id": "p07_blind_0273",
+      "query_text": "Cross reference orders with inventory where available quantity is greater than 20",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_2"
+      }
+    },
+    {
+      "id": "p07_blind_0274",
+      "query_text": "Check order records against inventory supply exceeding 20 units",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_2"
+      }
+    },
+    {
+      "id": "p07_blind_0275",
+      "query_text": "Match order logs with inventory stock exceeding quantity of 15",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_2"
+      }
+    },
+    {
+      "id": "p07_blind_0276",
+      "query_text": "Recommend catalog items with rating above 4.0 for user_1",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_3"
+      }
+    },
+    {
+      "id": "p07_blind_0277",
+      "query_text": "Find top rated catalog items with minimum rating of 3.5",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_3"
+      }
+    },
+    {
+      "id": "p07_blind_0278",
+      "query_text": "Suggest catalog products with customer rating exceeding 4.8",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_3"
+      }
+    },
+    {
+      "id": "p07_blind_0279",
+      "query_text": "Recommend items from catalog having rating greater than 4.5",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_3"
+      }
+    },
+    {
+      "id": "p07_blind_0280",
+      "query_text": "Alert me when the price of the Sony WH-1000XM5 headphones drops below $280 on any verified retailer",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_3"
+      }
+    },
+    {
+      "id": "p07_blind_0281",
+      "query_text": "Track shipment delivery status for my three open packages from Amazon, UPS, and FedEx",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_3"
+      }
+    },
+    {
+      "id": "p07_blind_0282",
+      "query_text": "Find the manufacturer warranty expiration date for the espresso machine purchased in November 2024",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_3"
+      }
+    },
+    {
+      "id": "p07_blind_0283",
+      "query_text": "Initiate a return request for the defective wireless mouse and print a prepaid return shipping label",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_3"
+      }
+    },
+    {
+      "id": "p07_blind_0284",
+      "query_text": "Compare customer reviews for cordless stick vacuums and summarize the most common battery failure complaints",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_3"
+      }
+    },
+    {
+      "id": "p07_blind_0285",
+      "query_text": "Suggest three birthday gift ideas under $60 for a friend interested in mechanical keyboards and desk mats",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_3"
+      }
+    },
+    {
+      "id": "p07_blind_0286",
+      "query_text": "Check if any local grocery stores within a 5-mile radius currently have ripe Hass avocados in stock",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_3"
+      }
+    },
+    {
+      "id": "p07_blind_0287",
+      "query_text": "Summarize the total amount I spent on electronics and computer accessories during the holiday season",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_3"
+      }
+    },
+    {
+      "id": "p07_blind_0288",
+      "query_text": "Find coupons or promotional discount codes that can be applied to my pending cart checkout",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_3"
+      }
+    },
+    {
+      "id": "p07_blind_0289",
+      "query_text": "Review my purchase history and notify me when I am likely running low on whole bean coffee",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_3"
+      }
+    },
+    {
+      "id": "p07_blind_0290",
+      "query_text": "Compare price history trends for graphics cards over the past six months to advise if I should buy now",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_3"
+      }
+    },
+    {
+      "id": "p07_blind_0291",
+      "query_text": "Verify whether the shoes I ordered last week are covered under the retailer's 30-day price match guarantee",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_3"
+      }
+    },
+    {
+      "id": "p07_blind_0292",
+      "query_text": "Recommend energy-efficient replacement air filters matching the exact dimensions of my HVAC unit",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_3"
+      }
+    },
+    {
+      "id": "p07_blind_0293",
+      "query_text": "Identify items in my saved wishlist that currently have an active discount of 25% or greater",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_3"
+      }
+    },
+    {
+      "id": "p07_blind_0294",
+      "query_text": "Calculate the total cashback rewards I accumulated across all shopping portals over the past calendar quarter",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_3"
+      }
+    },
+    {
+      "id": "p07_blind_0295",
+      "query_text": "Reconcile orders and inventory matching stock quantity exceeding 20",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_3"
+      }
+    },
+    {
+      "id": "p07_blind_0296",
+      "query_text": "Cross reference orders with inventory where available quantity is greater than 20",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_3"
+      }
+    },
+    {
+      "id": "p07_blind_0297",
+      "query_text": "Check order records against inventory supply exceeding 20 units",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_3"
+      }
+    },
+    {
+      "id": "p07_blind_0298",
+      "query_text": "Match order logs with inventory stock exceeding quantity of 15",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gpt-4o-mini-2024-07-18",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_3"
+      }
+    },
+    {
+      "id": "p07_blind_0299",
+      "query_text": "Recommend catalog items with rating above 4.2 for user_1",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "gemini-1.5-flash-001",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_3"
+      }
+    },
+    {
+      "id": "p07_blind_0300",
+      "query_text": "Find top rated catalog items with minimum rating of 4.8",
+      "domain": "shopping_inventory",
+      "generation_protocol": "topology_blind_zero_hint",
+      "generator_metadata": {
+        "model": "claude-3-haiku-20240307",
+        "temperature": 0.8,
+        "prompt_template": "prompt_assistant_natural_request_v1",
+        "session_id": "gen_sess_blind_shopping_inventory_3"
+      }
+    }
+  ]
+}

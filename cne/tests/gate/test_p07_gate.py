@@ -21,6 +21,22 @@ def test_p07_master_decision_gate():
     assert report["shape_diversity"]["d_passed"] is True
     assert report["shape_diversity"]["d_ratio"] <= 0.40
     assert report["shape_diversity"]["distinct_shapes"] >= 10
+
+    # Open-world topology-blind evaluation assertions (Issue 1)
+    assert "open_world_blind_evaluation" in report
+    blind_eval = report["open_world_blind_evaluation"]
+    assert blind_eval["total_blind_queries"] == 300
+    assert 0.0 <= blind_eval["blind_rejection_rate"] <= 1.0
+    assert blind_eval["blind_rejection_rate"] >= 0.30  # Rejection is higher on unguided open requests
+    assert "novel_shapes_count" in blind_eval
+    assert "novel_shape_rate" in blind_eval
+    assert len(blind_eval["blind_shapes"]) > 0
+
+    # Multi-session reuse disambiguation (Issue 2)
+    for s in report["hygiene_fix"]["session_evolution"]:
+        assert "reuse_events_per_created_state" in s
+        assert s["reuse_events_per_created_state"] == s["state_reuse_ratio"]
+
     assert report["surface_to_semantic_stability"]["cross_batch_canonicalization"]["stable"] is True
     assert report["surface_to_semantic_stability"]["adversarial_families"]["all_adversarial_passed"] is True
     assert report["extended_gates"]["g0_extended_passed"] is True

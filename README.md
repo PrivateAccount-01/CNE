@@ -2,7 +2,7 @@
 
 [![Python Version](https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-blue.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-Apache_2.0-green.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Tests](https://img.shields.io/badge/Tests-215%2F215%20Passed-brightgreen.svg)](#extreme-black-box-testing)
+[![Tests](https://img.shields.io/badge/Tests-218%2F218%20Passed-brightgreen.svg)](#extreme-black-box-testing)
 [![Architecture](https://img.shields.io/badge/Architecture-Frozen%20v1.5-orange.svg)](system.md)
 [![Execution Target](https://img.shields.io/badge/Target-Mobile%20ARM%20%7C%20Android%206--8GB-purple.svg)](#target-execution-envelope)
 
@@ -169,8 +169,11 @@ Phase P0.7 empirically validates whether natural language queries cluster into r
 | **Steady-State G3 Control Overhead ($A$)** | $A_{\text{corpus}} \le 20.0\%$ | **9.53%** | **PASS** |
 | **Steady-State Net Savings ($\Delta C$)** | $\Delta C > 0$ | **+114.24 ms** | **PASS** |
 | **Optimization Capture Ratio** | $\le 100.0\%$ | **85.16%** | **PASS** |
+| **Open-World Topology-Blind Workload** | 300 blind queries, 0 topology hints | **52.0% rejection rate** (113 unsupported, 40 low-confidence, 3 ambiguous) | **PROBED** |
+| **Open-World Novel Shape Discovery** | $\mathcal{S}_{\text{novel}} = \mathcal{S}_{\text{blind}} \setminus \mathcal{S}_{\text{anchored}}$ | **2 Novel Shapes Discovered** (22.2% of compiled blind shapes) | **OBSERVED** |
+| **Multi-Session State Reuse Intensity** | Unbounded rate ($events / created state$) | $S_1$: **1.04**, $S_2$: **3.07**, $S_3$: **5.11** events / created state | **REPORTED** |
 
-See [docs/P07_VALIDATION_REPORT.md](docs/P07_VALIDATION_REPORT.md) for full confusion matrices, multi-session state evolution trajectories, and provenance metadata.
+See [docs/P07_VALIDATION_REPORT.md](docs/P07_VALIDATION_REPORT.md) for full confusion matrices, multi-session state evolution trajectories, open-world blind evaluation breakdown, and provenance metadata.
 
 ---
 
