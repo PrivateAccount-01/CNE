@@ -52,6 +52,10 @@ def test_p07_master_decision_gate():
     assert report["realistic_co_measurement"]["g3_passed"] is True
     assert report["realistic_co_measurement"]["p3_passed"] is True
 
+    # Verify updated Decision Gate claim text reflects topology-blind findings
+    assert "Surface-to-semantic stability and reuse are confirmed" in report["narrowed_claim"]
+    assert "binding constraint on further generalization" in report["narrowed_claim"]
+
     # Verify artifacts exist on disk
     json_path = os.path.join(os.path.dirname(__file__), "..", "..", "artifacts", "reports", "p07_validation_report.json")
     assert os.path.exists(json_path)

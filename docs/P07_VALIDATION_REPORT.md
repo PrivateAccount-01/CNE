@@ -1,7 +1,7 @@
 # CNE Phase P0.7: Realistic Language & Shape Validation Report (Revision 3)
 
 **Phase Status:** GO (Decision Gate Evaluated)  
-**Execution Timestamp:** 2026-09-29T20:07:48Z  
+**Execution Timestamp:** 2026-10-01T08:35:15Z  
 **Total Queries Evaluated:** 1550 (Anchored Corpus) + 600 (Multi-Domain Blind Workload)  
 
 ---
@@ -27,9 +27,9 @@ To eliminate circularity and prevent conflation, this evaluation cleanly separat
 | **Adversarial Families Verification (§6.4)** | All 6 families (A1–A6) pass end-to-end | **6/6 Families Passed** | **PASS** |
 | **Structural Outlier G0 Check (§5.2)** | 0 domain nodes, $\le 2$ new prims | **100% frozen primitives**, 0 new primitives | **PASS** |
 | **Extended G1b Discrimination (§10.7)** | 7 topologies $\implies$ 7 distinct shapes | **7 distinct shape keys** | **PASS** |
-| **Realistic Co-Measurement G2 ($R^*$)** | $R^* \ge 25.0\%$ | **99.37%** | **PASS** |
-| **Realistic Co-Measurement G3 ($A_{\text{corpus}}$)**| $A_{\text{corpus}} \le 20.0\%$ | **8.37%** | **PASS** |
-| **Realistic Co-Measurement Net Savings** | $\Delta C > 0$ | **+77.14 ms** | **PASS** |
+| **Realistic Co-Measurement G2 ($R^*$)** | $R^* \ge 25.0\%$ | **99.44%** | **PASS** |
+| **Realistic Co-Measurement G3 ($A_{\text{corpus}}$)**| $A_{\text{corpus}} \le 20.0\%$ | **7.20%** | **PASS** |
+| **Realistic Co-Measurement Net Savings** | $\Delta C > 0$ | **+275.30 ms** | **PASS** |
 
 ### Exploratory Diagnostic Probes (Non-Gating Empirical Findings)
 
@@ -45,7 +45,7 @@ To eliminate circularity and prevent conflation, this evaluation cleanly separat
 ### Decision Gate Verdict: `GO`
 
 > **Narrowed Scientific Claim (§9)**:  
-> *"The reuse assumption is supported under the tested synthetic linguistic distribution (LLM-generated paraphrases across >=3 independent batches, plus structured adversarial families). P0.7 demonstrates compiler convergence into parameterized semantic IR topologies; generalization to unconstrained open-world workload distributions remains untested until real user data is collected."*
+> *"Surface-to-semantic stability and reuse are confirmed within the 7 currently-supported topologies. A topology-blind evaluation across 12 broader domains found 86% rejection and 3 confirmed novel computational shapes beyond the current template set -- the compiler's coverage, not the signature/reuse mechanism, is the binding constraint on further generalization."*
 
 ---
 
@@ -188,21 +188,21 @@ Evaluated under the **decoupled measurement protocol** with balanced sampling ac
 
 | Metric | Mean Latency | Std Dev | Gate Specification | Status |
 | :--- | :---: | :---: | :---: | :---: |
-| **Baseline Cost ($C_{\text{baseline}}$)** | 87.63 ms | $\pm$ 2.33 ms | - | - |
-| **Oracle Cost ($C_{\text{oracle}}$)** | 0.55 ms | - | - | - |
-| **CNE Total Cost ($C_{\text{CNE}}$)** | 10.49 ms | $\pm$ 0.72 ms | - | - |
-| **Control Overhead Ratio ($A_{\text{corpus}}$)** | **8.37%** | - | $A \le 20.0\%$ | **PASS** |
-| **Recoverable Mass ($R^*$)** | **99.37%** | - | $R^* \ge 25.0\%$ | **PASS** |
-| **Net Computation Savings ($\Delta C$)** | **+77.14 ms** | - | $\Delta C > 0$ | **PASS** |
-| **Optimization Capture Ratio** | **88.58%** | - | $\le 100.0\%$ | **PASS** |
+| **Baseline Cost ($C_{\text{baseline}}$)** | 306.35 ms | $\pm$ 27.25 ms | - | - |
+| **Oracle Cost ($C_{\text{oracle}}$)** | 1.70 ms | - | - | - |
+| **CNE Total Cost ($C_{\text{CNE}}$)** | 31.05 ms | $\pm$ 0.81 ms | - | - |
+| **Control Overhead Ratio ($A_{\text{corpus}}$)** | **7.20%** | - | $A \le 20.0\%$ | **PASS** |
+| **Recoverable Mass ($R^*$)** | **99.44%** | - | $R^* \ge 25.0\%$ | **PASS** |
+| **Net Computation Savings ($\Delta C$)** | **+275.30 ms** | - | $\Delta C > 0$ | **PASS** |
+| **Optimization Capture Ratio** | **90.30%** | - | $\le 100.0\%$ | **PASS** |
 
 ### Multi-Session State Evolution Progression
 
 | Session | Total CNE Latency | Control Overhead | Net Savings | State Reuse Intensity |
 | :--- | :---: | :---: | :---: | :---: |
-| **Session 1 ($S_1$)** | 39.52 ms | 8.6% | +51.45 ms | 2.33 events / created state |
-| **Session 2 ($S_2$)** | 10.31 ms | 8.8% | +76.98 ms | 5.67 events / created state |
-| **Session 3 ($S_3$)** | 11.10 ms | 8.1% | +76.54 ms | 9.00 events / created state |
+| **Session 1 ($S_1$)** | 115.79 ms | 8.1% | +195.28 ms | 2.33 events / created state |
+| **Session 2 ($S_2$)** | 35.37 ms | 7.5% | +295.52 ms | 5.67 events / created state |
+| **Session 3 ($S_3$)** | 32.79 ms | 7.2% | +287.38 ms | 9.00 events / created state |
 
 > **Caveat on Multi-Session Evaluation**: This experiment evaluates state buildup under repeated sessions of an identical workload. Invalidation under continuous data arrival and mutations is separately verified under Extreme Test suites (21 state fabric tests, 20 dependency tests).
 

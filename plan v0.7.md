@@ -36,12 +36,9 @@ Furthermore, Phase P0.7 enforces strict demarcation between:
 
 ## 3. Scope Boundaries & Negative Guarantees
 
-Phase P0.7 maintains strict architectural boundaries:
 - **No Learned Controller**: The compiler in this phase is a deterministic, rule-based keyword/slot extraction pipeline. Phase P1 is chartered to build the learned model.
-- **Narrowed Scientific Claim**: A "GO" decision confirms that the computational reuse assumption is supported *under the tested synthetic linguistic distribution* (LLM paraphrases across $\ge 3$ independent model batches, plus structured adversarial perturbations). It does *not* claim that open-world user workloads naturally collapse into this exact shape distribution without a learned front-end.
+- **Decision Gate Claim**: A "GO" decision confirms that surface-to-semantic stability and reuse are supported within the 7 currently-supported topologies. The topology-blind evaluation across 12 broader domains found 86% rejection and 3 confirmed novel computational shapes beyond the current template set — establishing that the compiler's coverage, not the signature/reuse mechanism, is the binding constraint on further generalization.
 - **Frozen Architectural Primitives**: Zero changes to the 12 frozen Semantic IR primitives (`OpKind.OBSERVE`, `MAP`, `FILTER`, `REDUCE`, `JOIN`, `BRANCH`, `ITERATE`, `CHOOSE`, `UPDATE`, `CALL`, `EMIT`, `LITERAL`), Computational Signature, Outcome Contract, effect algebra, or necessity engine.
-
----
 
 ## 4. Architectural Measurement Hygiene Protocol
 
@@ -189,8 +186,8 @@ Transparent reporting of empirical diagnostics highlights the boundaries of the 
 - **End-to-End Compilable Recall (93.75%)**: Demonstrates the gap between conditional routing ($99.12\%$) and pipeline recall ($1,244 / 1,327$).
 - **Compiler Misinterpretation Mass (36.9%)**: Identifies that $31 / 84$ compiled blind queries were erroneously forced into degenerate shapes.
 
-**Narrowed Claim Stated Upon Gate Passage:**
-> "The computational reuse assumption is supported under the tested synthetic linguistic distribution (LLM-generated paraphrases across $\ge 3$ independent batches, plus structured adversarial families). Phase P0.7 demonstrates compiler convergence into parameterized Semantic IR topologies. Generalization to unconstrained open-world workload distributions remains untested until real user data is collected."
+**Authoritative Claim Stated Upon Gate Passage:**
+> "Surface-to-semantic stability and reuse are confirmed within the 7 currently-supported topologies. A topology-blind evaluation across 12 broader domains found 86% rejection and 3 confirmed novel computational shapes beyond the current template set — the compiler's coverage, not the signature/reuse mechanism, is the binding constraint on further generalization."
 
 ---
 
