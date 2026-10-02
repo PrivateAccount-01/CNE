@@ -878,3 +878,362 @@ def build_cross_source_join_fixture(
         tolerances={"rel_tol": 1e-4, "abs_tol": 1e-6}
     )
     return g, contract
+
+
+def build_comparative_trend_fixture(
+    category: str = "Food",
+    period_a: str = "current_month",
+    period_b: str = "previous_month",
+    comparison_mode: str = "delta",
+    source: str = "transactions"
+) -> tuple[SemanticIRGraph, OutcomeContract]:
+    """
+    Comparative / Trend Analysis fixture (Phase P0.8 novel shape #1):
+    Computes the delta or ratio between two time-period aggregations of the same data source.
+    Topology:
+        Observe → Filter(period_A) → Reduce(sum) ─┐
+        Observe → Filter(period_B) → Reduce(sum) ─┤→ Join → Map(delta/ratio) → Emit
+    Uses: Observe, Filter, Reduce, Join, Map, Emit (6 frozen primitives, 0 new).
+    """
+    g = SemanticIRGraph()
+
+    # 1. Observe source data (single shared source)
+    obs_a = IRNode(
+        id="obs_period_a",
+        op=OpKind.OBSERVE,
+        attributes={"source": source, "granularity": "predicate", "predicate_desc": f"period == '{period_a}'"},
+        output_type=SemanticType.collection(SemanticType.record({"id": SemanticType.string(), "category": SemanticType.string(), "amount": SemanticType.numeric(), "period": SemanticType.string()}))
+    )
+    g.add_node(obs_a)
+
+    obs_b = IRNode(
+        id="obs_period_b",
+        op=OpKind.OBSERVE,
+        attributes={"source": source, "granularity": "predicate", "predicate_desc": f"period == '{period_b}'"},
+        output_type=SemanticType.collection(SemanticType.record({"id": SemanticType.string(), "category": SemanticType.string(), "amount": SemanticType.numeric(), "period": SemanticType.string()}))
+    )
+    g.add_node(obs_b)
+
+    # 2. Filter each by category
+    filt_a = IRNode(
+        id="filt_period_a",
+        op=OpKind.FILTER,
+        inputs=["obs_period_a"],
+        attributes={"predicate": lambda tx: tx.get("category") == category and tx.get("period") == period_a, "category": category, "period": period_a},
+        output_type=obs_a.output_type
+    )
+    g.add_node(filt_a)
+
+    filt_b = IRNode(
+        id="filt_period_b",
+        op=OpKind.FILTER,
+        inputs=["obs_period_b"],
+        attributes={"predicate": lambda tx: tx.get("category") == category and tx.get("period") == period_b, "category": category, "period": period_b},
+        output_type=obs_b.output_type
+    )
+    g.add_node(filt_b)
+
+    # 3. Map to amounts
+    map_a = IRNode(
+        id="map_amt_a",
+        op=OpKind.MAP,
+        inputs=["filt_period_a"],
+        attributes={"fn": lambda tx: float(tx.get("amount", 0.0))},
+        output_type=SemanticType.collection(SemanticType.numeric())
+    )
+    g.add_node(map_a)
+
+    map_b = IRNode(
+        id="map_amt_b",
+        op=OpKind.MAP,
+        inputs=["filt_period_b"],
+        attributes={"fn": lambda tx: float(tx.get("amount", 0.0))},
+        output_type=SemanticType.collection(SemanticType.numeric())
+    )
+    g.add_node(map_b)
+
+    # 4. Reduce each to sum
+    red_a = IRNode(
+        id="red_sum_a",
+        op=OpKind.REDUCE,
+        inputs=["map_amt_a"],
+        attributes={"op": lambda a, b: a + b, "init": 0.0, "reducer_kind": "sum"},
+        output_type=SemanticType.numeric()
+    )
+    g.add_node(red_a)
+
+    red_b = IRNode(
+        id="red_sum_b",
+        op=OpKind.REDUCE,
+        inputs=["map_amt_b"],
+        attributes={"op": lambda a, b: a + b, "init": 0.0, "reducer_kind": "sum"},
+        output_type=SemanticType.numeric()
+    )
+    g.add_node(red_b)
+
+    # 5. Join the two aggregation results
+    join_periods = IRNode(
+        id="join_periods",
+        op=OpKind.JOIN,
+        inputs=["red_sum_a", "red_sum_b"],
+        attributes={"on": lambda a, b: True},
+        output_type=SemanticType.any()
+    )
+    g.add_node(join_periods)
+
+    # 6. Map to compute comparison (delta or ratio)
+    if comparison_mode == "ratio":
+        def compute_comparison(pair: Any) -> float:
+            sum_a, sum_b = pair
+            if isinstance(sum_b, (int, float)) and sum_b > 0:
+                return float(sum_a) / float(sum_b)
+            return 0.0
+    else:  # delta
+        def compute_comparison(pair: Any) -> float:
+            sum_a, sum_b = pair
+            return float(sum_a) - float(sum_b)
+
+    map_compare = IRNode(
+        id="map_comparison",
+        op=OpKind.MAP,
+        inputs=["join_periods"],
+        attributes={"fn": compute_comparison, "comparison_mode": comparison_mode},
+        output_type=SemanticType.numeric()
+    )
+    g.add_node(map_compare)
+
+    # 7. Emit
+    emit = IRNode(
+        id="emit_trend",
+        op=OpKind.EMIT,
+        inputs=["map_comparison"],
+        output_type=SemanticType.numeric()
+    )
+    g.add_node(emit)
+    g.root_id = "emit_trend"
+
+    contract = OutcomeContract(
+        contract_type=ContractType.APPROXIMATE_NUMERIC,
+        tolerances={"rel_tol": 1e-4, "abs_tol": 1e-6}
+    )
+    return g, contract
+
+
+def build_predictive_alert_fixture(
+    source: str = "transactions",
+    category: str = "Food",
+    window_days: int = 30,
+    projection_multiplier: float = 3.0,
+    alert_threshold: float = 500.0,
+    aggregation: str = "sum"
+) -> tuple[SemanticIRGraph, OutcomeContract]:
+    """
+    Predictive / Forecasting / Alert fixture (Phase P0.8 novel shape #2):
+    Aggregates historical data within a time window, projects forward, and
+    branches on an alert threshold.
+    Topology:
+        Observe → Filter(window) → Map(amount) → Reduce(sum) → Map(projection) → Branch(threshold) → Emit
+    Uses: Observe, Filter, Map, Reduce, Branch, Literal, Emit (7 frozen primitives, 0 new).
+    """
+    g = SemanticIRGraph()
+
+    # 1. Observe historical data
+    obs = IRNode(
+        id="obs_historical",
+        op=OpKind.OBSERVE,
+        attributes={"source": source, "granularity": "predicate", "predicate_desc": f"category == '{category}' within {window_days} days"},
+        output_type=SemanticType.collection(SemanticType.record({"id": SemanticType.string(), "category": SemanticType.string(), "amount": SemanticType.numeric(), "days_ago": SemanticType.numeric()}))
+    )
+    g.add_node(obs)
+
+    # 2. Filter by category and time window
+    def window_filter(tx: Dict[str, Any]) -> bool:
+        return tx.get("category") == category and tx.get("days_ago", 999) <= window_days
+
+    filt = IRNode(
+        id="filt_window",
+        op=OpKind.FILTER,
+        inputs=["obs_historical"],
+        attributes={"predicate": window_filter, "category": category, "window_days": window_days},
+        output_type=obs.output_type
+    )
+    g.add_node(filt)
+
+    # 3. Map to extract amounts
+    map_amt = IRNode(
+        id="map_hist_amt",
+        op=OpKind.MAP,
+        inputs=["filt_window"],
+        attributes={"fn": lambda tx: float(tx.get("amount", 0.0))},
+        output_type=SemanticType.collection(SemanticType.numeric())
+    )
+    g.add_node(map_amt)
+
+    # 4. Reduce to aggregate
+    red_sum = IRNode(
+        id="red_hist_sum",
+        op=OpKind.REDUCE,
+        inputs=["map_hist_amt"],
+        attributes={"op": lambda a, b: a + b, "init": 0.0, "reducer_kind": "sum"},
+        output_type=SemanticType.numeric()
+    )
+    g.add_node(red_sum)
+
+    # 5. Map: project forward (e.g., multiply monthly average by projection_multiplier for quarterly forecast)
+    def project_forward(total: Any) -> float:
+        return float(total or 0.0) * projection_multiplier
+
+    map_proj = IRNode(
+        id="map_projection",
+        op=OpKind.MAP,
+        inputs=["red_hist_sum"],
+        attributes={"fn": project_forward, "projection_multiplier": projection_multiplier},
+        output_type=SemanticType.numeric()
+    )
+    g.add_node(map_proj)
+
+    # 6. Branch: alert vs normal based on projected value
+    then_reg = SemanticRegion(id="reg_alert_triggered")
+    then_reg.nodes["lit_alert"] = IRNode(
+        id="lit_alert",
+        op=OpKind.LITERAL,
+        attributes={"value": {"status": "alert_triggered", "projected_value": "exceeds_threshold"}},
+        output_type=SemanticType.record({"status": SemanticType.string()})
+    )
+    then_reg.root_id = "lit_alert"
+    g.add_region(then_reg)
+
+    else_reg = SemanticRegion(id="reg_within_budget")
+    else_reg.nodes["lit_normal"] = IRNode(
+        id="lit_normal",
+        op=OpKind.LITERAL,
+        attributes={"value": {"status": "within_budget", "projected_value": "under_threshold"}},
+        output_type=SemanticType.record({"status": SemanticType.string()})
+    )
+    else_reg.root_id = "lit_normal"
+    g.add_region(else_reg)
+
+    branch_alert = IRNode(
+        id="branch_alert",
+        op=OpKind.BRANCH,
+        inputs=["map_projection"],
+        attributes={
+            "condition": lambda projected: float(projected or 0.0) >= alert_threshold,
+            "then_region": "reg_alert_triggered",
+            "else_region": "reg_within_budget"
+        },
+        output_type=SemanticType.record({"status": SemanticType.string()})
+    )
+    g.add_node(branch_alert)
+
+    # 7. Emit
+    emit = IRNode(
+        id="emit_prediction",
+        op=OpKind.EMIT,
+        inputs=["branch_alert"],
+        output_type=SemanticType.record({"status": SemanticType.string()})
+    )
+    g.add_node(emit)
+    g.root_id = "emit_prediction"
+
+    contract = OutcomeContract(
+        contract_type=ContractType.DECISION,
+        acceptable_equivalence=lambda cand, ref: (
+            isinstance(cand, dict) and isinstance(ref, dict) and cand.get("status") == ref.get("status")
+        ) if (isinstance(cand, dict) and "status" in cand) else (cand == ref)
+    )
+    return g, contract
+
+
+def build_categorical_tagging_fixture(
+    source: str = "transactions",
+    tag_rules: Optional[Dict[str, Any]] = None
+) -> tuple[SemanticIRGraph, OutcomeContract]:
+    """
+    Categorical Tagging / Classification fixture (Phase P0.8 novel shape #3):
+    Classifies each record into tagged categories and groups results.
+    Topology:
+        Observe → Map(classify_fn) → Reduce(group_accumulate) → Emit
+    Uses: Observe, Map, Reduce, Emit (4 frozen primitives, 0 new).
+    """
+    g = SemanticIRGraph()
+
+    if tag_rules is None:
+        tag_rules = {
+            "essential": ["groceries", "utilities", "health", "rent"],
+            "discretionary": ["dining", "entertainment", "shopping", "travel", "electronics"],
+            "transfers": ["transfer"]
+        }
+
+    # 1. Observe all records
+    obs = IRNode(
+        id="obs_records",
+        op=OpKind.OBSERVE,
+        attributes={"source": source, "granularity": "unconstrained"},
+        output_type=SemanticType.collection(SemanticType.record({"id": SemanticType.string(), "category": SemanticType.string(), "amount": SemanticType.numeric()}))
+    )
+    g.add_node(obs)
+
+    # 2. Map: classify each record into a tag
+    _tag_rules = tag_rules  # closure capture
+
+    def classify_record(record: Dict[str, Any]) -> Dict[str, Any]:
+        cat = record.get("category", "").lower()
+        tag = "other"
+        for label, keywords in _tag_rules.items():
+            if cat in keywords or any(kw in cat for kw in keywords):
+                tag = label
+                break
+        return {
+            "id": record.get("id"),
+            "category": record.get("category"),
+            "amount": record.get("amount", 0.0),
+            "tag": tag
+        }
+
+    map_classify = IRNode(
+        id="map_classify",
+        op=OpKind.MAP,
+        inputs=["obs_records"],
+        attributes={"fn": classify_record, "tag_rules": list(tag_rules.keys())},
+        output_type=SemanticType.collection(SemanticType.record({"id": SemanticType.string(), "tag": SemanticType.string(), "amount": SemanticType.numeric()}))
+    )
+    g.add_node(map_classify)
+
+    # 3. Reduce: group by tag and accumulate
+    def group_accumulate(acc: Dict[str, Any], record: Any) -> Dict[str, Any]:
+        result = dict(acc)
+        tag = record.get("tag", "other") if isinstance(record, dict) else "other"
+        amount = float(record.get("amount", 0.0)) if isinstance(record, dict) else 0.0
+        if tag not in result:
+            result[tag] = {"count": 0, "total": 0.0}
+        result[tag]["count"] = result[tag]["count"] + 1
+        result[tag]["total"] = result[tag]["total"] + amount
+        return result
+
+    red_group = IRNode(
+        id="red_group_tags",
+        op=OpKind.REDUCE,
+        inputs=["map_classify"],
+        attributes={"op": group_accumulate, "init": {}, "reducer_kind": "group"},
+        output_type=SemanticType.record({"groups": SemanticType.any()})
+    )
+    g.add_node(red_group)
+
+    # 4. Emit
+    emit = IRNode(
+        id="emit_tags",
+        op=OpKind.EMIT,
+        inputs=["red_group_tags"],
+        output_type=SemanticType.record({"groups": SemanticType.any()})
+    )
+    g.add_node(emit)
+    g.root_id = "emit_tags"
+
+    contract = OutcomeContract(
+        contract_type=ContractType.STRUCTURED_EXPLANATION,
+        acceptable_equivalence=lambda cand, ref: (
+            isinstance(cand, dict) and isinstance(ref, dict) and set(cand.keys()) == set(ref.keys())
+        ) if (isinstance(cand, dict) and isinstance(ref, dict)) else (cand == ref)
+    )
+    return g, contract

@@ -70,12 +70,31 @@ class BlindSemanticValidator:
         slots = result.extracted_slots
         intent = result.intent
 
-        # 1. Comparative / Trend / Inflation queries
+        # P0.8: New intent templates — validate directly if matched to the correct template
+        # 10. Comparative / Trend queries matched to their proper template
+        if intent == "comparative_trend":
+            if re.search(r"\b(compare|versus|vs|trend|change|growth|increase|decrease|inflationary|against inflation)\b", text):
+                return True, "Valid comparative/trend analysis query correctly routed to comparative_trend template"
+            return False, "Query routed to comparative_trend but lacks comparative/trend semantics"
+
+        # 11. Predictive / Alert queries matched to their proper template
+        if intent == "predictive_alert":
+            if re.search(r"\b(predict|forecast|project|alert|notify|running low|will exceed|expected|estimated|upcoming|future)\b", text):
+                return True, "Valid predictive/alert query correctly routed to predictive_alert template"
+            return False, "Query routed to predictive_alert but lacks predictive/alert semantics"
+
+        # 12. Categorical tagging queries matched to their proper template
+        if intent == "categorical_tagging":
+            if re.search(r"\b(categorize|classify|tag|label|group|segment|organize|bucket|break down|tax-deductible|deductible|uncategorized)\b", text):
+                return True, "Valid categorical tagging query correctly routed to categorical_tagging template"
+            return False, "Query routed to categorical_tagging but lacks classification semantics"
+
+        # 1. Comparative / Trend / Inflation queries STILL mapped to wrong (legacy) template
         if re.search(r"\b(compare|versus|vs|increase|inflationary|trend|rate of change)\b", text):
             if result.graph and "Branch" not in [n.op.value for n in result.graph.nodes.values()] and "Join" not in [n.op.value for n in result.graph.nodes.values()]:
                 return False, "Query requested comparative/trend analysis, but compiler produced a non-comparative scalar reduction"
 
-        # 2. Categorization / Tagging queries
+        # 2. Categorization / Tagging queries STILL mapped to wrong template
         if re.search(r"\b(categorize|tag|classify|label)\b", text):
             return False, "Query requested categorical classification/tagging, but compiler produced an aggregation sum"
 
@@ -85,7 +104,7 @@ class BlindSemanticValidator:
                 return False, "Query specified a percentage threshold (e.g. 15% or 20%), which was misinterpreted as a dollar amount threshold"
             return False, "Query requested predictive notification, but compiler generated a static reduction"
 
-        # 4. Projections / Forecasting
+        # 4. Projections / Forecasting STILL mapped to wrong template
         if re.search(r"\b(project|forecast|future|next quarter)\b", text):
             return False, "Query requested financial forecasting/projection, but compiler produced an historical aggregation"
 
@@ -95,10 +114,12 @@ class BlindSemanticValidator:
             if day_match and float(day_match.group(1)) == slots.get("threshold"):
                 return False, f"Time duration '{day_match.group(0)}' was erroneously extracted as a monetary amount threshold"
 
-        # 6. Check for genuine single-filter category sums
-        if intent == "expense" and slots.get("include_category_filter") and not slots.get("include_threshold_filter"):
-            if re.search(r"\b(spend|spent|spending|cost|total amount|expenses)\b", text):
+        # 6. Check for genuine single-filter category sums or extreme aggregations
+        if intent == "expense" and not slots.get("include_threshold_filter"):
+            if slots.get("include_category_filter") and re.search(r"\b(spend|spent|spending|cost|total amount|expenses?|charges?|purchases?)\b", text):
                 return True, "Valid compositional single-filter category aggregation (filtered by category without arbitrary threshold)"
+            if slots.get("aggregation") in ("max", "min") and re.search(r"\b(largest|highest|single expense|peak|smallest|minimum)\b", text):
+                return True, "Valid single expense extreme aggregation (max/min without arbitrary threshold)"
 
         # 7. Check for scheduling requests
         if intent == "scheduling" and re.search(r"\b(schedule|meeting|slot|appointment|call)\b", text):

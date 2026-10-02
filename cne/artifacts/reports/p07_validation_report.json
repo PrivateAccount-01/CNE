@@ -2,8 +2,8 @@
   "phase": "P0.7",
   "decision": "GO",
   "decision_passed": true,
-  "duration_seconds": 80.29,
-  "narrowed_claim": "Surface-to-semantic stability and reuse are confirmed within the 7 currently-supported topologies. A topology-blind evaluation across 12 broader domains found 86% rejection and 3 confirmed novel computational shapes beyond the current template set -- the compiler's coverage, not the signature/reuse mechanism, is the binding constraint on further generalization.",
+  "duration_seconds": 21.57,
+  "narrowed_claim": "Surface-to-semantic stability and reuse are confirmed within the 10 currently-supported topologies (7 original + 3 confirmed novel shapes from blind evaluation: comparative/trend, predictive/alert, categorical tagging). Slot extraction bugs (duration/percentage misinterpretation) have been fixed. The compiler's coverage, not the signature/reuse mechanism, is the binding constraint on further generalization.",
   "hygiene_fix": {
     "step_0_verified": true,
     "dynamic_runtime_proof_passed": true,
@@ -16,126 +16,126 @@
         "g3_passed": true,
         "p3_passed": true,
         "boundary_verified": true,
-        "total_baseline_ms": 280.795,
-        "total_oracle_ms": 1.805,
-        "total_cne_ms": 31.31,
-        "total_control_ms": 22.198,
-        "total_exec_ms": 9.112,
-        "net_savings_ms": 249.485,
-        "delta_c_oracle_ms": 278.991,
-        "a_corpus": 0.0791,
+        "total_baseline_ms": 68.227,
+        "total_oracle_ms": 0.44,
+        "total_cne_ms": 7.315,
+        "total_control_ms": 5.237,
+        "total_exec_ms": 2.077,
+        "net_savings_ms": 60.912,
+        "delta_c_oracle_ms": 67.787,
+        "a_corpus": 0.0768,
         "r_star": 0.9936,
-        "opt_capture": 0.8942,
-        "median_savings_ns": 314500.0,
-        "p95_overhead_ratio": 2.3898,
-        "negative_savings_fraction": 0.2857,
+        "opt_capture": 0.8986,
+        "median_savings_ns": 112950.0,
+        "p95_overhead_ratio": 1.4405,
+        "negative_savings_fraction": 0.1607,
         "state_reuse_ratio": 5.6667,
         "reuse_events_per_created_state": 5.6667,
-        "amortized_savings_ns": 4111140.18,
-        "isolated_overhead_ratio": 1.9812
+        "amortized_savings_ns": 1008132.14,
+        "isolated_overhead_ratio": 1.4304
       },
       {
         "g2_passed": true,
         "g3_passed": true,
         "p3_passed": true,
         "boundary_verified": true,
-        "total_baseline_ms": 294.153,
-        "total_oracle_ms": 1.66,
-        "total_cne_ms": 29.963,
-        "total_control_ms": 21.513,
-        "total_exec_ms": 8.45,
-        "net_savings_ms": 264.19,
-        "delta_c_oracle_ms": 292.493,
-        "a_corpus": 0.0731,
-        "r_star": 0.9944,
-        "opt_capture": 0.9032,
-        "median_savings_ns": 271200.0,
-        "p95_overhead_ratio": 2.3375,
-        "negative_savings_fraction": 0.2589,
+        "total_baseline_ms": 88.045,
+        "total_oracle_ms": 0.515,
+        "total_cne_ms": 8.759,
+        "total_control_ms": 5.982,
+        "total_exec_ms": 2.777,
+        "net_savings_ms": 79.286,
+        "delta_c_oracle_ms": 87.529,
+        "a_corpus": 0.0679,
+        "r_star": 0.9941,
+        "opt_capture": 0.9058,
+        "median_savings_ns": 140750.0,
+        "p95_overhead_ratio": 1.2477,
+        "negative_savings_fraction": 0.1518,
         "state_reuse_ratio": 5.6667,
         "reuse_events_per_created_state": 5.6667,
-        "amortized_savings_ns": 4291777.68,
-        "isolated_overhead_ratio": 1.9161
+        "amortized_savings_ns": 1197203.57,
+        "isolated_overhead_ratio": 1.1413
       },
       {
         "g2_passed": true,
         "g3_passed": true,
         "p3_passed": true,
         "boundary_verified": true,
-        "total_baseline_ms": 344.105,
-        "total_oracle_ms": 1.628,
-        "total_cne_ms": 31.89,
-        "total_control_ms": 21.991,
-        "total_exec_ms": 9.899,
-        "net_savings_ms": 312.214,
-        "delta_c_oracle_ms": 342.477,
-        "a_corpus": 0.0639,
-        "r_star": 0.9953,
-        "opt_capture": 0.9116,
-        "median_savings_ns": 279300.0,
-        "p95_overhead_ratio": 2.1124,
-        "negative_savings_fraction": 0.2946,
+        "total_baseline_ms": 73.673,
+        "total_oracle_ms": 0.44,
+        "total_cne_ms": 7.983,
+        "total_control_ms": 5.468,
+        "total_exec_ms": 2.516,
+        "net_savings_ms": 65.69,
+        "delta_c_oracle_ms": 73.233,
+        "a_corpus": 0.0742,
+        "r_star": 0.994,
+        "opt_capture": 0.897,
+        "median_savings_ns": 129650.0,
+        "p95_overhead_ratio": 1.3298,
+        "negative_savings_fraction": 0.1696,
         "state_reuse_ratio": 5.6667,
         "reuse_events_per_created_state": 5.6667,
-        "amortized_savings_ns": 4783667.86,
-        "isolated_overhead_ratio": 1.6658
+        "amortized_savings_ns": 1035050.89,
+        "isolated_overhead_ratio": 1.1885
       }
     ],
     "session_evolution": [
       {
         "session": 1,
-        "a_corpus": 0.0806,
-        "net_savings_ms": 195.275,
-        "total_cne_ms": 115.786,
-        "total_control_ms": 25.056,
-        "total_exec_ms": 90.73,
+        "a_corpus": 0.085,
+        "net_savings_ms": 40.657,
+        "total_cne_ms": 32.836,
+        "total_control_ms": 6.25,
+        "total_exec_ms": 26.587,
         "state_reuse_ratio": 2.3333,
-        "amortized_savings_ns": 1688779.46,
+        "amortized_savings_ns": 407135.71,
         "reuse_events_per_created_state": 2.3333
       },
       {
         "session": 2,
-        "a_corpus": 0.0751,
-        "net_savings_ms": 295.518,
-        "total_cne_ms": 35.368,
-        "total_control_ms": 24.848,
-        "total_exec_ms": 10.52,
+        "a_corpus": 0.0833,
+        "net_savings_ms": 67.172,
+        "total_cne_ms": 9.075,
+        "total_control_ms": 6.352,
+        "total_exec_ms": 2.722,
         "state_reuse_ratio": 5.6667,
-        "amortized_savings_ns": 4505925.89,
+        "amortized_savings_ns": 1054837.5,
         "reuse_events_per_created_state": 5.6667
       },
       {
         "session": 3,
-        "a_corpus": 0.0718,
-        "net_savings_ms": 287.382,
-        "total_cne_ms": 32.791,
-        "total_control_ms": 22.986,
-        "total_exec_ms": 9.804,
+        "a_corpus": 0.0774,
+        "net_savings_ms": 65.029,
+        "total_cne_ms": 8.21,
+        "total_control_ms": 5.666,
+        "total_exec_ms": 2.545,
         "state_reuse_ratio": 9.0,
-        "amortized_savings_ns": 7257906.25,
+        "amortized_savings_ns": 1681834.82,
         "reuse_events_per_created_state": 9.0
       }
     ]
   },
   "coverage_metrics": {
     "total_submitted": 1550,
-    "compiled_count": 1254,
-    "coverage_ratio": 0.809,
+    "compiled_count": 1266,
+    "coverage_ratio": 0.8168,
     "unsupported_count": 147,
     "unsupported_rate": 0.0948,
-    "ambiguous_count": 52,
-    "ambiguous_rate": 0.0335,
+    "ambiguous_count": 40,
+    "ambiguous_rate": 0.0258,
     "low_confidence_count": 97,
     "low_confidence_rate": 0.0626
   },
   "semantic_gold_validation": {
     "total_evaluated": 1550,
-    "overall_accuracy": 0.94,
+    "overall_accuracy": 0.9477,
     "confusion_matrix": {
       "COMPILED": {
-        "COMPILED": 1244,
+        "COMPILED": 1256,
         "UNSUPPORTED_INTENT": 24,
-        "AMBIGUOUS_INTENT": 12,
+        "AMBIGUOUS_INTENT": 0,
         "LOW_CONFIDENCE_MAPPING": 47
       },
       "UNSUPPORTED_INTENT": {
@@ -159,13 +159,13 @@
     },
     "class_metrics": {
       "COMPILED": {
-        "tp": 1244,
+        "tp": 1256,
         "fp": 10,
-        "fn": 83,
+        "fn": 71,
         "tn": 213,
-        "precision": 0.992,
-        "recall": 0.9375,
-        "f1": 0.964,
+        "precision": 0.9921,
+        "recall": 0.9465,
+        "f1": 0.9688,
         "support": 1327
       },
       "UNSUPPORTED_INTENT": {
@@ -180,12 +180,12 @@
       },
       "AMBIGUOUS_INTENT": {
         "tp": 40,
-        "fp": 12,
+        "fp": 0,
         "fn": 10,
-        "tn": 1488,
-        "precision": 0.7692,
+        "tn": 1500,
+        "precision": 1.0,
         "recall": 0.8,
-        "f1": 0.7843,
+        "f1": 0.8889,
         "support": 50
       },
       "LOW_CONFIDENCE_MAPPING": {
@@ -201,13 +201,13 @@
     },
     "metrics_per_outcome": {
       "COMPILED": {
-        "tp": 1244,
+        "tp": 1256,
         "fp": 10,
-        "fn": 83,
+        "fn": 71,
         "tn": 213,
-        "precision": 0.992,
-        "recall": 0.9375,
-        "f1": 0.964,
+        "precision": 0.9921,
+        "recall": 0.9465,
+        "f1": 0.9688,
         "support": 1327
       },
       "UNSUPPORTED_INTENT": {
@@ -222,12 +222,12 @@
       },
       "AMBIGUOUS_INTENT": {
         "tp": 40,
-        "fp": 12,
+        "fp": 0,
         "fn": 10,
-        "tn": 1488,
-        "precision": 0.7692,
+        "tn": 1500,
+        "precision": 1.0,
         "recall": 0.8,
-        "f1": 0.7843,
+        "f1": 0.8889,
         "support": 50
       },
       "LOW_CONFIDENCE_MAPPING": {
@@ -241,7 +241,7 @@
         "support": 50
       }
     },
-    "topology_routing_accuracy": 0.9912,
+    "topology_routing_accuracy": 1.0,
     "topology_counts": {
       "expense": {
         "total": 310,
@@ -256,8 +256,8 @@
         "correct": 142
       },
       "habit_fitness": {
-        "total": 130,
-        "correct": 119
+        "total": 142,
+        "correct": 142
       },
       "factual_decision": {
         "total": 197,
@@ -272,32 +272,32 @@
         "correct": 173
       }
     },
-    "slot_extraction_accuracy": 0.7932,
+    "slot_extraction_accuracy": 0.8121,
     "total_slots_evaluated": 3066,
-    "correct_slots_count": 2432
+    "correct_slots_count": 2490
   },
   "shape_diversity": {
     "subset": "covered_non_trivial (llm_paraphrase + adversarial)",
-    "total_queries": 1237,
+    "total_queries": 1249,
     "distinct_shapes": 16,
-    "d_ratio": 0.0129,
+    "d_ratio": 0.0128,
     "d_threshold": 0.4,
     "d_passed": true,
-    "entropy_h": 3.5371,
+    "entropy_h": 3.5709,
     "h_max": 4.0,
-    "normalized_entropy": 0.8843,
+    "normalized_entropy": 0.8927,
     "c_20": 1.0,
     "r_2": 1.0,
     "r_5": 1.0,
     "r_10": 1.0,
     "category_breakdown": {
       "llm_paraphrase": {
-        "count": 907,
+        "count": 919,
         "distinct_shapes": 16,
-        "d_ratio": 0.0176,
-        "entropy_h": 3.6191,
+        "d_ratio": 0.0174,
+        "entropy_h": 3.6582,
         "h_max": 4.0,
-        "normalized_entropy": 0.9048,
+        "normalized_entropy": 0.9145,
         "c20": 1.0,
         "r2": 1.0,
         "r5": 1.0,
@@ -345,47 +345,52 @@
       "math_calculations",
       "creative_brainstorming"
     ],
-    "compiled_count": 84,
-    "coverage_ratio": 0.14,
-    "rejection_count": 516,
-    "blind_rejection_rate": 0.86,
-    "unsupported_count": 486,
-    "blind_unsupported_rate": 0.81,
+    "compiled_count": 85,
+    "coverage_ratio": 0.1417,
+    "rejection_count": 515,
+    "blind_rejection_rate": 0.8583,
+    "unsupported_count": 473,
+    "blind_unsupported_rate": 0.7883,
     "ambiguous_count": 7,
     "blind_ambiguous_rate": 0.0117,
-    "low_confidence_count": 23,
-    "blind_low_confidence_rate": 0.0383,
-    "anchored_rejection_rate": 0.191,
-    "distinct_blind_shapes": 7,
-    "novel_shapes_count": 3,
-    "novel_shape_rate": 0.4286,
-    "total_novel_query_mass": 44,
-    "novel_shape_query_mass": 0.5238,
-    "novel_query_mass_rate": 0.5238,
-    "semantically_valid_novel_queries": 13,
-    "semantically_valid_novel_mass": 0.1548,
-    "semantically_valid_novel_mass_rate": 0.1548,
-    "misinterpreted_novel_queries": 31,
-    "misinterpreted_novel_mass": 0.369,
-    "misinterpreted_novel_mass_rate": 0.369,
+    "low_confidence_count": 35,
+    "blind_low_confidence_rate": 0.0583,
+    "anchored_rejection_rate": 0.1832,
+    "distinct_blind_shapes": 10,
+    "novel_shapes_count": 5,
+    "novel_shape_rate": 0.5,
+    "total_novel_query_mass": 50,
+    "novel_shape_query_mass": 0.5882,
+    "novel_query_mass_rate": 0.5882,
+    "semantically_valid_novel_queries": 50,
+    "semantically_valid_novel_mass": 0.5882,
+    "semantically_valid_novel_mass_rate": 0.5882,
+    "misinterpreted_novel_queries": 0,
+    "misinterpreted_novel_mass": 0.0,
+    "misinterpreted_novel_mass_rate": 0.0,
     "blind_shapes": [
+      "1e4fab4d3f9a6000",
       "1f201c593c265f64",
       "2343cb1e47255012",
       "3ab9e8eaeb027de0",
-      "8532756b1866b3bf",
-      "ca8795889386c53c",
+      "5a272959dd1660b2",
+      "920a2096a3f700c0",
+      "b29c8858aa421719",
+      "c6c928669039119f",
       "f5fb271f46843b98",
       "f6d27c8cd82ddd52"
     ],
     "novel_shapes": [
-      "8532756b1866b3bf",
-      "ca8795889386c53c",
+      "5a272959dd1660b2",
+      "920a2096a3f700c0",
+      "b29c8858aa421719",
+      "c6c928669039119f",
       "f5fb271f46843b98"
     ],
-    "blind_d_ratio": 0.0833,
-    "blind_entropy_h": 2.2003,
-    "blind_h_max": 2.8074,
-    "blind_normalized_entropy": 0.7838,
+    "blind_d_ratio": 0.1176,
+    "blind_entropy_h": 3.0493,
+    "blind_h_max": 3.3219,
+    "blind_normalized_entropy": 0.9179,
     "domain_breakdown": {
       "finances": {
         "total": 50,
@@ -396,31 +401,31 @@
       },
       "schedule": {
         "total": 50,
-        "compiled": 24,
-        "unsupported": 16,
+        "compiled": 12,
+        "unsupported": 31,
         "ambiguous": 0,
-        "low_confidence": 10
+        "low_confidence": 7
       },
       "health_fitness": {
         "total": 50,
-        "compiled": 10,
-        "unsupported": 34,
+        "compiled": 20,
+        "unsupported": 27,
         "ambiguous": 0,
-        "low_confidence": 6
+        "low_confidence": 3
       },
       "shopping_inventory": {
         "total": 50,
-        "compiled": 10,
-        "unsupported": 37,
+        "compiled": 17,
+        "unsupported": 29,
         "ambiguous": 0,
-        "low_confidence": 3
+        "low_confidence": 4
       },
       "system_settings_device": {
         "total": 50,
         "compiled": 0,
-        "unsupported": 50,
+        "unsupported": 47,
         "ambiguous": 0,
-        "low_confidence": 0
+        "low_confidence": 3
       },
       "communication_messaging": {
         "total": 50,
@@ -432,9 +437,9 @@
       "file_data_management": {
         "total": 50,
         "compiled": 0,
-        "unsupported": 50,
+        "unsupported": 39,
         "ambiguous": 0,
-        "low_confidence": 0
+        "low_confidence": 11
       },
       "home_automation_iot": {
         "total": 50,
@@ -459,10 +464,10 @@
       },
       "math_calculations": {
         "total": 50,
-        "compiled": 4,
-        "unsupported": 46,
+        "compiled": 0,
+        "unsupported": 47,
         "ambiguous": 0,
-        "low_confidence": 0
+        "low_confidence": 3
       },
       "creative_brainstorming": {
         "total": 50,
@@ -474,31 +479,7 @@
     },
     "shape_audits": [
       {
-        "shape_hash": "8532756b1866b3bf",
-        "query_count": 17,
-        "sample_queries": [
-          "Show me all recurring subscription charges debited this month",
-          "Compare my grocery expenditures in Q1 versus Q2 and identify biggest inflationary price increases",
-          "Categorize all uncategorized debit purchases from my weekend trip to Seattle"
-        ],
-        "graph_ops": [
-          "Observe",
-          "Map",
-          "Reduce",
-          "Emit"
-        ],
-        "valid_count": 0,
-        "misinterpreted_count": 17,
-        "valid_reasons": [],
-        "misinterpretation_reasons": [
-          "Query semantics do not match the instantiated fixture topology",
-          "Query requested comparative/trend analysis, but compiler produced a non-comparative scalar reduction",
-          "Query requested categorical classification/tagging, but compiler produced an aggregation sum",
-          "Query requested predictive notification, but compiler generated a static reduction"
-        ]
-      },
-      {
-        "shape_hash": "ca8795889386c53c",
+        "shape_hash": "5a272959dd1660b2",
         "query_count": 3,
         "sample_queries": [
           "What was my largest single expense in the last 90 days?",
@@ -507,25 +488,97 @@
         ],
         "graph_ops": [
           "Observe",
-          "Filter",
           "Map",
           "Reduce",
           "Emit"
         ],
-        "valid_count": 0,
-        "misinterpreted_count": 3,
-        "valid_reasons": [],
-        "misinterpretation_reasons": [
-          "Time duration '90 days' was erroneously extracted as a monetary amount threshold"
-        ]
+        "valid_count": 3,
+        "misinterpreted_count": 0,
+        "valid_reasons": [
+          "Valid single expense extreme aggregation (max/min without arbitrary threshold)"
+        ],
+        "misinterpretation_reasons": []
+      },
+      {
+        "shape_hash": "920a2096a3f700c0",
+        "query_count": 14,
+        "sample_queries": [
+          "Alert me if my monthly utility expenses increase by more than 20% compared to last year",
+          "Compare my grocery expenditures in Q1 versus Q2 and identify biggest inflationary price increases",
+          "Please alert me if my monthly utility expenses increase by more than 20% compared to last year"
+        ],
+        "graph_ops": [
+          "Observe",
+          "Observe",
+          "Filter",
+          "Filter",
+          "Map",
+          "Map",
+          "Reduce",
+          "Reduce",
+          "Join",
+          "Map",
+          "Emit"
+        ],
+        "valid_count": 14,
+        "misinterpreted_count": 0,
+        "valid_reasons": [
+          "Valid comparative/trend analysis query correctly routed to comparative_trend template"
+        ],
+        "misinterpretation_reasons": []
+      },
+      {
+        "shape_hash": "b29c8858aa421719",
+        "query_count": 6,
+        "sample_queries": [
+          "Categorize all uncategorized debit purchases from my weekend trip to Seattle",
+          "Identify tax-deductible business expenses from my bank statements for the current fiscal year",
+          "Please categorize all uncategorized debit purchases from my weekend trip to seattle"
+        ],
+        "graph_ops": [
+          "Observe",
+          "Map",
+          "Reduce",
+          "Emit"
+        ],
+        "valid_count": 6,
+        "misinterpreted_count": 0,
+        "valid_reasons": [
+          "Valid categorical tagging query correctly routed to categorical_tagging template"
+        ],
+        "misinterpretation_reasons": []
+      },
+      {
+        "shape_hash": "c6c928669039119f",
+        "query_count": 10,
+        "sample_queries": [
+          "Can you project my bank savings balance for next quarter if I reduce discretionary spending by 15%?",
+          "Please can you project my bank savings balance for next quarter if i reduce discretionary spending by 15%?",
+          "Can you can you project my bank savings balance for next quarter if i reduce discretionary spending by 15%?"
+        ],
+        "graph_ops": [
+          "Observe",
+          "Filter",
+          "Map",
+          "Reduce",
+          "Map",
+          "Branch",
+          "Emit"
+        ],
+        "valid_count": 10,
+        "misinterpreted_count": 0,
+        "valid_reasons": [
+          "Valid predictive/alert query correctly routed to predictive_alert template"
+        ],
+        "misinterpretation_reasons": []
       },
       {
         "shape_hash": "f5fb271f46843b98",
-        "query_count": 24,
+        "query_count": 17,
         "sample_queries": [
           "How much money did I spend on restaurant dining over the weekend?",
-          "Alert me if my monthly utility expenses increase by more than 20% compared to last year",
-          "Can you project my bank savings balance for next quarter if I reduce discretionary spending by 15%?"
+          "Show me all recurring subscription charges debited this month",
+          "Summarize my total entertainment budget spent so far this month"
         ],
         "graph_ops": [
           "Observe",
@@ -534,16 +587,12 @@
           "Reduce",
           "Emit"
         ],
-        "valid_count": 13,
-        "misinterpreted_count": 11,
+        "valid_count": 17,
+        "misinterpreted_count": 0,
         "valid_reasons": [
           "Valid compositional single-filter category aggregation (filtered by category without arbitrary threshold)"
         ],
-        "misinterpretation_reasons": [
-          "Query requested comparative/trend analysis, but compiler produced a non-comparative scalar reduction",
-          "Query requested financial forecasting/projection, but compiler produced an historical aggregation",
-          "Query semantics do not match the instantiated fixture topology"
-        ]
+        "misinterpretation_reasons": []
       }
     ]
   },
@@ -552,10 +601,10 @@
       "stable": true,
       "batches": {
         "batch_1": {
-          "num_compiled": 318,
-          "distinct_shapes": 15,
-          "d_ratio": 0.0472,
-          "entropy_h": 3.5722,
+          "num_compiled": 330,
+          "distinct_shapes": 16,
+          "d_ratio": 0.0485,
+          "entropy_h": 3.6676,
           "top_20_c20": 1.0,
           "r_2": 1.0,
           "r_5": 1.0,
@@ -572,7 +621,7 @@
           "num_compiled": 259,
           "distinct_shapes": 12,
           "d_ratio": 0.0463,
-          "entropy_h": 3.2133,
+          "entropy_h": 3.2816,
           "top_20_c20": 1.0,
           "r_2": 1.0,
           "r_5": 1.0,
@@ -603,9 +652,9 @@
           ]
         }
       },
-      "common_shape_count": 11,
+      "common_shape_count": 12,
       "total_unique_shapes": 16,
-      "jaccard_similarity": 0.6875,
+      "jaccard_similarity": 0.75,
       "d_ratio_range": [
         0.0463,
         0.0485
@@ -663,8 +712,8 @@
     "g0_extended_passed": true,
     "structural_outlier_g0_passed": true,
     "g1b_extended_passed": true,
-    "num_distinct_topologies": 7,
-    "num_unique_shape_keys": 7,
+    "num_distinct_topologies": 10,
+    "num_unique_shape_keys": 10,
     "shape_keys": {
       "expense": "652d50bc27874acc",
       "troubleshooting": "d9ace5f6a0884cc7",
@@ -672,23 +721,26 @@
       "habit_fitness": "3ab9e8eaeb027de0",
       "factual_decision": "4c7ddecfd583d134",
       "recommendation": "1f201c593c265f64",
-      "cross_source_join_aggregate": "4b88ceedde4a47d5"
+      "cross_source_join_aggregate": "4b88ceedde4a47d5",
+      "comparative_trend": "920a2096a3f700c0",
+      "predictive_alert": "c6c928669039119f",
+      "categorical_tagging": "b29c8858aa421719"
     }
   },
   "realistic_co_measurement": {
     "g2_passed": true,
     "g3_passed": true,
     "p3_passed": true,
-    "baseline_mean_ms": 306.351,
-    "baseline_std_ms": 27.247,
-    "oracle_mean_ms": 1.698,
-    "cne_mean_ms": 31.054,
-    "cne_std_ms": 0.807,
-    "control_mean_ms": 21.901,
-    "execution_mean_ms": 9.154,
-    "net_savings_mean_ms": 275.296,
-    "a_corpus_mean": 0.072,
-    "r_star_mean": 0.9944,
-    "opt_capture_mean": 0.903
+    "baseline_mean_ms": 76.648,
+    "baseline_std_ms": 8.36,
+    "oracle_mean_ms": 0.465,
+    "cne_mean_ms": 8.019,
+    "cne_std_ms": 0.59,
+    "control_mean_ms": 5.562,
+    "execution_mean_ms": 2.457,
+    "net_savings_mean_ms": 68.629,
+    "a_corpus_mean": 0.073,
+    "r_star_mean": 0.9939,
+    "opt_capture_mean": 0.9005
   }
 }

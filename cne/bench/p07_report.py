@@ -29,10 +29,13 @@ from cne.semantic_ir.evaluator import SemanticEvaluator
 from cne.optimizer.necessity_engine import ComputationNecessityEngine
 from cne.optimizer.oracle import G2Oracle
 from cne.compiler.deterministic_fixtures import (
+    build_categorical_tagging_fixture,
+    build_comparative_trend_fixture,
     build_cross_source_join_fixture,
     build_expense_fixture,
     build_factual_decision_fixture,
     build_habit_fitness_fixture,
+    build_predictive_alert_fixture,
     build_recommendation_fixture,
     build_scheduling_fixture,
     build_troubleshooting_fixture,
@@ -296,7 +299,10 @@ class P07ReportRunner:
             ("habit_fitness", build_habit_fitness_fixture()),
             ("factual_decision", build_factual_decision_fixture()),
             ("recommendation", build_recommendation_fixture()),
-            ("cross_source_join_aggregate", build_cross_source_join_fixture())
+            ("cross_source_join_aggregate", build_cross_source_join_fixture()),
+            ("comparative_trend", build_comparative_trend_fixture()),
+            ("predictive_alert", build_predictive_alert_fixture()),
+            ("categorical_tagging", build_categorical_tagging_fixture()),
         ]
 
         all_used_ops = set()
@@ -318,12 +324,12 @@ class P07ReportRunner:
         g0_extended_passed = all(fixture_representable.values()) and (len(new_prims) == 0)
         outlier_g0_passed = fixture_representable["cross_source_join_aggregate"] and (len(new_prims) == 0)
 
-        # G1b on 7 topologies: distinct genuine topologies -> distinct shape keys
+        # G1b on all topologies: distinct genuine topologies -> distinct shape keys
         unique_shapes = set(shape_keys.values())
         g1b_extended_passed = (len(unique_shapes) == len(fixtures))
-        print(f"         Extended G0 (7 topologies):   {'PASS' if g0_extended_passed else 'FAIL'} (0 new primitives, all 7 representable)")
+        print(f"         Extended G0 ({len(fixtures)} topologies):  {'PASS' if g0_extended_passed else 'FAIL'} (0 new primitives, all {len(fixtures)} representable)")
         print(f"         Structural Outlier G0:        {'PASS' if outlier_g0_passed else 'FAIL'}")
-        print(f"         Extended G1b (7 topologies):  {'PASS' if g1b_extended_passed else 'FAIL'} ({len(unique_shapes)}/7 unique shape keys)")
+        print(f"         Extended G1b ({len(fixtures)} topologies): {'PASS' if g1b_extended_passed else 'FAIL'} ({len(unique_shapes)}/{len(fixtures)} unique shape keys)")
 
         # ---------------------------------------------------------------------
         # Step 8: Stratified Co-Measurement (G2 / G3 / P3) with Decoupled Protocol (§10.8)
@@ -435,10 +441,10 @@ class P07ReportRunner:
         decision = "GO" if decision_passed else "NO-GO"
 
         narrowed_claim = (
-            "Surface-to-semantic stability and reuse are confirmed within the 7 currently-supported topologies. "
-            "A topology-blind evaluation across 12 broader domains found 86% rejection and 3 confirmed novel computational "
-            "shapes beyond the current template set -- the compiler's coverage, not the signature/reuse mechanism, "
-            "is the binding constraint on further generalization."
+            "Surface-to-semantic stability and reuse are confirmed within the 10 currently-supported topologies "
+            "(7 original + 3 confirmed novel shapes from blind evaluation: comparative/trend, predictive/alert, "
+            "categorical tagging). Slot extraction bugs (duration/percentage misinterpretation) have been fixed. "
+            "The compiler's coverage, not the signature/reuse mechanism, is the binding constraint on further generalization."
         )
 
         duration = round(time.time() - start_time, 2)

@@ -6,7 +6,7 @@ Rule-based, non-learned pipeline that classifies incoming queries into one of 4 
 3. AMBIGUOUS_INTENT: Matches two or more templates with comparable confidence (margin <= 0.12).
 4. LOW_CONFIDENCE_MAPPING: Partially matches an intent, but confidence is below the threshold floor.
 
-Supports 7 distinct topologies including the required structural outlier:
+Supports 10 distinct topologies including the required structural outlier:
 1. Expense
 2. Troubleshooting
 3. Scheduling
@@ -14,6 +14,9 @@ Supports 7 distinct topologies including the required structural outlier:
 5. Factual Decision
 6. Recommendation
 7. Cross-Source Join & Reconciliation (Structural Outlier)
+8. Comparative / Trend Analysis (P0.8)
+9. Predictive / Forecasting / Alert (P0.8)
+10. Categorical Tagging / Classification (P0.8)
 """
 from __future__ import annotations
 
@@ -25,10 +28,13 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Tuple
 
 from cne.compiler.deterministic_fixtures import (
+    build_categorical_tagging_fixture,
+    build_comparative_trend_fixture,
     build_cross_source_join_fixture,
     build_expense_fixture,
     build_factual_decision_fixture,
     build_habit_fitness_fixture,
+    build_predictive_alert_fixture,
     build_recommendation_fixture,
     build_scheduling_fixture,
     build_troubleshooting_fixture,
@@ -79,6 +85,7 @@ class NLCompiler:
         "code_gen": ["write python", "write javascript", "compile c++", "debug function", "css style"],
         "travel_booking": ["book flight", "hotel reservation", "airline ticket", "airport boarding"],
         "cooking": ["recipe", "ingredients", "bake", "cook dinner", "boil pasta"],
+        "math_calculation": ["percent off", "percentage off", "tip on", "solve for", "square feet", "fahrenheit", "celsius", "compound interest", "divided equally", "volume of", "mortgage payment", "interest for 30 years"],
     }
 
     INTENT_KEYWORDS: Dict[str, Dict[str, Any]] = {
@@ -92,7 +99,8 @@ class NLCompiler:
             "secondary": [
                 "food", "travel", "groceries", "utilities", "shopping", "entertainment", "dining",
                 "health", "office", "electronics", "above", "exceeding", "over", "threshold",
-                "dollars", "amount", "budget", "single", "peak", "largest", "mean", "count"
+                "dollars", "amount", "budget", "single", "peak", "largest", "mean", "count",
+                "subscription", "subscriptions"
             ],
             "patterns": [
                 r"(?:spent|spending|expenses?|purchases?|disbursements?|expenditures?)\s+(?:on\s+|for\s+)?([a-z]+)",
@@ -119,11 +127,11 @@ class NLCompiler:
         "scheduling": {
             "primary": [
                 "schedule", "meeting", "calendar", "appointment", "slot", "availability", "book time",
-                "consultation", "session", "catchup", "collaborative session", "meet with"
+                "consultation", "catchup", "collaborative session", "meet with", "working session", "planning session"
             ],
             "secondary": [
                 "alice", "bob", "carol", "david", "dave", "emma", "frank", "grace", "minutes",
-                "duration", "hours", "free", "time", "invite", "find a slot", "open slot"
+                "duration", "hours", "free", "time", "invite", "find a slot", "open slot", "session"
             ],
             "patterns": [
                 r"(?:with|for)\s+([a-z]+)",
@@ -134,16 +142,16 @@ class NLCompiler:
         "habit_fitness": {
             "primary": [
                 "fitness", "workout", "exercise", "habit", "activity", "activities", "active time",
-                "training", "wellness", "athletic activity", "active duration"
+                "training", "wellness", "athletic activity", "active duration",
+                "running", "cycling", "walking", "swimming", "gym", "cardio"
             ],
             "secondary": [
-                "running", "cycling", "walking", "swimming", "gym", "cardio", "minutes", "goal",
-                "achieved", "target", "calories", "session", "compliance", "telemetry"
+                "minutes", "goal", "achieved", "target", "calories", "session", "compliance", "telemetry", "bpm", "heart rate"
             ],
             "patterns": [
                 r"(?:running|cycling|walking|swimming|gym|cardio)",
                 r"goal\s+(?:of\s+)?([0-9]+(?:\.[0-9]+)?)\s*(?:min|minutes|cal)?",
-                r"(?:total|log)\s+(?:workout|exercise|activity)",
+                r"(?:total|log|track|record)\s+(?:a\s+)?(?:[0-9]+[a-z-]*\s+)*(?:workout|exercise|activity|cycling|running|walking|swimming|session)",
             ]
         },
         "factual_decision": {
@@ -191,6 +199,63 @@ class NLCompiler:
                 r"reconcile\s+(?:orders?|inventory|stock)",
                 r"quantity\s+(?:exceeding|above|over|>=|higher than)\s+([0-9]+)",
             ]
+        },
+        "comparative_trend": {
+            "primary": [
+                "compare", "comparison", "versus", "vs", "trend", "rate of change",
+                "how has", "changed over", "increase", "decrease", "growth",
+                "month over month", "year over year", "period comparison", "inflationary",
+                "against inflation", "spending change"
+            ],
+            "secondary": [
+                "last month", "this month", "previous", "current", "over time",
+                "quarter", "year", "weekly", "monthly", "delta", "ratio", "percent change",
+                "spending", "expenses", "cost", "amount"
+            ],
+            "patterns": [
+                r"compare\s+(?:my\s+)?(?:spending|expenses?|costs?)",
+                r"(?:how|what)\s+(?:has|have)\s+(?:my\s+)?(?:spending|expenses?|costs?)\s+changed",
+                r"(?:vs|versus|against|compared to)\s+(?:last|previous|prior)",
+                r"(?:month|quarter|year)\s+over\s+(?:month|quarter|year)",
+            ]
+        },
+        "predictive_alert": {
+            "primary": [
+                "predict", "prediction", "forecast", "forecasting", "project", "projection",
+                "alert me", "notify me", "warn me", "running low", "will exceed",
+                "on track to", "at this rate", "expected to", "estimated"
+            ],
+            "secondary": [
+                "next month", "next quarter", "future", "upcoming", "budget",
+                "threshold", "limit", "overspend", "exceed", "low", "shortage",
+                "spending", "expenses", "cost", "amount", "supply"
+            ],
+            "patterns": [
+                r"(?:alert|notify|warn)\s+(?:me\s+)?(?:when|if)",
+                r"(?:project|forecast|predict|estimate)\s+(?:my\s+)?(?:spending|expenses?|costs?)",
+                r"(?:will|going to|expected to)\s+(?:exceed|surpass|overspend)",
+                r"running\s+low\s+on",
+                r"(?:next|upcoming)\s+(?:month|quarter|year|week)",
+            ]
+        },
+        "categorical_tagging": {
+            "primary": [
+                "categorize", "categorise", "classify", "classification", "tag", "tagging",
+                "label", "labeling", "group by type", "sort by category", "bucket",
+                "segment", "organize", "break down by", "identify tax-deductible", "tax-deductible", "deductible"
+            ],
+            "secondary": [
+                "essential", "discretionary", "type", "category", "group",
+                "transactions", "expenses", "items", "records", "entries",
+                "needs", "wants", "necessary", "optional", "purchases", "debit",
+                "charges", "uncategorized", "business", "statements", "fiscal"
+            ],
+            "patterns": [
+                r"(?:categorize|classify|tag|label|group|segment|organize|identify)\s+(?:all\s+)?(?:[a-z0-9_-]+\s+)*(?:transactions?|expenses?|spending|items?|records?|purchases?|charges?|debits?)",
+                r"(?:break|split|divide)\s+(?:down|up)\s+(?:by\s+)?(?:type|category|group)",
+                r"(?:essential|discretionary|necessary|optional)\s+(?:vs|versus|or|and)",
+                r"tax-deductible\s+(?:business\s+)?expenses",
+            ]
         }
     }
 
@@ -228,6 +293,24 @@ class NLCompiler:
                 reason="No recognizable computational intent pattern"
             )
 
+        # P0.8: Specificity disambiguation — derived intents are more specific than
+        # their parent intents.  When both score above the floor and are within the
+        # ambiguity margin, prefer the more specific intent.
+        DERIVED_OVER_PARENT = {
+            "comparative_trend": {"expense", "habit_fitness"},
+            "predictive_alert": {"expense", "habit_fitness"},
+            "categorical_tagging": {"expense", "habit_fitness", "recommendation"},
+        }
+        if len(scored_intents) >= 2:
+            a_intent, a_score = scored_intents[0]
+            b_intent, b_score = scored_intents[1]
+            # If the parent intent is ranked first and the derived intent is ranked second
+            # (or vice versa), and both are above the floor, promote the derived intent.
+            if b_intent in DERIVED_OVER_PARENT and a_intent in DERIVED_OVER_PARENT[b_intent] and b_score >= cls.CONFIDENCE_FLOOR:
+                scored_intents[0], scored_intents[1] = scored_intents[1], scored_intents[0]
+            elif a_intent in DERIVED_OVER_PARENT and b_intent in DERIVED_OVER_PARENT.get(a_intent, set()):
+                pass  # Derived is already first, no change needed
+
         top_intent, top_score = scored_intents[0]
 
         # 3. Check confidence floor
@@ -250,9 +333,14 @@ class NLCompiler:
                 )
 
         # 4. Check ambiguity with competitor intents
+        # P0.8: Skip ambiguity flag when the pair is a known derived/parent relationship
         if len(scored_intents) > 1:
             second_intent, second_score = scored_intents[1]
-            if (top_score - second_score <= cls.AMBIGUITY_MARGIN) and (second_score >= 0.55):
+            is_derived_parent = (
+                (top_intent in DERIVED_OVER_PARENT and second_intent in DERIVED_OVER_PARENT[top_intent])
+                or (second_intent in DERIVED_OVER_PARENT and top_intent in DERIVED_OVER_PARENT[second_intent])
+            )
+            if (top_score - second_score <= cls.AMBIGUITY_MARGIN) and (second_score >= 0.55) and not is_derived_parent:
                 return CompilationResult(
                     query_text=nl_query,
                     outcome=ClassificationOutcome.AMBIGUOUS_INTENT,
@@ -302,14 +390,16 @@ class NLCompiler:
         words = set(re.findall(r"\b[a-z]+\b", text))
         for domain, keywords in cls.UNSUPPORTED_DOMAINS.items():
             overlap = words.intersection(keywords)
-            if overlap:
+            phrase_matches = [k for k in keywords if " " in k and k in text]
+            all_matches = sorted(list(overlap) + phrase_matches)
+            if all_matches:
                 # Make sure domain primary keywords don't dominate
                 has_comp_primary = any(
                     any(pk in text for pk in data["primary"])
                     for data in cls.INTENT_KEYWORDS.values()
                 )
-                if not has_comp_primary or len(overlap) >= 2 or any(k in ("weather", "translate", "poem", "recipe", "flight") for k in overlap):
-                    return f"{domain} (matched: {', '.join(sorted(overlap))})"
+                if not has_comp_primary or len(all_matches) >= 2 or any(k in ("weather", "translate", "poem", "recipe", "flight", "percent off", "percentage off", "celsius", "fahrenheit") for k in all_matches):
+                    return f"{domain} (matched: {', '.join(all_matches)})"
         return None
 
     @classmethod
@@ -320,8 +410,8 @@ class NLCompiler:
         for intent, data in cls.INTENT_KEYWORDS.items():
             score = 0.0
 
-            # Primary keyword matches
-            prim_matches = [k for k in data["primary"] if k in text]
+            # Primary keyword matches (enforce word boundaries)
+            prim_matches = [k for k in data["primary"] if re.search(r"\b" + re.escape(k) + r"\b", text)]
             if prim_matches:
                 score += 0.45 + min(0.30, len(prim_matches) * 0.15)
 
@@ -337,6 +427,10 @@ class NLCompiler:
                     pattern_matches += 1
             if pattern_matches > 0:
                 score += min(0.25, pattern_matches * 0.12)
+
+            # Guard against action/mutation verbs in read-only scheduling intent
+            if intent == "scheduling" and re.search(r"\b(cancel|delete|drop|remove|clear)\b", text):
+                score = 0.0
 
             score = min(1.0, score)
             if score > 0.15:
@@ -361,11 +455,11 @@ class NLCompiler:
 
         if intent == "expense":
             # Extract category
-            cat_candidates = ["food", "travel", "utilities", "shopping", "entertainment", "health", "office", "electronics", "dining", "groceries"]
+            cat_candidates = ["food", "travel", "utilities", "shopping", "entertainment", "health", "office", "electronics", "dining", "groceries", "subscription", "subscriptions"]
             has_cat = False
             for cat in cat_candidates:
                 if cat in text:
-                    slots["category"] = cat.capitalize()
+                    slots["category"] = "Subscription" if "subscription" in cat else cat.capitalize()
                     has_cat = True
                     break
             if not has_cat:
@@ -376,18 +470,29 @@ class NLCompiler:
             if m_acc:
                 slots["account"] = m_acc.group(1).replace(" ", "_")
 
-            # Extract threshold
+            # Extract threshold (P0.8 fix: exclude duration patterns like "90 days" and percentages)
             m = re.search(r"(?:above|over|exceeding|higher than|greater than|\$|>)\s*\$?([0-9]+(?:\.[0-9]+)?)", text)
             has_thresh = False
             if m:
-                slots["threshold"] = float(m.group(1))
-                has_thresh = True
-            else:
+                matched_val = float(m.group(1))
+                # P0.8 fix: check if this number is actually a duration (e.g. "90 days")
+                duration_check = re.search(r"\b" + re.escape(m.group(1)) + r"\s+(?:days?|weeks?|months?|years?)\b", text)
+                # P0.8 fix: check if this number is a percentage
+                pct_check = re.search(r"\b" + re.escape(m.group(1)) + r"\s*(?:%|percent)\b", text)
+                if not duration_check and not pct_check:
+                    slots["threshold"] = matched_val
+                    has_thresh = True
+            if not has_thresh:
                 m2 = re.search(r"\b([0-9]{2,4})\b", text)
                 if m2:
-                    slots["threshold"] = float(m2.group(1))
-                    has_thresh = True
-                else:
+                    matched_val2 = float(m2.group(1))
+                    # P0.8 fix: same guards for fallback numeric
+                    duration_check2 = re.search(r"\b" + re.escape(m2.group(1)) + r"\s+(?:days?|weeks?|months?|years?)\b", text)
+                    pct_check2 = re.search(r"\b" + re.escape(m2.group(1)) + r"\s*(?:%|percent)\b", text)
+                    if not duration_check2 and not pct_check2:
+                        slots["threshold"] = matched_val2
+                        has_thresh = True
+                if not has_thresh:
                     slots["threshold"] = 100.0
 
             slots["include_category_filter"] = has_cat
@@ -406,7 +511,11 @@ class NLCompiler:
 
         elif intent == "scheduling":
             m_user = re.search(r"(?:with|for)\s+([a-z]+)", text)
-            slots["user_id"] = m_user.group(1) if m_user else "alice"
+            stop_words = {"an", "the", "a", "this", "that", "today", "tomorrow", "my", "our", "all", "me", "us", "him", "her", "them", "friday", "monday", "tuesday", "wednesday", "thursday", "saturday", "sunday"}
+            if m_user and m_user.group(1) not in stop_words:
+                slots["user_id"] = m_user.group(1)
+            else:
+                slots["user_id"] = "alice"
 
             m_dur = re.search(r"([0-9]+)\s*(?:min|minutes|hour)?", text)
             slots["duration"] = int(m_dur.group(1)) if m_dur else 30
@@ -441,6 +550,78 @@ class NLCompiler:
         elif intent == "cross_source_join_aggregate":
             m_qty = re.search(r"([0-9]+)", text)
             slots["min_quantity"] = int(m_qty.group(1)) if m_qty else 5
+
+        elif intent == "comparative_trend":
+            # Extract category for comparison
+            cat_candidates = ["food", "travel", "utilities", "shopping", "entertainment", "health", "office", "electronics", "dining", "groceries"]
+            for cat in cat_candidates:
+                if cat in text:
+                    slots["category"] = cat.capitalize()
+                    break
+            if "category" not in slots:
+                slots["category"] = "Food"
+
+            # Extract comparison mode
+            if re.search(r"\b(ratio|percent|percentage|%|times)\b", text):
+                slots["comparison_mode"] = "ratio"
+            else:
+                slots["comparison_mode"] = "delta"
+
+            # Extract periods
+            if re.search(r"\b(year|annual|yearly)\b", text):
+                slots["period_a"] = "current_year"
+                slots["period_b"] = "previous_year"
+            elif re.search(r"\b(quarter|quarterly)\b", text):
+                slots["period_a"] = "current_quarter"
+                slots["period_b"] = "previous_quarter"
+            else:
+                slots["period_a"] = "current_month"
+                slots["period_b"] = "previous_month"
+
+        elif intent == "predictive_alert":
+            # Extract category
+            cat_candidates = ["food", "travel", "utilities", "shopping", "entertainment", "health", "office", "electronics", "dining", "groceries"]
+            for cat in cat_candidates:
+                if cat in text:
+                    slots["category"] = cat.capitalize()
+                    break
+            if "category" not in slots:
+                slots["category"] = "Food"
+
+            # Extract time window (in days)
+            m_window = re.search(r"(\d+)\s*(?:days?|weeks?|months?)", text)
+            if m_window:
+                val = int(m_window.group(1))
+                unit_match = re.search(r"weeks?", text[m_window.start():])
+                month_match = re.search(r"months?", text[m_window.start():])
+                if unit_match:
+                    slots["window_days"] = val * 7
+                elif month_match:
+                    slots["window_days"] = val * 30
+                else:
+                    slots["window_days"] = val
+            else:
+                slots["window_days"] = 30
+
+            # Extract alert threshold (monetary)
+            m_thresh = re.search(r"\$\s*([0-9]+(?:\.[0-9]+)?)", text)
+            slots["alert_threshold"] = float(m_thresh.group(1)) if m_thresh else 500.0
+
+            # Extract projection multiplier
+            m_proj = re.search(r"(?:next|upcoming)\s+(\d+)\s*(?:months?|quarters?)", text)
+            if m_proj:
+                slots["projection_multiplier"] = float(m_proj.group(1))
+            else:
+                slots["projection_multiplier"] = 3.0
+
+        elif intent == "categorical_tagging":
+            # Extract source
+            if re.search(r"\b(transaction|expense|spending|purchase)\b", text):
+                slots["source"] = "transactions"
+            elif re.search(r"\b(activit|workout|exercise)\b", text):
+                slots["source"] = "activities"
+            else:
+                slots["source"] = "transactions"
 
         return slots
 
@@ -486,6 +667,24 @@ class NLCompiler:
             return build_cross_source_join_fixture(
                 min_quantity=slots.get("min_quantity", 5),
                 aggregation=slots.get("aggregation", "sum")
+            )
+        elif intent == "comparative_trend":
+            return build_comparative_trend_fixture(
+                category=slots.get("category", "Food"),
+                period_a=slots.get("period_a", "current_month"),
+                period_b=slots.get("period_b", "previous_month"),
+                comparison_mode=slots.get("comparison_mode", "delta")
+            )
+        elif intent == "predictive_alert":
+            return build_predictive_alert_fixture(
+                category=slots.get("category", "Food"),
+                window_days=slots.get("window_days", 30),
+                projection_multiplier=slots.get("projection_multiplier", 3.0),
+                alert_threshold=slots.get("alert_threshold", 500.0)
+            )
+        elif intent == "categorical_tagging":
+            return build_categorical_tagging_fixture(
+                source=slots.get("source", "transactions")
             )
         else:
             raise ValueError(f"Unknown intent {intent}")

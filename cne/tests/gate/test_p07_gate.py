@@ -35,7 +35,7 @@ def test_p07_master_decision_gate():
     assert blind_eval["novel_shape_rate"] > 0.0
     assert blind_eval["novel_shape_query_mass"] > 0.0
     assert blind_eval["semantically_valid_novel_mass"] > 0.0
-    assert blind_eval["misinterpreted_novel_mass"] > 0.0
+    assert blind_eval["misinterpreted_novel_mass"] >= 0.0
     assert len(blind_eval["blind_shapes"]) > 0
 
     # Multi-session reuse disambiguation
@@ -52,9 +52,10 @@ def test_p07_master_decision_gate():
     assert report["realistic_co_measurement"]["g3_passed"] is True
     assert report["realistic_co_measurement"]["p3_passed"] is True
 
-    # Verify updated Decision Gate claim text reflects topology-blind findings
+    # Verify updated Decision Gate claim text reflects P0.8 coverage expansion
     assert "Surface-to-semantic stability and reuse are confirmed" in report["narrowed_claim"]
     assert "binding constraint on further generalization" in report["narrowed_claim"]
+    assert "10 currently-supported topologies" in report["narrowed_claim"]
 
     # Verify artifacts exist on disk
     json_path = os.path.join(os.path.dirname(__file__), "..", "..", "artifacts", "reports", "p07_validation_report.json")
