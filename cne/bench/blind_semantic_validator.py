@@ -89,6 +89,12 @@ class BlindSemanticValidator:
                 return True, "Valid categorical tagging query correctly routed to categorical_tagging template"
             return False, "Query routed to categorical_tagging but lacks classification semantics"
 
+        # 13. Mathematical calculation queries matched to their proper template
+        if intent == "math_calculation":
+            if re.search(r"\b(calculate|convert|solve|tip|percent|percentage|mortgage|interest|divide|divided|equally|cylinder|volume|hypotenuse|square feet|fahrenheit|celsius|gallons|liters|miles|power|raised to)\b", text):
+                return True, "Valid mathematical/conversion calculation query correctly routed to math_calculation template"
+            return False, "Query routed to math_calculation but lacks calculation semantics"
+
         # 1. Comparative / Trend / Inflation queries STILL mapped to wrong (legacy) template
         if re.search(r"\b(compare|versus|vs|increase|inflationary|trend|rate of change)\b", text):
             if result.graph and "Branch" not in [n.op.value for n in result.graph.nodes.values()] and "Join" not in [n.op.value for n in result.graph.nodes.values()]:

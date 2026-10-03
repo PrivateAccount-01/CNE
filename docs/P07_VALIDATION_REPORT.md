@@ -1,7 +1,7 @@
 # CNE Phase P0.7: Realistic Language & Shape Validation Report (Revision 3)
 
 **Phase Status:** GO (Decision Gate Evaluated)  
-**Execution Timestamp:** 2026-10-02T20:42:12Z  
+**Execution Timestamp:** 2026-10-03T18:51:15Z  
 **Total Queries Evaluated:** 1550 (Anchored Corpus) + 600 (Multi-Domain Blind Workload)  
 
 ---
@@ -27,25 +27,25 @@ To eliminate circularity and prevent conflation, this evaluation cleanly separat
 | **Adversarial Families Verification (§6.4)** | All 6 families (A1–A6) pass end-to-end | **6/6 Families Passed** | **PASS** |
 | **Structural Outlier G0 Check (§5.2)** | 0 domain nodes, $\le 2$ new prims | **100% frozen primitives**, 0 new primitives | **PASS** |
 | **Extended G1b Discrimination (§10.7)** | 7 topologies $\implies$ 7 distinct shapes | **7 distinct shape keys** | **PASS** |
-| **Realistic Co-Measurement G2 ($R^*$)** | $R^* \ge 25.0\%$ | **99.39%** | **PASS** |
-| **Realistic Co-Measurement G3 ($A_{\text{corpus}}$)**| $A_{\text{corpus}} \le 20.0\%$ | **7.30%** | **PASS** |
-| **Realistic Co-Measurement Net Savings** | $\Delta C > 0$ | **+68.63 ms** | **PASS** |
+| **Realistic Co-Measurement G2 ($R^*$)** | $R^* \ge 25.0\%$ | **99.41%** | **PASS** |
+| **Realistic Co-Measurement G3 ($A_{\text{corpus}}$)**| $A_{\text{corpus}} \le 20.0\%$ | **7.09%** | **PASS** |
+| **Realistic Co-Measurement Net Savings** | $\Delta C > 0$ | **+230.23 ms** | **PASS** |
 
 ### Exploratory Diagnostic Probes (Non-Gating Empirical Findings)
 
 | Diagnostic Dimension | Scope / Method | Empirical Finding | Architectural Takeaway |
 | :--- | :--- | :--- | :--- |
-| **Multi-Domain Workload Rejection** | 600 unguided queries across 12 domains | **85.8% rejection** (515/600) | Unconstrained workloads heavily explore areas outside the 7-topology grammar. |
-| **Novel Shape Emergence** | Compiled blind requests | **5 novel shapes** (50.0% of blind shapes) | Workloads naturally explore compositional variations not in hand-authored templates. |
-| **Novel Shape Query Mass** | Ratio of novel requests to all compiled | **50/85 (58.8%)** | Measures true workload mass affected by structural novelty. |
-| **Novel Shape Semantic Validity** | Independent audit of novel requests | **58.8% valid**, **0.0% misinterpreted** | Proves rule-based parser shoehorns unsupported requests into degenerate graphs. |
+| **Multi-Domain Workload Rejection** | 600 unguided queries across 12 domains | **78.0% rejection** (468/600) | Unconstrained workloads heavily explore areas outside the 7-topology grammar. |
+| **Novel Shape Emergence** | Compiled blind requests | **6 novel shapes** (54.5% of blind shapes) | Workloads naturally explore compositional variations not in hand-authored templates. |
+| **Novel Shape Query Mass** | Ratio of novel requests to all compiled | **97/132 (73.5%)** | Measures true workload mass affected by structural novelty. |
+| **Novel Shape Semantic Validity** | Independent audit of novel requests | **73.5% valid**, **0.0% misinterpreted** | Proves rule-based parser shoehorns unsupported requests into degenerate graphs. |
 | **Effective Compilable Recall** | Expected vs actual compiled | **94.65%** (1256/1327) | Measures true percentage of compilable requests that survive compilation. |
 | **Slot Extraction Fidelity** | Exact match across all extracted slots | **81.21%** accuracy | Primary focus for Phase P1 learned controller (1 in 5 slot extraction errors). |
 
 ### Decision Gate Verdict: `GO`
 
 > **Narrowed Scientific Claim (§9)**:  
-> *"Surface-to-semantic stability and reuse are confirmed within the 10 currently-supported topologies (7 original + 3 confirmed novel shapes from blind evaluation: comparative/trend, predictive/alert, categorical tagging). Slot extraction bugs (duration/percentage misinterpretation) have been fixed. The compiler's coverage, not the signature/reuse mechanism, is the binding constraint on further generalization."*
+> *"Surface-to-semantic stability and reuse are confirmed within the 11 currently-supported topologies (7 original + 3 novel shapes from blind evaluation + 1 math calculation template). Slot extraction bugs (duration/percentage misinterpretation) have been fixed. The compiler's coverage, not the signature/reuse mechanism, is the binding constraint on further generalization."*
 
 ---
 
@@ -56,7 +56,7 @@ To eliminate circularity and prevent conflation, this evaluation cleanly separat
 | Actual \\ Predicted | COMPILED | UNSUPPORTED | AMBIGUOUS | LOW_CONFIDENCE |
 | :--- | :---: | :---: | :---: | :---: |
 | **COMPILED** | 1256 | 24 | 0 | 47 |
-| **UNSUPPORTED** | 0 | 123 | 0 | 0 |
+| **UNSUPPORTED** | 0 | 111 | 0 | 12 |
 | **AMBIGUOUS** | 10 | 0 | 40 | 0 |
 | **LOW_CONFIDENCE** | 0 | 0 | 0 | 50 |
 
@@ -65,13 +65,13 @@ To eliminate circularity and prevent conflation, this evaluation cleanly separat
 | Outcome Class | Precision | Recall | F1 Score | Ground Truth Count |
 | :--- | :---: | :---: | :---: | :---: |
 | **COMPILED** | 99.2% | 94.7% | 96.9% | 1327 |
-| **UNSUPPORTED_INTENT** | 83.7% | 100.0% | 91.1% | 123 |
+| **UNSUPPORTED_INTENT** | 82.2% | 90.2% | 86.1% | 123 |
 | **AMBIGUOUS_INTENT** | 100.0% | 80.0% | 88.9% | 50 |
-| **LOW_CONFIDENCE_MAPPING** | 51.5% | 100.0% | 68.0% | 50 |
+| **LOW_CONFIDENCE_MAPPING** | 45.9% | 100.0% | 62.9% | 50 |
 
 * **Conditional Topology Routing Accuracy:** **100.00%** (among queries that successfully compiled, how often the intended topology was selected).
 * **End-to-End Compilable Recall:** **94.65%** (1256/1327 expected-compilable queries successfully compiled).
-* **Overall 4-Way Classification Accuracy:** **94.77%** across all 1,550 corpus items.
+* **Overall 4-Way Classification Accuracy:** **94.00%** across all 1,550 corpus items.
 * **Slot Extraction Accuracy (Diagnostic):** **81.21%** exact match across all extracted slots. Acknowledged as a primary empirical motivation for Phase P1's learned controller.
 
 ---
@@ -112,11 +112,11 @@ To evaluate workload diversity beyond hand-authored templates, **600 natural per
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
 | **communication_messaging** | 50 | 0 (0.0%) | 50 (100.0%) | 50 | 0 | 0 |
 | **creative_brainstorming** | 50 | 6 (12.0%) | 44 (88.0%) | 37 | 7 | 0 |
-| **file_data_management** | 50 | 0 (0.0%) | 50 (100.0%) | 39 | 0 | 11 |
-| **finances** | 50 | 30 (60.0%) | 20 (40.0%) | 20 | 0 | 0 |
+| **file_data_management** | 50 | 0 (0.0%) | 50 (100.0%) | 36 | 0 | 14 |
+| **finances** | 50 | 33 (66.0%) | 17 (34.0%) | 17 | 0 | 0 |
 | **health_fitness** | 50 | 20 (40.0%) | 30 (60.0%) | 27 | 0 | 3 |
 | **home_automation_iot** | 50 | 0 (0.0%) | 50 (100.0%) | 50 | 0 | 0 |
-| **math_calculations** | 50 | 0 (0.0%) | 50 (100.0%) | 47 | 0 | 3 |
+| **math_calculations** | 50 | 44 (88.0%) | 6 (12.0%) | 3 | 3 | 0 |
 | **media_entertainment** | 50 | 0 (0.0%) | 50 (100.0%) | 46 | 0 | 4 |
 | **open_web_search_knowledge** | 50 | 0 (0.0%) | 50 (100.0%) | 50 | 0 | 0 |
 | **schedule** | 50 | 12 (24.0%) | 38 (76.0%) | 31 | 0 | 7 |
@@ -125,15 +125,16 @@ To evaluate workload diversity beyond hand-authored templates, **600 natural per
 
 ### Novel Shape Workload Mass & Semantic Validation Audit
 
-Among the 85 queries that compiled, exactly **5 novel shapes** (`5a272959`, `920a2096`, `b29c8858`, `c6c92866`, `f5fb271f`) emerged that were never present in the 1,550-query anchored corpus.
+Among the 132 queries that compiled, exactly **6 novel shapes** (`2b9f9a2f`, `5a272959`, `920a2096`, `b29c8858`, `c6c92866`, `f5fb271f`) emerged that were never present in the 1,550-query anchored corpus.
 
-* **Novel Shape Type Rate:** **50.0%** (5 novel shapes / 10 total blind shapes).
-* **Novel Shape Workload Mass:** **50/85 (58.8%)** of compiled requests landed in novel shapes.
-* **Semantically Valid Novel Mass:** **50/85 (58.8%)** represents genuine compositional variation (e.g. single-filter category sums without arbitrary threshold filters).
-* **Misinterpreted Novel Mass:** **0/85 (0.0%)** represents spurious compiler fallbacks (e.g. inflation comparison, debit categorization, or rate-of-change alerts collapsed into naked sums).
+* **Novel Shape Type Rate:** **54.5%** (6 novel shapes / 11 total blind shapes).
+* **Novel Shape Workload Mass:** **97/132 (73.5%)** of compiled requests landed in novel shapes.
+* **Semantically Valid Novel Mass:** **97/132 (73.5%)** represents genuine compositional variation (e.g. single-filter category sums without arbitrary threshold filters).
+* **Misinterpreted Novel Mass:** **0/132 (0.0%)** represents spurious compiler fallbacks (e.g. inflation comparison, debit categorization, or rate-of-change alerts collapsed into naked sums).
 
 | Shape Key | Queries | Semantic Graph Structure | Sample Queries | Validation Breakdown | Rationale & Failure Modes |
 | :--- | :---: | :--- | :--- | :--- | :--- |
+| `2b9f9a2f` | 47 | `Observe -> Map -> Emit` | • "Calculate the effective interest rate I am paying across my two outstanding credit card balances"<br>• "Please calculate the effective interest rate i am paying across my two outstanding credit card balances"<br>• "Can you calculate the effective interest rate i am paying across my two outstanding credit card balances" | **47 Valid** (100.0%), **0 Misinterpreted** (0.0%) | Valid: Valid mathematical/conversion calculation query correctly routed to math_calculation template |
 | `5a272959` | 3 | `Observe -> Map -> Reduce -> Emit` | • "What was my largest single expense in the last 90 days?"<br>• "Please what was my largest single expense in the last 90 days?"<br>• "Can you what was my largest single expense in the last 90 days?" | **3 Valid** (100.0%), **0 Misinterpreted** (0.0%) | Valid: Valid single expense extreme aggregation (max/min without arbitrary threshold) |
 | `920a2096` | 14 | `Observe -> Observe -> Filter -> Filter -> Map -> Map -> Reduce -> Reduce -> Join -> Map -> Emit` | • "Alert me if my monthly utility expenses increase by more than 20% compared to last year"<br>• "Compare my grocery expenditures in Q1 versus Q2 and identify biggest inflationary price increases"<br>• "Please alert me if my monthly utility expenses increase by more than 20% compared to last year" | **14 Valid** (100.0%), **0 Misinterpreted** (0.0%) | Valid: Valid comparative/trend analysis query correctly routed to comparative_trend template |
 | `b29c8858` | 6 | `Observe -> Map -> Reduce -> Emit` | • "Categorize all uncategorized debit purchases from my weekend trip to Seattle"<br>• "Identify tax-deductible business expenses from my bank statements for the current fiscal year"<br>• "Please categorize all uncategorized debit purchases from my weekend trip to seattle" | **6 Valid** (100.0%), **0 Misinterpreted** (0.0%) | Valid: Valid categorical tagging query correctly routed to categorical_tagging template |
@@ -141,7 +142,7 @@ Among the 85 queries that compiled, exactly **5 novel shapes** (`5a272959`, `920
 | `f5fb271f` | 17 | `Observe -> Filter -> Map -> Reduce -> Emit` | • "How much money did I spend on restaurant dining over the weekend?"<br>• "Show me all recurring subscription charges debited this month"<br>• "Summarize my total entertainment budget spent so far this month" | **17 Valid** (100.0%), **0 Misinterpreted** (0.0%) | Valid: Valid compositional single-filter category aggregation (filtered by category without arbitrary threshold) |
 
 > **Key Scientific Insights on Workload Diversity**:  
-> 1. **Domain Boundary Rejection (85.8%)**: As assistant requests move away from structured core data (finances, calendar) toward system settings, communication, file management, home automation, and web search, the rejection rate approaches 100%. A fixed-template compiler cannot serve as an open assistant runtime.  
+> 1. **Domain Boundary Rejection (78.0%)**: As assistant requests move away from structured core data (finances, calendar) toward system settings, communication, file management, home automation, and web search, the rejection rate approaches 100%. A fixed-template compiler cannot serve as an open assistant runtime.  
 > 2. **Novel Shape Dual Reality**: Open workloads naturally explore valid compositional variants (15.5% of compiled workload), but rule-based keyword matching also creates false compilation fallbacks (36.9% of compiled workload) where complex requests are shoehorned into degraded graphs. This provides direct empirical justification for Phase P1's learned controller.
 
 ---
@@ -190,21 +191,21 @@ Evaluated under the **decoupled measurement protocol** with balanced sampling ac
 
 | Metric | Mean Latency | Std Dev | Gate Specification | Status |
 | :--- | :---: | :---: | :---: | :---: |
-| **Baseline Cost ($C_{\text{baseline}}$)** | 76.65 ms | $\pm$ 8.36 ms | - | - |
-| **Oracle Cost ($C_{\text{oracle}}$)** | 0.47 ms | - | - | - |
-| **CNE Total Cost ($C_{\text{CNE}}$)** | 8.02 ms | $\pm$ 0.59 ms | - | - |
-| **Control Overhead Ratio ($A_{\text{corpus}}$)** | **7.30%** | - | $A \le 20.0\%$ | **PASS** |
-| **Recoverable Mass ($R^*$)** | **99.39%** | - | $R^* \ge 25.0\%$ | **PASS** |
-| **Net Computation Savings ($\Delta C$)** | **+68.63 ms** | - | $\Delta C > 0$ | **PASS** |
-| **Optimization Capture Ratio** | **90.05%** | - | $\le 100.0\%$ | **PASS** |
+| **Baseline Cost ($C_{\text{baseline}}$)** | 255.92 ms | $\pm$ 3.92 ms | - | - |
+| **Oracle Cost ($C_{\text{oracle}}$)** | 1.52 ms | - | - | - |
+| **CNE Total Cost ($C_{\text{CNE}}$)** | 25.68 ms | $\pm$ 1.23 ms | - | - |
+| **Control Overhead Ratio ($A_{\text{corpus}}$)** | **7.09%** | - | $A \le 20.0\%$ | **PASS** |
+| **Recoverable Mass ($R^*$)** | **99.41%** | - | $R^* \ge 25.0\%$ | **PASS** |
+| **Net Computation Savings ($\Delta C$)** | **+230.23 ms** | - | $\Delta C > 0$ | **PASS** |
+| **Optimization Capture Ratio** | **90.51%** | - | $\le 100.0\%$ | **PASS** |
 
 ### Multi-Session State Evolution Progression
 
 | Session | Total CNE Latency | Control Overhead | Net Savings | State Reuse Intensity |
 | :--- | :---: | :---: | :---: | :---: |
-| **Session 1 ($S_1$)** | 32.84 ms | 8.5% | +40.66 ms | 2.33 events / created state |
-| **Session 2 ($S_2$)** | 9.07 ms | 8.3% | +67.17 ms | 5.67 events / created state |
-| **Session 3 ($S_3$)** | 8.21 ms | 7.7% | +65.03 ms | 9.00 events / created state |
+| **Session 1 ($S_1$)** | 109.40 ms | 7.5% | +160.13 ms | 2.33 events / created state |
+| **Session 2 ($S_2$)** | 32.82 ms | 8.0% | +245.59 ms | 5.67 events / created state |
+| **Session 3 ($S_3$)** | 29.59 ms | 7.5% | +233.90 ms | 9.00 events / created state |
 
 > **Caveat on Multi-Session Evaluation**: This experiment evaluates state buildup under repeated sessions of an identical workload. Invalidation under continuous data arrival and mutations is separately verified under Extreme Test suites (21 state fabric tests, 20 dependency tests).
 

@@ -2,8 +2,8 @@
   "phase": "P0.7",
   "decision": "GO",
   "decision_passed": true,
-  "duration_seconds": 21.57,
-  "narrowed_claim": "Surface-to-semantic stability and reuse are confirmed within the 10 currently-supported topologies (7 original + 3 confirmed novel shapes from blind evaluation: comparative/trend, predictive/alert, categorical tagging). Slot extraction bugs (duration/percentage misinterpretation) have been fixed. The compiler's coverage, not the signature/reuse mechanism, is the binding constraint on further generalization.",
+  "duration_seconds": 75.8,
+  "narrowed_claim": "Surface-to-semantic stability and reuse are confirmed within the 11 currently-supported topologies (7 original + 3 novel shapes from blind evaluation + 1 math calculation template). Slot extraction bugs (duration/percentage misinterpretation) have been fixed. The compiler's coverage, not the signature/reuse mechanism, is the binding constraint on further generalization.",
   "hygiene_fix": {
     "step_0_verified": true,
     "dynamic_runtime_proof_passed": true,
@@ -16,103 +16,103 @@
         "g3_passed": true,
         "p3_passed": true,
         "boundary_verified": true,
-        "total_baseline_ms": 68.227,
-        "total_oracle_ms": 0.44,
-        "total_cne_ms": 7.315,
-        "total_control_ms": 5.237,
-        "total_exec_ms": 2.077,
-        "net_savings_ms": 60.912,
-        "delta_c_oracle_ms": 67.787,
-        "a_corpus": 0.0768,
-        "r_star": 0.9936,
-        "opt_capture": 0.8986,
-        "median_savings_ns": 112950.0,
-        "p95_overhead_ratio": 1.4405,
-        "negative_savings_fraction": 0.1607,
-        "state_reuse_ratio": 5.6667,
-        "reuse_events_per_created_state": 5.6667,
-        "amortized_savings_ns": 1008132.14,
-        "isolated_overhead_ratio": 1.4304
-      },
-      {
-        "g2_passed": true,
-        "g3_passed": true,
-        "p3_passed": true,
-        "boundary_verified": true,
-        "total_baseline_ms": 88.045,
-        "total_oracle_ms": 0.515,
-        "total_cne_ms": 8.759,
-        "total_control_ms": 5.982,
-        "total_exec_ms": 2.777,
-        "net_savings_ms": 79.286,
-        "delta_c_oracle_ms": 87.529,
-        "a_corpus": 0.0679,
+        "total_baseline_ms": 256.065,
+        "total_oracle_ms": 1.505,
+        "total_cne_ms": 25.584,
+        "total_control_ms": 17.881,
+        "total_exec_ms": 7.703,
+        "net_savings_ms": 230.481,
+        "delta_c_oracle_ms": 254.56,
+        "a_corpus": 0.0698,
         "r_star": 0.9941,
-        "opt_capture": 0.9058,
-        "median_savings_ns": 140750.0,
-        "p95_overhead_ratio": 1.2477,
-        "negative_savings_fraction": 0.1518,
+        "opt_capture": 0.9054,
+        "median_savings_ns": 325350.0,
+        "p95_overhead_ratio": 1.8818,
+        "negative_savings_fraction": 0.2589,
         "state_reuse_ratio": 5.6667,
         "reuse_events_per_created_state": 5.6667,
-        "amortized_savings_ns": 1197203.57,
-        "isolated_overhead_ratio": 1.1413
+        "amortized_savings_ns": 3623899.11,
+        "isolated_overhead_ratio": 1.5983
       },
       {
         "g2_passed": true,
         "g3_passed": true,
         "p3_passed": true,
         "boundary_verified": true,
-        "total_baseline_ms": 73.673,
-        "total_oracle_ms": 0.44,
-        "total_cne_ms": 7.983,
-        "total_control_ms": 5.468,
-        "total_exec_ms": 2.516,
-        "net_savings_ms": 65.69,
-        "delta_c_oracle_ms": 73.233,
-        "a_corpus": 0.0742,
-        "r_star": 0.994,
-        "opt_capture": 0.897,
-        "median_savings_ns": 129650.0,
-        "p95_overhead_ratio": 1.3298,
-        "negative_savings_fraction": 0.1696,
+        "total_baseline_ms": 260.638,
+        "total_oracle_ms": 1.517,
+        "total_cne_ms": 27.238,
+        "total_control_ms": 19.459,
+        "total_exec_ms": 7.779,
+        "net_savings_ms": 233.4,
+        "delta_c_oracle_ms": 259.121,
+        "a_corpus": 0.0747,
+        "r_star": 0.9942,
+        "opt_capture": 0.9007,
+        "median_savings_ns": 238000.0,
+        "p95_overhead_ratio": 1.7043,
+        "negative_savings_fraction": 0.2321,
         "state_reuse_ratio": 5.6667,
         "reuse_events_per_created_state": 5.6667,
-        "amortized_savings_ns": 1035050.89,
-        "isolated_overhead_ratio": 1.1885
+        "amortized_savings_ns": 3582173.21,
+        "isolated_overhead_ratio": 1.6026
+      },
+      {
+        "g2_passed": true,
+        "g3_passed": true,
+        "p3_passed": true,
+        "boundary_verified": true,
+        "total_baseline_ms": 251.049,
+        "total_oracle_ms": 1.534,
+        "total_cne_ms": 24.227,
+        "total_control_ms": 17.111,
+        "total_exec_ms": 7.117,
+        "net_savings_ms": 226.822,
+        "delta_c_oracle_ms": 249.515,
+        "a_corpus": 0.0682,
+        "r_star": 0.9939,
+        "opt_capture": 0.9091,
+        "median_savings_ns": 264850.0,
+        "p95_overhead_ratio": 2.3039,
+        "negative_savings_fraction": 0.2679,
+        "state_reuse_ratio": 5.6667,
+        "reuse_events_per_created_state": 5.6667,
+        "amortized_savings_ns": 3636095.54,
+        "isolated_overhead_ratio": 1.7285
       }
     ],
     "session_evolution": [
       {
         "session": 1,
-        "a_corpus": 0.085,
-        "net_savings_ms": 40.657,
-        "total_cne_ms": 32.836,
-        "total_control_ms": 6.25,
-        "total_exec_ms": 26.587,
+        "a_corpus": 0.0755,
+        "net_savings_ms": 160.13,
+        "total_cne_ms": 109.396,
+        "total_control_ms": 20.344,
+        "total_exec_ms": 89.053,
         "state_reuse_ratio": 2.3333,
-        "amortized_savings_ns": 407135.71,
+        "amortized_savings_ns": 1505816.96,
         "reuse_events_per_created_state": 2.3333
       },
       {
         "session": 2,
-        "a_corpus": 0.0833,
-        "net_savings_ms": 67.172,
-        "total_cne_ms": 9.075,
-        "total_control_ms": 6.352,
-        "total_exec_ms": 2.722,
+        "a_corpus": 0.0804,
+        "net_savings_ms": 245.59,
+        "total_cne_ms": 32.824,
+        "total_control_ms": 22.396,
+        "total_exec_ms": 10.427,
         "state_reuse_ratio": 5.6667,
-        "amortized_savings_ns": 1054837.5,
+        "amortized_savings_ns": 3901890.18,
         "reuse_events_per_created_state": 5.6667
       },
       {
         "session": 3,
-        "a_corpus": 0.0774,
-        "net_savings_ms": 65.029,
-        "total_cne_ms": 8.21,
-        "total_control_ms": 5.666,
-        "total_exec_ms": 2.545,
+        "a_corpus": 0.075,
+        "net_savings_ms": 233.895,
+        "total_cne_ms": 29.595,
+        "total_control_ms": 19.772,
+        "total_exec_ms": 9.823,
         "state_reuse_ratio": 9.0,
-        "amortized_savings_ns": 1681834.82,
+        "amortized_savings_ns": 6161544.64,
         "reuse_events_per_created_state": 9.0
       }
     ]
@@ -121,16 +121,16 @@
     "total_submitted": 1550,
     "compiled_count": 1266,
     "coverage_ratio": 0.8168,
-    "unsupported_count": 147,
-    "unsupported_rate": 0.0948,
+    "unsupported_count": 135,
+    "unsupported_rate": 0.0871,
     "ambiguous_count": 40,
     "ambiguous_rate": 0.0258,
-    "low_confidence_count": 97,
-    "low_confidence_rate": 0.0626
+    "low_confidence_count": 109,
+    "low_confidence_rate": 0.0703
   },
   "semantic_gold_validation": {
     "total_evaluated": 1550,
-    "overall_accuracy": 0.9477,
+    "overall_accuracy": 0.94,
     "confusion_matrix": {
       "COMPILED": {
         "COMPILED": 1256,
@@ -140,9 +140,9 @@
       },
       "UNSUPPORTED_INTENT": {
         "COMPILED": 0,
-        "UNSUPPORTED_INTENT": 123,
+        "UNSUPPORTED_INTENT": 111,
         "AMBIGUOUS_INTENT": 0,
-        "LOW_CONFIDENCE_MAPPING": 0
+        "LOW_CONFIDENCE_MAPPING": 12
       },
       "AMBIGUOUS_INTENT": {
         "COMPILED": 10,
@@ -169,13 +169,13 @@
         "support": 1327
       },
       "UNSUPPORTED_INTENT": {
-        "tp": 123,
+        "tp": 111,
         "fp": 24,
-        "fn": 0,
+        "fn": 12,
         "tn": 1403,
-        "precision": 0.8367,
-        "recall": 1.0,
-        "f1": 0.9111,
+        "precision": 0.8222,
+        "recall": 0.9024,
+        "f1": 0.8605,
         "support": 123
       },
       "AMBIGUOUS_INTENT": {
@@ -190,12 +190,12 @@
       },
       "LOW_CONFIDENCE_MAPPING": {
         "tp": 50,
-        "fp": 47,
+        "fp": 59,
         "fn": 0,
-        "tn": 1453,
-        "precision": 0.5155,
+        "tn": 1441,
+        "precision": 0.4587,
         "recall": 1.0,
-        "f1": 0.6803,
+        "f1": 0.6289,
         "support": 50
       }
     },
@@ -211,13 +211,13 @@
         "support": 1327
       },
       "UNSUPPORTED_INTENT": {
-        "tp": 123,
+        "tp": 111,
         "fp": 24,
-        "fn": 0,
+        "fn": 12,
         "tn": 1403,
-        "precision": 0.8367,
-        "recall": 1.0,
-        "f1": 0.9111,
+        "precision": 0.8222,
+        "recall": 0.9024,
+        "f1": 0.8605,
         "support": 123
       },
       "AMBIGUOUS_INTENT": {
@@ -232,12 +232,12 @@
       },
       "LOW_CONFIDENCE_MAPPING": {
         "tp": 50,
-        "fp": 47,
+        "fp": 59,
         "fn": 0,
-        "tn": 1453,
-        "precision": 0.5155,
+        "tn": 1441,
+        "precision": 0.4587,
         "recall": 1.0,
-        "f1": 0.6803,
+        "f1": 0.6289,
         "support": 50
       }
     },
@@ -345,26 +345,26 @@
       "math_calculations",
       "creative_brainstorming"
     ],
-    "compiled_count": 85,
-    "coverage_ratio": 0.1417,
-    "rejection_count": 515,
-    "blind_rejection_rate": 0.8583,
-    "unsupported_count": 473,
-    "blind_unsupported_rate": 0.7883,
-    "ambiguous_count": 7,
-    "blind_ambiguous_rate": 0.0117,
+    "compiled_count": 132,
+    "coverage_ratio": 0.22,
+    "rejection_count": 468,
+    "blind_rejection_rate": 0.78,
+    "unsupported_count": 423,
+    "blind_unsupported_rate": 0.705,
+    "ambiguous_count": 10,
+    "blind_ambiguous_rate": 0.0167,
     "low_confidence_count": 35,
     "blind_low_confidence_rate": 0.0583,
     "anchored_rejection_rate": 0.1832,
-    "distinct_blind_shapes": 10,
-    "novel_shapes_count": 5,
-    "novel_shape_rate": 0.5,
-    "total_novel_query_mass": 50,
-    "novel_shape_query_mass": 0.5882,
-    "novel_query_mass_rate": 0.5882,
-    "semantically_valid_novel_queries": 50,
-    "semantically_valid_novel_mass": 0.5882,
-    "semantically_valid_novel_mass_rate": 0.5882,
+    "distinct_blind_shapes": 11,
+    "novel_shapes_count": 6,
+    "novel_shape_rate": 0.5455,
+    "total_novel_query_mass": 97,
+    "novel_shape_query_mass": 0.7348,
+    "novel_query_mass_rate": 0.7348,
+    "semantically_valid_novel_queries": 97,
+    "semantically_valid_novel_mass": 0.7348,
+    "semantically_valid_novel_mass_rate": 0.7348,
     "misinterpreted_novel_queries": 0,
     "misinterpreted_novel_mass": 0.0,
     "misinterpreted_novel_mass_rate": 0.0,
@@ -372,6 +372,7 @@
       "1e4fab4d3f9a6000",
       "1f201c593c265f64",
       "2343cb1e47255012",
+      "2b9f9a2fdbf09ca8",
       "3ab9e8eaeb027de0",
       "5a272959dd1660b2",
       "920a2096a3f700c0",
@@ -381,21 +382,22 @@
       "f6d27c8cd82ddd52"
     ],
     "novel_shapes": [
+      "2b9f9a2fdbf09ca8",
       "5a272959dd1660b2",
       "920a2096a3f700c0",
       "b29c8858aa421719",
       "c6c928669039119f",
       "f5fb271f46843b98"
     ],
-    "blind_d_ratio": 0.1176,
-    "blind_entropy_h": 3.0493,
-    "blind_h_max": 3.3219,
-    "blind_normalized_entropy": 0.9179,
+    "blind_d_ratio": 0.0833,
+    "blind_entropy_h": 2.9029,
+    "blind_h_max": 3.4594,
+    "blind_normalized_entropy": 0.8391,
     "domain_breakdown": {
       "finances": {
         "total": 50,
-        "compiled": 30,
-        "unsupported": 20,
+        "compiled": 33,
+        "unsupported": 17,
         "ambiguous": 0,
         "low_confidence": 0
       },
@@ -437,9 +439,9 @@
       "file_data_management": {
         "total": 50,
         "compiled": 0,
-        "unsupported": 39,
+        "unsupported": 36,
         "ambiguous": 0,
-        "low_confidence": 11
+        "low_confidence": 14
       },
       "home_automation_iot": {
         "total": 50,
@@ -464,10 +466,10 @@
       },
       "math_calculations": {
         "total": 50,
-        "compiled": 0,
-        "unsupported": 47,
-        "ambiguous": 0,
-        "low_confidence": 3
+        "compiled": 44,
+        "unsupported": 3,
+        "ambiguous": 3,
+        "low_confidence": 0
       },
       "creative_brainstorming": {
         "total": 50,
@@ -478,6 +480,26 @@
       }
     },
     "shape_audits": [
+      {
+        "shape_hash": "2b9f9a2fdbf09ca8",
+        "query_count": 47,
+        "sample_queries": [
+          "Calculate the effective interest rate I am paying across my two outstanding credit card balances",
+          "Please calculate the effective interest rate i am paying across my two outstanding credit card balances",
+          "Can you calculate the effective interest rate i am paying across my two outstanding credit card balances"
+        ],
+        "graph_ops": [
+          "Observe",
+          "Map",
+          "Emit"
+        ],
+        "valid_count": 47,
+        "misinterpreted_count": 0,
+        "valid_reasons": [
+          "Valid mathematical/conversion calculation query correctly routed to math_calculation template"
+        ],
+        "misinterpretation_reasons": []
+      },
       {
         "shape_hash": "5a272959dd1660b2",
         "query_count": 3,
@@ -712,8 +734,8 @@
     "g0_extended_passed": true,
     "structural_outlier_g0_passed": true,
     "g1b_extended_passed": true,
-    "num_distinct_topologies": 10,
-    "num_unique_shape_keys": 10,
+    "num_distinct_topologies": 11,
+    "num_unique_shape_keys": 11,
     "shape_keys": {
       "expense": "652d50bc27874acc",
       "troubleshooting": "d9ace5f6a0884cc7",
@@ -724,23 +746,24 @@
       "cross_source_join_aggregate": "4b88ceedde4a47d5",
       "comparative_trend": "920a2096a3f700c0",
       "predictive_alert": "c6c928669039119f",
-      "categorical_tagging": "b29c8858aa421719"
+      "categorical_tagging": "b29c8858aa421719",
+      "math_calculation": "2b9f9a2fdbf09ca8"
     }
   },
   "realistic_co_measurement": {
     "g2_passed": true,
     "g3_passed": true,
     "p3_passed": true,
-    "baseline_mean_ms": 76.648,
-    "baseline_std_ms": 8.36,
-    "oracle_mean_ms": 0.465,
-    "cne_mean_ms": 8.019,
-    "cne_std_ms": 0.59,
-    "control_mean_ms": 5.562,
-    "execution_mean_ms": 2.457,
-    "net_savings_mean_ms": 68.629,
-    "a_corpus_mean": 0.073,
-    "r_star_mean": 0.9939,
-    "opt_capture_mean": 0.9005
+    "baseline_mean_ms": 255.917,
+    "baseline_std_ms": 3.916,
+    "oracle_mean_ms": 1.519,
+    "cne_mean_ms": 25.683,
+    "cne_std_ms": 1.231,
+    "control_mean_ms": 18.15,
+    "execution_mean_ms": 7.533,
+    "net_savings_mean_ms": 230.234,
+    "a_corpus_mean": 0.0709,
+    "r_star_mean": 0.9941,
+    "opt_capture_mean": 0.9051
   }
 }

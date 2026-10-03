@@ -55,7 +55,7 @@ def test_p07_master_decision_gate():
     # Verify updated Decision Gate claim text reflects P0.8 coverage expansion
     assert "Surface-to-semantic stability and reuse are confirmed" in report["narrowed_claim"]
     assert "binding constraint on further generalization" in report["narrowed_claim"]
-    assert "10 currently-supported topologies" in report["narrowed_claim"]
+    assert "11 currently-supported topologies" in report["narrowed_claim"]
 
     # Verify artifacts exist on disk
     json_path = os.path.join(os.path.dirname(__file__), "..", "..", "artifacts", "reports", "p07_validation_report.json")

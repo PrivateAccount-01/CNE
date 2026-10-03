@@ -35,6 +35,7 @@ from cne.compiler.deterministic_fixtures import (
     build_expense_fixture,
     build_factual_decision_fixture,
     build_habit_fitness_fixture,
+    build_math_calculation_fixture,
     build_predictive_alert_fixture,
     build_recommendation_fixture,
     build_scheduling_fixture,
@@ -303,6 +304,7 @@ class P07ReportRunner:
             ("comparative_trend", build_comparative_trend_fixture()),
             ("predictive_alert", build_predictive_alert_fixture()),
             ("categorical_tagging", build_categorical_tagging_fixture()),
+            ("math_calculation", build_math_calculation_fixture()),
         ]
 
         all_used_ops = set()
@@ -441,9 +443,9 @@ class P07ReportRunner:
         decision = "GO" if decision_passed else "NO-GO"
 
         narrowed_claim = (
-            "Surface-to-semantic stability and reuse are confirmed within the 10 currently-supported topologies "
-            "(7 original + 3 confirmed novel shapes from blind evaluation: comparative/trend, predictive/alert, "
-            "categorical tagging). Slot extraction bugs (duration/percentage misinterpretation) have been fixed. "
+            "Surface-to-semantic stability and reuse are confirmed within the 11 currently-supported topologies "
+            "(7 original + 3 novel shapes from blind evaluation + 1 math calculation template). "
+            "Slot extraction bugs (duration/percentage misinterpretation) have been fixed. "
             "The compiler's coverage, not the signature/reuse mechanism, is the binding constraint on further generalization."
         )
 

@@ -1237,3 +1237,96 @@ def build_categorical_tagging_fixture(
         ) if (isinstance(cand, dict) and isinstance(ref, dict)) else (cand == ref)
     )
     return g, contract
+
+
+def build_math_calculation_fixture(
+    operation: str = "percentage_discount",
+    operands: Optional[Dict[str, float]] = None,
+    formula: Optional[str] = None
+) -> tuple[SemanticIRGraph, OutcomeContract]:
+    """
+    Mathematical Calculation fixture (Phase P0.8 IN SCOPE, CHEAP template):
+    Evaluates scalar mathematical formulas and unit conversions over prompt operands.
+    Topology:
+        Observe → Map(eval_math) → Emit
+    Uses: Observe, Map, Emit (3 frozen primitives, 0 new).
+    """
+    g = SemanticIRGraph()
+
+    if operands is None:
+        operands = {"value": 100.0, "rate": 0.15}
+
+    # 1. Observe calculation operands (from literal/prompt input store)
+    obs = IRNode(
+        id="obs_operands",
+        op=OpKind.OBSERVE,
+        attributes={"source": "calculation_inputs", "operation": operation},
+        output_type=SemanticType.record({k: SemanticType.numeric() for k in operands.keys()})
+    )
+    g.add_node(obs)
+
+    # 2. Map: evaluate formula function over operands
+    def eval_math(inputs: Dict[str, Any]) -> float:
+        if not isinstance(inputs, dict):
+            return 0.0
+        op = operation.lower()
+        if "tip" in op:
+            bill = float(inputs.get("bill", inputs.get("amount", 0.0)))
+            rate = float(inputs.get("rate", 0.18))
+            return bill * rate
+        elif "discount" in op or "percent_off" in op:
+            cost = float(inputs.get("cost", inputs.get("value", 0.0)))
+            rate = float(inputs.get("rate", 0.15))
+            return cost * (1.0 - rate)
+        elif "convert" in op:
+            val = float(inputs.get("value", 0.0))
+            ratio = float(inputs.get("ratio", 1.0))
+            offset = float(inputs.get("offset", 0.0))
+            return (val * ratio) + offset
+        elif "compound" in op:
+            principal = float(inputs.get("principal", 10000.0))
+            rate = float(inputs.get("rate", 0.07))
+            years = float(inputs.get("years", 5.0))
+            return principal * ((1.0 + rate) ** years)
+        elif "divide" in op:
+            total = float(inputs.get("total", 0.0))
+            parts = float(inputs.get("parts", 1.0))
+            return total / parts if parts > 0 else 0.0
+        elif "exponent" in op or "power" in op:
+            base = float(inputs.get("base", 2.0))
+            exp = float(inputs.get("exponent", 1.0))
+            return base ** exp
+        elif "hypotenuse" in op:
+            a = float(inputs.get("a", 0.0))
+            b = float(inputs.get("b", 0.0))
+            return (a**2 + b**2) ** 0.5
+        elif "mortgage" in op:
+            p = float(inputs.get("principal", 350000.0))
+            r = float(inputs.get("annual_rate", 0.065)) / 12.0
+            n = float(inputs.get("years", 30.0)) * 12.0
+            return (p * r * ((1 + r)**n)) / (((1 + r)**n) - 1) if r > 0 else (p / n)
+        else:
+            return sum(float(v) for v in inputs.values() if isinstance(v, (int, float)))
+
+    map_eval = IRNode(
+        id="map_eval_math",
+        op=OpKind.MAP,
+        inputs=["obs_operands"],
+        attributes={"fn": eval_math, "operation": operation},
+        output_type=SemanticType.numeric()
+    )
+    g.add_node(map_eval)
+
+    # 3. Emit result
+    emit = IRNode(
+        id="emit_math_result",
+        op=OpKind.EMIT,
+        inputs=["map_eval_math"],
+        output_type=SemanticType.numeric()
+    )
+    g.add_node(emit)
+    g.root_id = "emit_math_result"
+
+    contract = OutcomeContract(contract_type=ContractType.EXACT)
+    return g, contract
+

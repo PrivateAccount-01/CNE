@@ -1,0 +1,71 @@
+{
+  "metadata": {
+    "serialized_at": "2026-10-03T18:54:02.083267+00:00",
+    "random_seed": 42,
+    "version": "1.0.0",
+    "phase": "P1"
+  },
+  "splits": {
+    "train_count": 807,
+    "val_count": 172,
+    "test_anchored_count": 174,
+    "test_heldout_blind_count": 600,
+    "total_anchored": 1153,
+    "total_all": 1753
+  },
+  "target_outcomes": {
+    "train": {
+      "COMPILED": 633,
+      "UNSUPPORTED_INTENT": 79,
+      "LOW_CONFIDENCE_MAPPING": 71,
+      "AMBIGUOUS_INTENT": 24
+    },
+    "val": {
+      "COMPILED": 125,
+      "UNSUPPORTED_INTENT": 22,
+      "LOW_CONFIDENCE_MAPPING": 15,
+      "AMBIGUOUS_INTENT": 10
+    },
+    "test_anchored": {
+      "COMPILED": 125,
+      "AMBIGUOUS_INTENT": 6,
+      "UNSUPPORTED_INTENT": 20,
+      "LOW_CONFIDENCE_MAPPING": 23
+    },
+    "test_heldout_blind": {
+      "UNSUPPORTED_INTENT": 423,
+      "COMPILED": 132,
+      "LOW_CONFIDENCE_MAPPING": 35,
+      "AMBIGUOUS_INTENT": 10
+    }
+  },
+  "topologies": {
+    "train": {
+      "habit_fitness": 110,
+      "cross_source_join_aggregate": 42,
+      "expense": 214,
+      "None": 79,
+      "troubleshooting": 106,
+      "factual_decision": 95,
+      "recommendation": 72,
+      "scheduling": 80,
+      "math_calculation": 9
+    },
+    "test_heldout_blind": {
+      "None": 423,
+      "expense": 20,
+      "comparative_trend": 14,
+      "predictive_alert": 24,
+      "categorical_tagging": 10,
+      "math_calculation": 53,
+      "scheduling": 25,
+      "habit_fitness": 17,
+      "recommendation": 14
+    }
+  },
+  "integrity_checks": {
+    "data_contamination_verified_zero": true,
+    "blind_corpus_strictly_held_out": true,
+    "primitives_frozen_adherence": true
+  }
+}

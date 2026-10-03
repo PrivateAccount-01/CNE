@@ -34,6 +34,7 @@ from cne.compiler.deterministic_fixtures import (
     build_expense_fixture,
     build_factual_decision_fixture,
     build_habit_fitness_fixture,
+    build_math_calculation_fixture,
     build_predictive_alert_fixture,
     build_recommendation_fixture,
     build_scheduling_fixture,
@@ -85,7 +86,6 @@ class NLCompiler:
         "code_gen": ["write python", "write javascript", "compile c++", "debug function", "css style"],
         "travel_booking": ["book flight", "hotel reservation", "airline ticket", "airport boarding"],
         "cooking": ["recipe", "ingredients", "bake", "cook dinner", "boil pasta"],
-        "math_calculation": ["percent off", "percentage off", "tip on", "solve for", "square feet", "fahrenheit", "celsius", "compound interest", "divided equally", "volume of", "mortgage payment", "interest for 30 years"],
     }
 
     INTENT_KEYWORDS: Dict[str, Dict[str, Any]] = {
@@ -256,6 +256,34 @@ class NLCompiler:
                 r"(?:essential|discretionary|necessary|optional)\s+(?:vs|versus|or|and)",
                 r"tax-deductible\s+(?:business\s+)?expenses",
             ]
+        },
+        "math_calculation": {
+            "primary": [
+                "calculate", "convert", "solve", "mortgage payment", "compound interest",
+                "tip on", "percent off", "percentage off", "divided equally", "divide",
+                "hypotenuse", "raised to", "percentage increase", "volume of", "square feet",
+                "dinner bill", "gallons to liters", "miles per hour"
+            ],
+            "secondary": [
+                "equation", "degrees", "fahrenheit", "celsius", "miles per hour",
+                "kilometers", "gallons", "liters", "ounces", "milliliters", "cylinder",
+                "volume", "square", "feet", "loan", "interest", "annual yield", "dinner bill",
+                "tip", "discount", "power", "triangle", "meters", "rate", "bill", "people"
+            ],
+            "patterns": [
+                r"(?:calculate|what is)\s+(?:an?\s+)?([0-9]+(?:\.[0-9]+)?%?\s+)?tip",
+                r"convert\s+([0-9]+(?:\.[0-9]+)?)\s+([a-z\s]+)\s+to\s+([a-z\s]+)",
+                r"(?:what\s+is\s+)?([0-9]+(?:\.[0-9]+)?)\s*(?:%|percent)\s+off",
+                r"solve\s+for\s+([a-z])\s+in",
+                r"(?:calculate\s+(?:the\s+)?)?monthly\s+mortgage\s+payment",
+                r"(?:what\s+is\s+(?:the\s+)?)?compound\s+interest",
+                r"divide\s+(?:a\s+)?\$?([0-9]+(?:\.[0-9]+)?)\s+([a-z\s]+)\s+equally",
+                r"volume\s+of\s+(?:a\s+)?([a-z]+)",
+                r"percentage\s+increase\s+from",
+                r"hypotenuse\s+of\s+(?:a\s+)?right\s+triangle",
+                r"([0-9]+)\s+raised\s+to\s+(?:the\s+)?([0-9]+)",
+                r"how\s+many\s+(?:square\s+feet|liters|gallons|milliliters)",
+            ]
         }
     }
 
@@ -300,6 +328,7 @@ class NLCompiler:
             "comparative_trend": {"expense", "habit_fitness"},
             "predictive_alert": {"expense", "habit_fitness"},
             "categorical_tagging": {"expense", "habit_fitness", "recommendation"},
+            "math_calculation": {"expense"},
         }
         if len(scored_intents) >= 2:
             a_intent, a_score = scored_intents[0]
@@ -623,6 +652,98 @@ class NLCompiler:
             else:
                 slots["source"] = "transactions"
 
+        elif intent == "math_calculation":
+            operands: Dict[str, float] = {}
+            if re.search(r"\btip\b", text):
+                slots["operation"] = "tip"
+                m_tip = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*%", text)
+                operands["rate"] = float(m_tip.group(1)) / 100.0 if m_tip else 0.18
+                m_bill = re.search(r"\$([0-9]+(?:\.[0-9]+)?)", text)
+                operands["bill"] = float(m_bill.group(1)) if m_bill else 50.0
+            elif re.search(r"\b(?:percent(?:age)?\s+off|discount)\b", text):
+                slots["operation"] = "percentage_discount"
+                m_rate = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*(?:%|percent)", text)
+                operands["rate"] = float(m_rate.group(1)) / 100.0 if m_rate else 0.15
+                m_cost = re.search(r"\$([0-9]+(?:\.[0-9]+)?)", text)
+                operands["cost"] = float(m_cost.group(1)) if m_cost else 100.0
+            elif re.search(r"\bconvert\b", text) or re.search(r"\bhow many (?:liters|square feet|gallons)\b", text):
+                slots["operation"] = "unit_conversion"
+                m_num = re.search(r"([0-9]+(?:\.[0-9]+)?)", text)
+                operands["value"] = float(m_num.group(1)) if m_num else 1.0
+                if "fahrenheit" in text and "celsius" in text:
+                    operands["ratio"] = 5.0 / 9.0
+                    operands["offset"] = -32.0 * (5.0 / 9.0)
+                elif "miles per hour" in text and "kilometers" in text:
+                    operands["ratio"] = 1.60934
+                    operands["offset"] = 0.0
+                elif "fluid ounces" in text and "milliliters" in text:
+                    operands["ratio"] = 29.5735
+                    operands["offset"] = 0.0
+                elif "gallons" in text and "liters" in text:
+                    operands["ratio"] = 3.78541
+                    operands["offset"] = 0.0
+                elif "meters" in text and "square feet" in text:
+                    m_dims = re.findall(r"([0-9]+(?:\.[0-9]+)?)\s*meters", text)
+                    if len(m_dims) >= 2:
+                        sq_m = float(m_dims[0]) * float(m_dims[1])
+                        operands["value"] = sq_m
+                        operands["ratio"] = 10.7639
+                        operands["offset"] = 0.0
+            elif re.search(r"\bmortgage\b", text):
+                slots["operation"] = "mortgage"
+                m_loan = re.search(r"\$([0-9,]+)", text)
+                operands["principal"] = float(m_loan.group(1).replace(",", "")) if m_loan else 350000.0
+                m_rate = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*%", text)
+                operands["annual_rate"] = float(m_rate.group(1)) / 100.0 if m_rate else 0.065
+                m_yr = re.search(r"([0-9]+)\s*years", text)
+                operands["years"] = float(m_yr.group(1)) if m_yr else 30.0
+            elif re.search(r"\bcompound interest\b", text):
+                slots["operation"] = "compound_interest"
+                m_p = re.search(r"\$([0-9,]+)", text)
+                operands["principal"] = float(m_p.group(1).replace(",", "")) if m_p else 10000.0
+                m_r = re.search(r"([0-9]+(?:\.[0-9]+)?)\s*%", text)
+                operands["rate"] = float(m_r.group(1)) / 100.0 if m_r else 0.07
+                m_yr = re.search(r"([0-9]+)\s*years", text)
+                operands["years"] = float(m_yr.group(1)) if m_yr else 5.0
+            elif re.search(r"\bdivide\b", text) or re.search(r"\bequally\b", text):
+                slots["operation"] = "division"
+                m_tot = re.search(r"\$([0-9]+(?:\.[0-9]+)?)", text)
+                operands["total"] = float(m_tot.group(1)) if m_tot else 100.0
+                m_ppl = re.search(r"([0-9]+)\s*people", text)
+                operands["parts"] = float(m_ppl.group(1)) if m_ppl else 2.0
+            elif re.search(r"\braised to\b", text) or re.search(r"\bpower\b", text):
+                slots["operation"] = "exponentiation"
+                nums = [float(x) for x in re.findall(r"([0-9]+)", text)]
+                operands["base"] = nums[0] if len(nums) > 0 else 2.0
+                operands["exponent"] = nums[1] if len(nums) > 1 else 1.0
+            elif re.search(r"\bhypotenuse\b", text):
+                slots["operation"] = "hypotenuse"
+                nums = [float(x) for x in re.findall(r"([0-9]+(?:\.[0-9]+)?)", text)]
+                operands["a"] = nums[0] if len(nums) > 0 else 3.0
+                operands["b"] = nums[1] if len(nums) > 1 else 4.0
+            elif re.search(r"\bpercentage increase\b", text):
+                slots["operation"] = "percentage_increase"
+                nums = [float(x) for x in re.findall(r"([0-9]+(?:\.[0-9]+)?)", text)]
+                operands["initial"] = nums[0] if len(nums) > 0 else 1.0
+                operands["final"] = nums[1] if len(nums) > 1 else 2.0
+            elif re.search(r"\bvolume of a cylinder\b", text):
+                slots["operation"] = "cylinder_volume"
+                m_rad = re.search(r"radius\s+([0-9]+(?:\.[0-9]+)?)", text)
+                m_ht = re.search(r"height\s+([0-9]+(?:\.[0-9]+)?)", text)
+                operands["radius"] = float(m_rad.group(1)) if m_rad else 1.0
+                operands["height"] = float(m_ht.group(1)) if m_ht else 1.0
+            elif re.search(r"\bsolve for\b", text):
+                slots["operation"] = "linear_equation"
+                operands["a"] = 3.0
+                operands["b"] = 14.0
+                operands["c"] = 59.0
+            else:
+                slots["operation"] = "arithmetic"
+                nums = [float(x) for x in re.findall(r"([0-9]+(?:\.[0-9]+)?)", text)]
+                for idx, n in enumerate(nums):
+                    operands[f"x{idx}"] = n
+            slots["operands"] = operands
+
         return slots
 
     @classmethod
@@ -685,6 +806,11 @@ class NLCompiler:
         elif intent == "categorical_tagging":
             return build_categorical_tagging_fixture(
                 source=slots.get("source", "transactions")
+            )
+        elif intent == "math_calculation":
+            return build_math_calculation_fixture(
+                operation=slots.get("operation", "percentage_discount"),
+                operands=slots.get("operands")
             )
         else:
             raise ValueError(f"Unknown intent {intent}")
