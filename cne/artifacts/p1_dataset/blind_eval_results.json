@@ -1,0 +1,174 @@
+{
+  "timestamp": "2026-10-04T21:30:15.934524+00:00",
+  "model_name": "qwen2.5-coder:1.5b",
+  "coverage": {
+    "blind_total": 600,
+    "compiled": 225,
+    "blind_coverage": 0.375
+  },
+  "in_scope": {
+    "total": 300,
+    "compiled": 123,
+    "coverage": 0.41
+  },
+  "oos_rejection": {
+    "total": 200,
+    "rejected": 154,
+    "rate": 0.77
+  },
+  "validity": {
+    "schema_valid": 591,
+    "schema_rate": 0.985,
+    "primitive_violations": 0,
+    "primitive_adherence": 1.0,
+    "semantic_valid": 599,
+    "semantic_rate": 0.9983
+  },
+  "slots": {
+    "total": 373,
+    "correct": 18,
+    "accuracy": 0.0483
+  },
+  "shapes": {
+    "distinct": 56,
+    "diversity": 0.7216
+  },
+  "performance": {
+    "avg_latency_ms": 7214.44,
+    "total_runtime_s": 5089.95
+  },
+  "per_domain": {
+    "finances": {
+      "total": 50,
+      "compiled": 40,
+      "rejected": 10,
+      "schema_valid": 50,
+      "semantic_valid": 50
+    },
+    "schedule": {
+      "total": 50,
+      "compiled": 16,
+      "rejected": 34,
+      "schema_valid": 50,
+      "semantic_valid": 50
+    },
+    "health_fitness": {
+      "total": 50,
+      "compiled": 32,
+      "rejected": 18,
+      "schema_valid": 48,
+      "semantic_valid": 50
+    },
+    "shopping_inventory": {
+      "total": 50,
+      "compiled": 19,
+      "rejected": 31,
+      "schema_valid": 50,
+      "semantic_valid": 50
+    },
+    "system_settings_device": {
+      "total": 50,
+      "compiled": 14,
+      "rejected": 36,
+      "schema_valid": 50,
+      "semantic_valid": 50
+    },
+    "communication_messaging": {
+      "total": 50,
+      "compiled": 10,
+      "rejected": 40,
+      "schema_valid": 50,
+      "semantic_valid": 50
+    },
+    "file_data_management": {
+      "total": 50,
+      "compiled": 18,
+      "rejected": 32,
+      "schema_valid": 50,
+      "semantic_valid": 50
+    },
+    "home_automation_iot": {
+      "total": 50,
+      "compiled": 4,
+      "rejected": 46,
+      "schema_valid": 50,
+      "semantic_valid": 50
+    },
+    "media_entertainment": {
+      "total": 50,
+      "compiled": 5,
+      "rejected": 45,
+      "schema_valid": 50,
+      "semantic_valid": 50
+    },
+    "open_web_search_knowledge": {
+      "total": 50,
+      "compiled": 12,
+      "rejected": 38,
+      "schema_valid": 50,
+      "semantic_valid": 50
+    },
+    "math_calculations": {
+      "total": 50,
+      "compiled": 40,
+      "rejected": 10,
+      "schema_valid": 44,
+      "semantic_valid": 49
+    },
+    "creative_brainstorming": {
+      "total": 50,
+      "compiled": 15,
+      "rejected": 35,
+      "schema_valid": 49,
+      "semantic_valid": 50
+    }
+  },
+  "outcome_distribution": {
+    "COMPILED": 225,
+    "UNSUPPORTED_INTENT": 365,
+    "LOW_CONFIDENCE_MAPPING": 10
+  },
+  "deltas_vs_p08": {
+    "blind_coverage": {
+      "p08": 0.142,
+      "p1": 0.375,
+      "delta": 0.233,
+      "delta_pct": "+23.3pp"
+    },
+    "in_scope_coverage": {
+      "p08": 0.34,
+      "p1": 0.41,
+      "delta": 0.06999999999999995
+    },
+    "semantic_validity": {
+      "p08": 1.0,
+      "p1": 0.9983333333333333,
+      "delta": -0.0016666666666667052
+    },
+    "slot_accuracy": {
+      "p08": 0.8121,
+      "p1": 0.04825737265415549,
+      "delta": -0.7638426273458445
+    },
+    "oos_rejection": {
+      "p08": 1.0,
+      "p1": 0.77,
+      "delta": -0.22999999999999998
+    },
+    "primitive_adherence": {
+      "p08": 1.0,
+      "p1": 1.0,
+      "delta": 0.0
+    }
+  },
+  "targets_met": {
+    "blind_coverage >= 35%": true,
+    "in_scope_coverage >= 60%": false,
+    "semantic_validity >= 90%": true,
+    "slot_accuracy >= 90%": false,
+    "oos_rejection >= 95%": false,
+    "shape_diversity <= 0.35": false,
+    "primitive_adherence == 100%": true
+  },
+  "overall_pass": false
+}

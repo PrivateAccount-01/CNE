@@ -1,0 +1,81 @@
+{
+  "split": "val",
+  "total_queries": 172,
+  "schema_validity_rate": 0.9884,
+  "outcome_accuracy": 0.6105,
+  "outcome_distribution": {
+    "COMPILED": 93,
+    "UNSUPPORTED_INTENT": 68,
+    "AMBIGUOUS_INTENT": 0,
+    "LOW_CONFIDENCE_MAPPING": 11,
+    "DECODER_ERROR": 0
+  },
+  "topology_accuracy": 0.3625,
+  "slot_accuracy": 0.2751,
+  "total_slots_evaluated": 338,
+  "correct_slots": 93,
+  "per_topology": {
+    "expense": {
+      "total": 32,
+      "correct": 1,
+      "compiled": 32
+    },
+    "cross_source_join_aggregate": {
+      "total": 4,
+      "correct": 4,
+      "compiled": 4
+    },
+    "troubleshooting": {
+      "total": 12,
+      "correct": 0,
+      "compiled": 12
+    },
+    "recommendation": {
+      "total": 12,
+      "correct": 12,
+      "compiled": 12
+    },
+    "habit_fitness": {
+      "total": 12,
+      "correct": 5,
+      "compiled": 12
+    },
+    "scheduling": {
+      "total": 5,
+      "correct": 4,
+      "compiled": 5
+    },
+    "factual_decision": {
+      "total": 3,
+      "correct": 3,
+      "compiled": 3
+    }
+  },
+  "avg_latency_ms": 9644.94,
+  "outcome_confusion": {
+    "COMPILED": {
+      "COMPILED": 80,
+      "UNSUPPORTED_INTENT": 43,
+      "AMBIGUOUS_INTENT": 0,
+      "LOW_CONFIDENCE_MAPPING": 2
+    },
+    "UNSUPPORTED_INTENT": {
+      "COMPILED": 6,
+      "UNSUPPORTED_INTENT": 16,
+      "AMBIGUOUS_INTENT": 0,
+      "LOW_CONFIDENCE_MAPPING": 0
+    },
+    "AMBIGUOUS_INTENT": {
+      "COMPILED": 7,
+      "UNSUPPORTED_INTENT": 3,
+      "AMBIGUOUS_INTENT": 0,
+      "LOW_CONFIDENCE_MAPPING": 0
+    },
+    "LOW_CONFIDENCE_MAPPING": {
+      "COMPILED": 0,
+      "UNSUPPORTED_INTENT": 6,
+      "AMBIGUOUS_INTENT": 0,
+      "LOW_CONFIDENCE_MAPPING": 9
+    }
+  }
+}
