@@ -1,0 +1,46 @@
+{
+  "id": "agriculture.crop_disease",
+  "version": "1.0.0",
+  "description": "Local computer-vision leaf disease detection and treatment recommendation.",
+  "modalities": ["IMAGE", "TEXT"],
+  "provided_capabilities": [
+    "crop_disease_classification",
+    "leaf_health_diagnosis",
+    "organic_treatment_lookup"
+  ],
+  "required_capabilities": [],
+  "model_dependencies": [
+    {
+      "role": "vision_classifier",
+      "model_kind": "COMPUTER_VISION",
+      "model_id": "mobilenet-v3-crop-disease-quant",
+      "version": "1.0.0",
+      "shared": false,
+      "optional": false
+    }
+  ],
+  "deterministic_tools": [
+    {
+      "tool_id": "agriculture.lookup_treatment",
+      "schema_version": "1.0.0",
+      "entrypoint": "cne.packs.agriculture_cv.classifier:lookup_treatment",
+      "description": "Lookup verified organic treatment guidelines from local knowledge base"
+    }
+  ],
+  "schemas": {
+    "slots": {
+      "crop_name": {"type": "string"},
+      "disease_label": {"type": "string"},
+      "severity": {"type": "string", "enum": ["mild", "moderate", "severe"]}
+    },
+    "contracts": ["DECISION", "STRUCTURED_EXPLANATION"]
+  },
+  "permissions": [
+    "camera",
+    "filesystem:read"
+  ],
+  "network_mode": "OFFLINE",
+  "storage_budget_mb": 40.0,
+  "expected_peak_ram_mb": 90.0,
+  "backend_compatibility": ["CPU"]
+}

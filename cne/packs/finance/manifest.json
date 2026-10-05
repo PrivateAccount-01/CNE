@@ -1,0 +1,54 @@
+{
+  "id": "finance.personal_budget",
+  "version": "1.0.0",
+  "description": "Local personal budget tracking, expense aggregation, and category filtering.",
+  "modalities": ["TEXT", "STRUCTURED"],
+  "provided_capabilities": [
+    "expense_aggregation",
+    "budget_comparison",
+    "category_filtering",
+    "spending_totals"
+  ],
+  "required_capabilities": [],
+  "model_dependencies": [
+    {
+      "role": "semantic_controller",
+      "model_kind": "TEXT_GENERATION",
+      "model_id": "qwen2.5-coder-0.5b-gguf",
+      "version": "1.0.0",
+      "shared": true,
+      "optional": false
+    }
+  ],
+  "deterministic_tools": [
+    {
+      "tool_id": "finance.calc_sum",
+      "schema_version": "1.0.0",
+      "entrypoint": "cne.packs.finance.tools:calculate_total",
+      "description": "Deterministic sum of filtered transaction amounts"
+    },
+    {
+      "tool_id": "finance.filter_transactions",
+      "schema_version": "1.0.0",
+      "entrypoint": "cne.packs.finance.tools:filter_transactions",
+      "description": "Filter transaction records by category, threshold, and date"
+    }
+  ],
+  "schemas": {
+    "slots": {
+      "category": {"type": "string"},
+      "threshold": {"type": "number"},
+      "aggregation": {"type": "string", "enum": ["sum", "avg", "count", "min", "max"]},
+      "account": {"type": "string"}
+    },
+    "contracts": ["EXACT", "APPROXIMATE_NUMERIC"]
+  },
+  "permissions": [
+    "filesystem:read",
+    "financial_data:read"
+  ],
+  "network_mode": "OFFLINE",
+  "storage_budget_mb": 15.0,
+  "expected_peak_ram_mb": 50.0,
+  "backend_compatibility": ["CPU"]
+}

@@ -25,6 +25,9 @@ class SystemVersions:
     policy_version: str = "1.0.0"
     knowledge_version: str = "1.0.0"
     schema_version: str = "1.0.0"
+    capability_vector_hash: str = "core_default"
+    adapter_version: str = "none"
+    tool_schema_hash: str = "none"
 
     @property
     def version_string(self) -> str:
@@ -34,9 +37,16 @@ class SystemVersions:
             self.semantic_compiler_version == "1.0.0" and
             self.policy_version == "1.0.0" and
             self.knowledge_version == "1.0.0" and
-            self.schema_version == "1.0.0"):
+            self.schema_version == "1.0.0" and
+            self.capability_vector_hash == "core_default" and
+            self.adapter_version == "none" and
+            self.tool_schema_hash == "none"):
             return DEFAULT_VERSION_STRING
-        return f"{self.model_version}_{self.tokenizer_version}_{self.runtime_version}_{self.semantic_compiler_version}_{self.policy_version}_{self.knowledge_version}_{self.schema_version}"
+        return (
+            f"{self.model_version}_{self.tokenizer_version}_{self.runtime_version}_"
+            f"{self.semantic_compiler_version}_{self.policy_version}_{self.knowledge_version}_"
+            f"{self.schema_version}_{self.capability_vector_hash}_{self.adapter_version}_{self.tool_schema_hash}"
+        )
 
 
 _DIGEST_CACHE: Dict[int, Tuple[int, str]] = {}

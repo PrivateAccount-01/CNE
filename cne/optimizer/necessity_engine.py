@@ -20,7 +20,7 @@ from cne.planner.physical_planner import PhysicalPlan, PhysicalPlanner
 from cne.semantic_ir.evaluator import ExecutionContext, SemanticEvaluator
 from cne.semantic_ir.nodes import IRNode, OpKind, SemanticIRGraph
 from cne.signature.cost_class import CostClass
-from cne.signature.memo_key import MemoKey
+from cne.signature.memo_key import MemoKey, SystemVersions
 from cne.signature.shape_key import SemanticShapeKey
 from cne.state.fabric import LocalStateFabric
 from cne.state.state_entry import StateClass
@@ -58,7 +58,8 @@ class ComputationNecessityEngine:
         contract: OutcomeContract,
         env: Dict[str, Any],
         query_id: str = "query_0",
-        baseline_cost_hint_ns: float = 0.0
+        baseline_cost_hint_ns: float = 0.0,
+        versions: Optional[SystemVersions] = None
     ) -> CNEExecutionResult:
         timer_control = PrecisionTimer()
         timer_exec = PrecisionTimer()
@@ -83,7 +84,7 @@ class ComputationNecessityEngine:
             graph._cached_execution_policy = policy
 
         # 1. Signature generation: collect input data for all observed sources and embed contract
-        memo_k = MemoKey.from_graph(graph, env=env, contract=contract)
+        memo_k = MemoKey.from_graph(graph, env=env, contract=contract, versions=versions)
 
         # 2. State Fabric Lookup - strictly gated by execution policy cacheability
         cached_entry = None

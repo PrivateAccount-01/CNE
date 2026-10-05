@@ -1,0 +1,47 @@
+{
+  "id": "travel.itinerary_planner",
+  "version": "1.0.0",
+  "description": "Local itinerary planning with optional live data and explicit freshness limitations.",
+  "modalities": ["TEXT"],
+  "provided_capabilities": [
+    "itinerary_scheduling",
+    "route_optimization",
+    "travel_time_budgeting"
+  ],
+  "required_capabilities": [],
+  "model_dependencies": [
+    {
+      "role": "semantic_controller",
+      "model_kind": "TEXT_GENERATION",
+      "model_id": "qwen2.5-coder-0.5b-gguf",
+      "version": "1.0.0",
+      "shared": true,
+      "optional": false
+    }
+  ],
+  "deterministic_tools": [
+    {
+      "tool_id": "travel.build_schedule",
+      "schema_version": "1.0.0",
+      "entrypoint": "cne.packs.travel.planner:build_day_schedule",
+      "description": "Deterministic sequencing of attractions and transit time"
+    }
+  ],
+  "schemas": {
+    "slots": {
+      "destination": {"type": "string"},
+      "days": {"type": "integer"},
+      "pace": {"type": "string", "enum": ["relaxed", "moderate", "fast"]}
+    },
+    "contracts": ["STRUCTURED_EXPLANATION", "SET_VALUED"]
+  },
+  "permissions": [
+    "network:http",
+    "calendar:read",
+    "calendar:write"
+  ],
+  "network_mode": "LOCAL_COMPUTE_NETWORK_DATA",
+  "storage_budget_mb": 20.0,
+  "expected_peak_ram_mb": 60.0,
+  "backend_compatibility": ["CPU"]
+}
