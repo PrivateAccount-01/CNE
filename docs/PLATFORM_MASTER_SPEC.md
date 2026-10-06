@@ -1,5 +1,19 @@
 # CNE Local-First AI Capability Platform — Master Specification
 
+## Current implementation evidence (2026-10-06)
+
+Status: PARTIAL platform hardening; this document's architecture is a target, not completion evidence.
+
+IMPLEMENTED: registry-scoped declared-grammar controller, explicit DAG/region DSL, scoped SQLite sessions/corrections/experiences, deterministic finance and composed-source CNE execution. The controller has no calibrated confidence and does not claim general language coverage. Correction retrieval supplies context but the declared grammar does not learn from it.
+
+IMPLEMENTED: durable package lifecycle and grants, Ed25519 signatures, verified archive staging, HTTP JSON connectors, restricted workers, supervised Llama-family LoRA export and live adapter activation/recovery. Resource accounting cannot guarantee process peak memory. Capability resolver optional scoring interface is IMPLEMENTED; no scoring model has been installed or evaluated.
+
+STUB: agriculture CV (the explicitly allowed stub option). EXCLUDED: RL and Android deployment/performance claims. HARDWARE_NOT_MEASURED: Android latency, PSS, thermal behavior and battery. Real llama-cpp-python CPU GGUF inference is validated locally; broad controller quality and the multi-model tournament remain unevaluated. Runtime controller protocol tests use an isolated test boundary and establish no model quality. No controller replacement or tournament victory is claimed.
+
+See [hardening audit](PLATFORM_HARDENING_AUDIT.md) and `cne/artifacts/platform_hardening_report.json` for measured evidence.
+
+---
+
 ## 1. Architectural Mission & Scope
 
 The CNE Platform evolves the Computation Necessity Engine into a **hardware-agnostic, accelerator-optional, local-first AI capability platform**. The platform coordinates heterogeneous AI models, deterministic tools, local data connectors, and formal execution plans on commodity edge devices.
@@ -84,11 +98,11 @@ The CNE Platform evolves the Computation Necessity Engine into a **hardware-agno
 - Replaces unconstrained, high-token JSON generation with a terse, grammar-constrained domain-specific language.
 - Format:
   ```text
-  OBS source=transactions category=food
-  FIL threshold=100.0 op=gt
-  MAP field=amount
-  RED op=sum
-  EMIT label=total_food_spending
+  tx = OBS source=transactions
+  food = FIL in=tx field=category op=eq val=food
+  amounts = MAP in=food field=amount
+  total = RED in=amounts reducer=sum
+  result = EMI in=total
   ```
 - Deterministic compiler verifies graph acyclicity, enforces single `Emit` sink, binds typed slots from capability schemas, and normalizes numbers/dates/units deterministically.
 

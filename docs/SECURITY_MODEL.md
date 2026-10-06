@@ -1,5 +1,17 @@
 # CNE Security & Permission Model
 
+## Current implementation evidence (2026-10-06)
+
+Implementation status: durable application guards and restricted Linux workers IMPLEMENTED. Windows uses a WSL Ubuntu transport to the same bubblewrap worker; unsupported hosts fail closed.
+
+Manifest permissions are requested, not granted. Authority grants bind exact user/resource scope and expire. Registration, enable and rollback validate package/dependency prerequisites. PermissionBroker checks grants before reading files and restricts resolved paths to host-configured capability/user roots. Offline network authorization fails even after a grant. Executor rechecks permissions before cached execution and tool dispatch. IdentityAuthority persists hashed expiring bearer tokens; a trusted login service issues them and execute_authenticated resolves the owner. Host login authentication must precede token issuance; callers must never accept a user/pack identity from untrusted tool arguments.
+
+Adversarial tests attempt Bob-to-Alice session/correction/experience access, cross-pack private-store access, undeclared/ungranted file/network access, root escape and corrupt package/model hashes. Production signature verification fails closed unless configured with a trusted signature verifier. Ed25519TrustStore persists domain-bound public keys and revocations, signs canonical manifests and verifies installed packages. Enterprise key distribution is outside this local service.
+
+Only host-configured first-party IDs run tools in process. Other installed tools run in a bubblewrap process with a read-only package mount, private network namespace, cleared environment and bounded resources/output. A real Windows-to-WSL probe denied host-file and network access. Android permission integration remains unimplemented. Filesystem checks retain host filesystem race semantics; the probe is not a complete sandbox security audit.
+
+---
+
 ## 1. Principles of Security
 
 1. **Default Deny:** Capabilities have zero access to device resources, hardware sensors, local storage, or network sockets by default.

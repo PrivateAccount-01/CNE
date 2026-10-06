@@ -1,0 +1,93 @@
+{
+  "status": "PASSED",
+  "scope": "Single CPU smoke observations, not quality evaluation or latency distributions",
+  "model": {
+    "model_id": "smollm2-135m",
+    "kind": "TEXT_GENERATION",
+    "version": "09816acd5d99df7be770d85ea30822623dab342c",
+    "parameter_count_m": 135,
+    "quantization": "Q4_K_M",
+    "format": "GGUF",
+    "file_size_mb": 0.0,
+    "estimated_ram_mb": 300,
+    "preferred_backend": "CPU",
+    "context_window": 256,
+    "asset_path": "C:\\Users\\Paril Rupani\\OneDrive - Shri Vile Parle Kelavani Mandal\\Desktop\\project\\CNE\\.dist\\models\\SmolLM2-135M-Instruct-Q4_K_M.gguf"
+  },
+  "model_provenance": {
+    "repository": "bartowski/SmolLM2-135M-Instruct-GGUF",
+    "revision": "09816acd5d99df7be770d85ea30822623dab342c",
+    "file": "SmolLM2-135M-Instruct-Q4_K_M.gguf",
+    "sha256": "2e8040ceae7815abe0dcb3540b9995eaa1fa0d2ca9e797d0a635ae4433c68c2d",
+    "bytes": 105454432,
+    "license": "apache-2.0"
+  },
+  "residency_snapshot": {
+    "smollm2-135m": {
+      "state": "RESIDENT",
+      "estimated_ram_mb": 300,
+      "measured_ram_mb": 63.484375,
+      "load_latency_ms": 394.5778999477625,
+      "last_access": 1791264157.9084158,
+      "access_count": 1,
+      "owners": [
+        "development"
+      ]
+    }
+  },
+  "inference": [
+    {
+      "request_id": "cold",
+      "model_id": "smollm2-135m",
+      "outputs": " yes.\n\nThe reason is that the number of people",
+      "latency_ms": 161.8004001211375,
+      "tokens_generated": 12,
+      "confidence_score": null,
+      "backend_used": "CPU",
+      "metadata": {
+        "backend_identity": "llama-cpp-python/CPU",
+        "ttft_ms": 64.76530013605952,
+        "tokens_per_second": 74.16545318191909,
+        "token_count_provenance": "generated token IDs",
+        "adapter_dependencies": [],
+        "cache_scope": "development"
+      }
+    },
+    {
+      "request_id": "warm",
+      "model_id": "smollm2-135m",
+      "outputs": " yes.\n\nThe reason is that the number of people",
+      "latency_ms": 141.00099983625114,
+      "tokens_generated": 12,
+      "confidence_score": null,
+      "backend_used": "CPU",
+      "metadata": {
+        "backend_identity": "llama-cpp-python/CPU",
+        "ttft_ms": 28.893599985167384,
+        "tokens_per_second": 85.10577949047152,
+        "token_count_provenance": "generated token IDs",
+        "adapter_dependencies": [],
+        "cache_scope": "other-user"
+      }
+    },
+    {
+      "request_id": "reload",
+      "model_id": "smollm2-135m",
+      "outputs": " yes.\n\nThe reason is that the number of people",
+      "latency_ms": 239.72309986129403,
+      "tokens_generated": 12,
+      "confidence_score": null,
+      "backend_used": "CPU",
+      "metadata": {
+        "backend_identity": "llama-cpp-python/CPU",
+        "ttft_ms": 135.489699896425,
+        "tokens_per_second": 50.05775416279578,
+        "token_count_provenance": "generated token IDs",
+        "adapter_dependencies": [],
+        "cache_scope": "development"
+      }
+    }
+  ],
+  "unload_verified": true,
+  "cross_user_reset_verified": true
+}

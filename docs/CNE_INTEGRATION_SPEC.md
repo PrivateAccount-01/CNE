@@ -1,5 +1,19 @@
 # CNE Core Integration Specification
 
+## Current implementation evidence (2026-10-06)
+
+Implementation status: IMPLEMENTED for declared deterministic grammar paths; PARTIAL for general model orchestration.
+
+PlatformExecutor performs scoped session access, installed-capability resolution and permission checks, correction retrieval, controller decision, typed slot binding, explicit DSL compilation, CNE execution/verification, SQLite experience persistence, telemetry and audit. Tests assert actual finance results and a two-capability orders/inventory join. These are desktop integration tests, not Android P13 validation.
+
+ExecutionSemanticVersionVector contains selected capabilities and projected manifest hashes, used tools, explicit model/adapter/knowledge versions, compiler and policy versions. The execution projection excludes unused tool declarations; the full package manifest is separately integrity-verified. Updating unrelated packs or unused tool schemas preserves identity. Version lists must name actual participants; RuntimeSemanticController propagates the executed model ID/version; real GGUF runtime inference is smoke-tested; controller semantic quality remains unevaluated. The global enabled-pack hash is a legacy diagnostic, not used by PlatformExecutor.
+
+Invariant: every data mutation goes through MutationAuthority or declared tool mutation_sources and calls LocalStateFabric.notify_data_mutation(), including partially failing mutations. Freshness records must be checked before each CNE cache lookup. ExternalDataCache provides scoped TTL checking; no network connector currently populates it.
+
+One narrow core correctness fix clears per-iteration region values, including nested regions, so Iterate recomputes against the current item. Core contracts, optimizer, planner, cost gate, signatures and verification authority remain unchanged. The controller mode environment switch described below is a design target, not an implemented selector.
+
+---
+
 ## 1. Integration Boundary & Principles
 
 CNE (`ComputationNecessityEngine`) remains the authoritative execution and necessity engine of the platform. The platform layers (Device Abstraction, Capability Packs, DSL Controller, Memory Layers) sit **upstream** and **downstream** of CNE without bypassing or mutating CNE's internal verification pipeline.
@@ -92,3 +106,5 @@ A system configuration flag (`CNE_CONTROLLER_MODE`) allows selecting:
 - `"platform_controller"`: Uses `PlatformSemanticController` (new modular architecture)
 
 Existing tests and benchmark scripts can run against either controller seamlessly.
+
+External-data capabilities can declare `schemas.external_sources`. PlatformExecutor then requires fresh ExternalDataRecords for those observed sources, binds their values, and invalidates CNE state when their version/value fingerprints change. HTTPJSONConnector provides permission-checked real fetches and durable user-scoped cached records. A production travel/weather provider must still supply its host allowlist and endpoint; lack of a provider remains NO_DATA.

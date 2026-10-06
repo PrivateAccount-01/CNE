@@ -1,5 +1,11 @@
 # Android CPU Reference Baseline & Device Validation
 
+## Current implementation evidence (2026-10-06)
+
+Implementation status: NOT_IMPLEMENTED Android deployment; HARDWARE_NOT_MEASURED for all Android resource/performance claims. The profile and test battery below are targets only. Desktop Python tests do not demonstrate Android P13 readiness.
+
+---
+
 ## 1. Reference Device Profile
 
 - **Target OS:** Android 13+ (API level 33+)

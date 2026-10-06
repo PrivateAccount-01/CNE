@@ -230,6 +230,23 @@ class SemanticEvaluator:
                 for item in items:
                     ctx.environment["_loop_item"] = item
                     ctx.environment["_loop_acc"] = acc
+                    # Region values depend on the current loop item/accumulator.
+                    # Clear nested control regions as well, preserving outer inputs.
+                    pending = [reg]
+                    cleared_regions = set()
+                    while pending:
+                        current = pending.pop()
+                        if current.id in cleared_regions:
+                            continue
+                        cleared_regions.add(current.id)
+                        for region_node in current.nodes.values():
+                            ctx.values.pop(region_node.id, None)
+                            for attr in ("then_region", "else_region", "step_region"):
+                                nested = region_node.attributes.get(attr)
+                                if isinstance(nested, SemanticRegion):
+                                    pending.append(nested)
+                                elif isinstance(nested, str) and nested in graph.regions:
+                                    pending.append(graph.regions[nested])
                     acc = self._evaluate_region(reg, graph, ctx)
                     if stop_condition and stop_condition(acc):
                         break

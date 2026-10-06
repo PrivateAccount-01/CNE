@@ -2,7 +2,10 @@
   "id": "finance.personal_budget",
   "version": "1.0.0",
   "description": "Local personal budget tracking, expense aggregation, and category filtering.",
-  "modalities": ["TEXT", "STRUCTURED"],
+  "modalities": [
+    "TEXT",
+    "STRUCTURED"
+  ],
   "provided_capabilities": [
     "expense_aggregation",
     "budget_comparison",
@@ -17,7 +20,7 @@
       "model_id": "qwen2.5-coder-0.5b-gguf",
       "version": "1.0.0",
       "shared": true,
-      "optional": false
+      "optional": true
     }
   ],
   "deterministic_tools": [
@@ -36,12 +39,59 @@
   ],
   "schemas": {
     "slots": {
-      "category": {"type": "string"},
-      "threshold": {"type": "number"},
-      "aggregation": {"type": "string", "enum": ["sum", "avg", "count", "min", "max"]},
-      "account": {"type": "string"}
+      "category": {
+        "type": "string"
+      },
+      "threshold": {
+        "type": "number"
+      },
+      "aggregation": {
+        "type": "string",
+        "enum": [
+          "sum",
+          "avg",
+          "count",
+          "min",
+          "max"
+        ]
+      },
+      "account": {
+        "type": "string"
+      }
     },
-    "contracts": ["EXACT", "APPROXIMATE_NUMERIC"]
+    "contracts": [
+      "EXACT",
+      "APPROXIMATE_NUMERIC"
+    ],
+    "ontology": [
+      "spending",
+      "budget",
+      "transactions"
+    ],
+    "intents": [
+      {
+        "intent": "expense_total",
+        "pattern": "Calculate total spending on (?P<category>[A-Za-z]+) over (?P<threshold>\\d+(?:\\.\\d+)?) dollars",
+        "slots": {
+          "category": {
+            "type": "string",
+            "required": true
+          },
+          "threshold": {
+            "type": "number",
+            "required": true,
+            "minimum": 0
+          }
+        },
+        "dsl": "tx = OBS source=transactions\nfood = FIL in=tx field=category op=eq val=${category}\nfiltered = FIL in=food field=amount op=gt val=${threshold}\namounts = MAP in=filtered field=amount\ntotal = RED in=amounts reducer=sum\nresult = EMI in=total"
+      }
+    ],
+    "source_validators": {
+      "transactions": "cne.packs.finance.tools:validate_transactions"
+    },
+    "sources": [
+      "transactions"
+    ]
   },
   "permissions": [
     "filesystem:read",
@@ -50,5 +100,7 @@
   "network_mode": "OFFLINE",
   "storage_budget_mb": 15.0,
   "expected_peak_ram_mb": 50.0,
-  "backend_compatibility": ["CPU"]
+  "backend_compatibility": [
+    "CPU"
+  ]
 }

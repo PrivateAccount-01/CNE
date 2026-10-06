@@ -1,0 +1,11 @@
+{
+  "status": "PASSED",
+  "platform": "Windows host -> WSL Ubuntu/Linux bubblewrap",
+  "result": {
+    "blocked": [
+      "host_files",
+      "network"
+    ],
+    "value": 42
+  }
+}

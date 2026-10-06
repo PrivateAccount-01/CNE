@@ -9,7 +9,14 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from cne.platform.memory import AuditStatus, CorrectionRecord, CorrectionStore, ExperienceRecord
+from cne.platform.memory import (
+    AuditStatus,
+    CorrectionRecord,
+    CorrectionStore,
+    ExperienceRecord,
+)
+from cne.platform.memory import RedactionPolicy, request_fingerprint
+import uuid
 
 
 class ErrorType(str, Enum):
@@ -39,7 +46,7 @@ class AuditSignal:
     signal_type: str  # e.g., 'user_correction', 'contract_failure', 'tool_exception'
     description: str
     error_type: ErrorType
-    confidence: float = 1.0
+    confidence: Optional[float] = None
     evidence: Dict[str, Any] = field(default_factory=dict)
     timestamp: float = field(default_factory=time.time)
 
@@ -57,7 +64,7 @@ class SessionAuditReport:
 class ErrorAuditor:
     """
     Subsystem analyzing execution trajectories, user feedback, and verifier signals
-    to classify failures and generate verified correction records (L4).
+    to classify failures and generate unverified correction candidates (L4).
     """
 
     def __init__(self, correction_store: Optional[CorrectionStore] = None):
@@ -71,7 +78,8 @@ class ErrorAuditor:
         contract_satisfied: bool,
         user_feedback: Optional[str] = None,
         tool_exception: Optional[Exception] = None,
-        verifier_error: Optional[str] = None
+        verifier_error: Optional[str] = None,
+        user_id: str = "default_user",
     ) -> Optional[AuditSignal]:
         """Classify signals from a turn into an AuditSignal."""
         if tool_exception is not None:
@@ -79,7 +87,7 @@ class ErrorAuditor:
                 signal_type="tool_exception",
                 description=str(tool_exception),
                 error_type=ErrorType.TOOL_ARGUMENT_ERROR,
-                evidence={"exception": str(tool_exception)}
+                evidence={"exception": str(tool_exception)},
             )
 
         if not contract_satisfied or verifier_error:
@@ -87,7 +95,7 @@ class ErrorAuditor:
                 signal_type="contract_failure",
                 description=verifier_error or "Outcome Contract violated",
                 error_type=ErrorType.CONTRACT_FAILURE,
-                evidence={"verifier_error": verifier_error}
+                evidence={"verifier_error": verifier_error},
             )
 
         if user_feedback:
@@ -95,22 +103,25 @@ class ErrorAuditor:
             signal = AuditSignal(
                 signal_type="user_correction",
                 description=user_feedback,
-                error_type=ErrorType.SLOT_ERROR if "amount" in user_feedback or "category" in user_feedback else ErrorType.INTENT_ERROR,
-                evidence={"feedback": user_feedback}
+                error_type=ErrorType.SLOT_ERROR
+                if "amount" in user_feedback or "category" in user_feedback
+                else ErrorType.INTENT_ERROR,
+                evidence={"feedback": user_feedback},
             )
-            # Create a verified correction record
+            # Feedback is evidence of disagreement, not independent verification.
             rec = CorrectionRecord(
-                record_id=f"corr_{int(time.time()*1000)}",
-                request_fingerprint=f"fp_{abs(hash(query_text))}",
-                query_redacted=query_text,
+                record_id=f"corr_{uuid.uuid4().hex}",
+                request_fingerprint=request_fingerprint(query_text, [capability_id]),
+                query_redacted=RedactionPolicy().redact(query_text),
                 capability_id=capability_id,
                 model_version="current",
                 controller_version="platform_v1",
                 error_type=signal.error_type.value,
                 incorrect_decision="model_output",
-                verified_correction=user_feedback,
-                user_feedback=user_feedback,
-                audit_status=AuditStatus.VERIFIED
+                verified_correction=RedactionPolicy().redact(user_feedback),
+                user_feedback=RedactionPolicy().redact(user_feedback),
+                audit_status=AuditStatus.UNVERIFIED,
+                user_id=user_id,
             )
             self.correction_store.add_correction(rec)
             return signal
@@ -118,10 +129,7 @@ class ErrorAuditor:
         return None
 
     def generate_session_report(
-        self,
-        session_id: str,
-        signals: List[AuditSignal],
-        total_turns: int
+        self, session_id: str, signals: List[AuditSignal], total_turns: int
     ) -> SessionAuditReport:
         has_errs = len(signals) > 0
         return SessionAuditReport(
@@ -129,5 +137,7 @@ class ErrorAuditor:
             total_turns=total_turns,
             signals=signals,
             has_errors=has_errs,
-            generated_corrections=[s.description for s in signals if s.signal_type == "user_correction"]
+            generated_corrections=[
+                s.description for s in signals if s.signal_type == "user_correction"
+            ],
         )

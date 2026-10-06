@@ -1,0 +1,196 @@
+{
+  "schema_version": "platform-hardening-report-2",
+  "generated_at": "2026-10-06T05:33:01.092886+00:00",
+  "git_sha": "b5fd5b3765131a6387662f8d8e3a6a240624afc4",
+  "working_tree_modified": true,
+  "hardening_phase_complete": false,
+  "implementation_status": "Remaining local platform services implemented and integration-tested; hardware/quality gates remain explicit",
+  "baseline": {
+    "git_sha": "b5fd5b3765131a6387662f8d8e3a6a240624afc4",
+    "tests": 283,
+    "passed": 283,
+    "failed": 0,
+    "artifact": "platform_hardening_baseline.xml"
+  },
+  "test_count": 350,
+  "passed_tests": 350,
+  "failed_tests": 0,
+  "skipped_tests": 0,
+  "failure_ids": [],
+  "skip_details": [],
+  "test_artifact": "platform_hardening_tests.xml",
+  "test_command": "Full pytest suite with real GGUF configured; latest platform suite rerun after integration changes; timing recheck where recorded",
+  "preserved_core_tests": {
+    "count": 253,
+    "all_passed": true
+  },
+  "real_integrations": [
+    "SQLite session, correction and experience repositories with owner checks and restart tests",
+    "Natural-language declared finance grammar through CNE, verifier, persistence, telemetry and audit",
+    "Composed orders/inventory query through CNE Join with two selected capabilities and permissions",
+    "LocalStateFabric reuse and mutation invalidation, with separate user engines",
+    "Strict deterministic finance transaction validation and arithmetic",
+    "Transactional SQLite adapter metadata/evaluation artifact activation and rollback",
+    "Process RSS measurement and optional actual PSS through psutil",
+    "Durable SQLite registry, grants, Ed25519 trust/revocation and hashed bearer identities",
+    "Verified bounded package extraction and content-addressed activation",
+    "Windows host to WSL Ubuntu bubblewrap tool worker: denied host files and network",
+    "Real allowlisted HTTP JSON GET with durable owner-scoped TTL cache",
+    "External records bind observed sources and invalidate CNE on value/version changes",
+    "Automatic L2 declared-grammar plan reuse with fresh slot binding and user isolation",
+    "Real SmolLM2-135M Q4_K_M CPU inference, residency load/eviction/reload and KV scope reset",
+    "Two actual supervised LoRA updates on one public development example; frozen base unchanged",
+    "Real GGUF adapter export, runtime attachment and generated-token inference",
+    "Artifact-gated adapter staging/restart recovery and evaluated regression rollback (boundary tests)",
+    "Private-safe declined/failed request experience persistence and audit/telemetry",
+    "Actual native adapter activation commit failure preserves prior model; base restoration runs inference without adapter dependencies"
+  ],
+  "implemented_but_not_tested_with_real_dependency": [
+    "RuntimeSemanticController end-to-end model semantic quality",
+    "Multi-model controller tournament and independent broad quality datasets"
+  ],
+  "unimplemented_components": [
+    "Agriculture production CV model and sourced treatment database (explicitly permitted STUB alternative)",
+    "Reinforcement learning (explicitly excluded)",
+    "Android deployment and hardware lifecycle validation (outside this hardening scope)",
+    "Enterprise login integration and publisher key distribution; local bearer/trust services are implemented"
+  ],
+  "stub_components": [
+    "agriculture.crop_disease classifier: explicit STUB raising NOT_IMPLEMENTED"
+  ],
+  "benchmark_metric_provenance": {
+    "routing_intent_oos_ambiguity_slots": "Independent expected labels; numerators/denominators. Callback unit tests are not model-quality evidence.",
+    "dsl_validity": "Deterministic typed compiler validation",
+    "semantic_contract_post_execution": "Independent executable case oracles required; missing oracle reports NOT_MEASURED",
+    "latency": "perf_counter callback interval including sampler overhead",
+    "TTFT": "Actual first generated token timestamps in real_runtime_validation.json; smoke observations only",
+    "token_count": "Actual generated token IDs from runtime only",
+    "tokens_per_second": "Runtime token count divided by actual runtime inference duration",
+    "peak_memory": "Sampled process RSS/PSS at 5 ms where supported; not isolated model memory or guaranteed instantaneous peak",
+    "model_size": "Filesystem stat of actual asset, never descriptor estimate",
+    "zero_sample_metrics": "NOT_APPLICABLE",
+    "real_model_quality": "NOT_EVALUATED; training/inference smoke is not quality evidence",
+    "selected_controller": null
+  },
+  "hardware_measurements": {
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.12.3",
+    "desktop_report_process_snapshot": {
+      "available_ram_mb": 1716.9765625,
+      "used_ram_mb": 14351.7265625,
+      "process_rss_mb": 27.32,
+      "process_pss_mb": null,
+      "cpu_percent": 15.6,
+      "battery_percent": 57,
+      "is_charging": false,
+      "is_thermal_throttled": null,
+      "storage_free_mb": 177815.23,
+      "thermal_state": "UNKNOWN"
+    },
+    "snapshot_provenance": "Instantaneous report-generation Python process; not model memory, peak memory or test-process memory",
+    "android": "HARDWARE_NOT_MEASURED",
+    "llama_cpp_installed": true,
+    "gguf_assets_in_repository": [],
+    "runtime_install_scope": "Project-local .dist/platform-runtime; not bundled",
+    "local_model_provenance": {
+      "repository": "bartowski/SmolLM2-135M-Instruct-GGUF",
+      "revision": "09816acd5d99df7be770d85ea30822623dab342c",
+      "file": "SmolLM2-135M-Instruct-Q4_K_M.gguf",
+      "sha256": "2e8040ceae7815abe0dcb3540b9995eaa1fa0d2ca9e797d0a635ae4433c68c2d",
+      "bytes": 105454432,
+      "license": "apache-2.0"
+    },
+    "runtime_observations": "real_runtime_validation.json (load RSS delta, load latency, three actual inference samples; not peak or distribution claims)"
+  },
+  "NOT_MEASURED": [
+    "real model peak RSS/PSS",
+    "Android thermal state",
+    "Android CPU latency",
+    "Android battery usage",
+    "warm/reload model distributions",
+    "controller calibration",
+    "600-query replacement comparison"
+  ],
+  "known_limitations": [
+    "General language quality is unevaluated; declared full-match grammars remain the default controller.",
+    "Frozen G6/G7 timing thresholds are preserved; initial full-suite failures and successful isolated rechecks are both retained in test artifacts.",
+    "First-party in-process tools are trusted. Restricted workers need Linux bubblewrap or Windows WSL Ubuntu; probes are not a comprehensive sandbox audit.",
+    "Registry lifecycle assumes a single host writer; use explicit database paths for durability.",
+    "Dependencies support exact versions; semver ranges are unsupported.",
+    "RSS load deltas and sampled process peaks do not guarantee OOM prevention or isolate model allocations.",
+    "Native inference timeout is cooperative between tokens.",
+    "Supervised trainer supports Llama-family down_proj LoRA only; its one-example smoke establishes execution, not learning quality.",
+    "Replay admission and evaluator callbacks require a trusted host and independent gold datasets. Replay storage is in-memory.",
+    "Host scheduling invokes active-adapter regression evaluation; scalar telemetry does not approve deployment.",
+    "Adapters target a host-defined model ID; hosts must use immutable model identities when replacing base assets.",
+    "Pattern redaction is not universal PII detection; raw query/slots and arbitrary exception strings are excluded from persisted experiences.",
+    "HTTP connectors require configured allowed endpoints; no production travel/weather provider is configured.",
+    "External-source provenance is required for schemas.external_sources; other env inputs remain trusted host inputs.",
+    "No Android or multi-model controller performance/quality claims are made."
+  ],
+  "blind_corpus": {
+    "path": "cne/artifacts/p1_dataset/test_heldout_blind.jsonl",
+    "unchanged": true,
+    "normalized_sha256": "90bad5884125af7971318a8243be35e172679e73a86cbe5f2fbd0abf148f31ce",
+    "used_for_training": false,
+    "replacement_evaluation": "NOT_TESTED"
+  },
+  "source_sha256": {
+    "cne/platform/__init__.py": "15d0c8c8e6e82b7a27de14c9ca84b1daf56e29f8c5d6d73a044406719fead3bc",
+    "cne/platform/adapters.py": "5be5a02ab5c677924eb89427849b86565f82a9a3e246bec3710163141f7be6d6",
+    "cne/platform/auditor.py": "2666fd59bf8f8505eb338e1335b3256be09249b98b119de1c5973393c907d7be",
+    "cne/platform/benchmark.py": "c9247200f444869dcd2ed621841a697ddc3c65fa3cbea582d9b99d08569e2613",
+    "cne/platform/bridge.py": "06fe07cd524ad44ce9dfe3d6fd33ec7f1a982e59262109f67cb1a8fab0bb140e",
+    "cne/platform/device.py": "b4d0dff30606b4f7c4555c133e3a48f4ed600814f316cbdef845c00e2f0730c1",
+    "cne/platform/dsl.py": "d8ce9c8f53f1b6f8ce20a2c5bcd6d6dca09258bcf9cb8a3f7862c78f9344bbc8",
+    "cne/platform/execution.py": "d94d6566f32ee6ec536dd9461d5462b06693688739c51c7704e038d7742452d5",
+    "cne/platform/external_data.py": "8414e683471696a191a2da0a49f320838fc677aa474ef3fd7f63e6d3b7a0f1d2",
+    "cne/platform/learning.py": "49b047ff4128926f9c18d0f04d7ff6a039db98cba11a71143830f2a74de6f46e",
+    "cne/platform/manifest.py": "7a24298d7f69a3f9d9d9e2008b7625a0857278cc97cab808a3d52b359a06b913",
+    "cne/platform/memory.py": "31035c6cca9ed5bf9cdcf2be18a3d7e28fcf845626614232e38e4844cfed6bfc",
+    "cne/platform/models.py": "b082435320852979d31c529af403a379fbb15d5fda7bf676ecc4bf8c763a0a00",
+    "cne/platform/packages.py": "285e448faa9422ed2ff8cdaf383798c661c7b94a3115c84d376e5907c8ec8429",
+    "cne/platform/registry.py": "56b0f6db9c2c6dd9780443e7de9af010898eaa72aa556b42126ff7e4135d5a3c",
+    "cne/platform/sandbox.py": "5cc16592b2213a73ac1e42c7d3dfcd5ca4c98a4db438ba5de5f74d3e02adfdb3",
+    "cne/platform/security.py": "48140c227404a5217815a94765606378536579dde3bd6f4a47d60f7b201f38fe",
+    "cne/platform/slots.py": "3dd00b5a46202c26bbceb1fee3a48e9854e031b16d23bf7c18d9e85bf014ecc0",
+    "cne/platform/telemetry.py": "189ca201f500395b176512cfbc39a2449444ff7b8ad047fd82e20d40aab0f0c4",
+    "cne/platform/tournament.py": "9616e9ffd2c92190086bd2c32b3507d913f14e7d868158bc07b19daa2725e99e",
+    "cne/platform/training.py": "0d26525c3a2014e8688f6efd0de133fedf717b9f4b74d9819cb75994b6e4247f",
+    "cne/platform/validation.py": "0233eea3db4a57c823bbf3f8b1d3d4be71886822b53986c83e165aae452839fa",
+    "cne/platform/versions.py": "4b7d59bc6ad1a41a643b2a6e50c93632a7a5bbe87108dda82173f8f27ab73c67",
+    "cne/packs/__init__.py": "e62f6fa576d6b11a8f61751cc3cb79c2cd8a9321b1687c6f392bab765dff25a9",
+    "cne/packs/agriculture_cv/classifier.py": "79d13c48b6efe0bbc6a5c54d5ebc125acf72a0607fbda8f30de9888cde3d360e",
+    "cne/packs/agriculture_cv/manifest.json": "fe8c52f1c07beec7819c5bdeb5aa443e99dec55e2b51db266574b1661e3b5da6",
+    "cne/packs/finance/manifest.json": "4c5d04a5bdf5315a8c14c802d38b22cc7815e3b3d0c23627be0248296a7efa4a",
+    "cne/packs/finance/tools.py": "53150537de3427f471c6407504d0434259ab6788a57433617f0573773e99d751",
+    "cne/packs/travel/manifest.json": "1330fa9bf45376671f0b2628d35c6f3b80d0269e8bf0e26aedfc2f58509ab7da",
+    "cne/packs/travel/planner.py": "cb4967b2a7ff7a992bf874a2e785fe02e94a18f3702a2db75c554544bdfcffdd",
+    "cne/tests/platform/test_adversarial_cache_and_security.py": "fec72fa9649cd9ce11bac933e746f05be79cbb5dbe08a1b0d067ed084584ce9a",
+    "cne/tests/platform/test_core_platform.py": "8c120bf6c212b0145bd5bda0b9979873ff42caae147a30269c83df1900527056",
+    "cne/tests/platform/test_dsl_cne_integration.py": "55e481eec1da4a538ac3e4c7c27cf934820d400887e8e627084cf410f99a186c",
+    "cne/tests/platform/test_nl_cne_end_to_end.py": "0e999fe123508316010566c3e84ce6626f9ff8c0eec75a575fc7a5f115922956",
+    "cne/tests/platform/test_reference_packs_and_auditor.py": "9927bc17c5b644bfbd5ca9fb1e04da08aacb85ac4c8666bbded9fc6dc24a3778",
+    "cne/tests/platform/test_remaining_components.py": "43ac703b3fd1095afb22303a53b7d44bebffc6a2a94f2a5ce9dac7d4cbd2d56a",
+    "cne/semantic_ir/evaluator.py": "aa3d8c59cf74719850313e17b42cf59bfeab65453ef22763248f2ba14a20da25"
+  },
+  "test_artifacts": [
+    "platform_hardening_tests.xml",
+    "platform_components_tests.xml",
+    "platform_timing_recheck.xml"
+  ],
+  "full_suite_attempt": {
+    "test_count": 347,
+    "failures": [
+      "cne.tests.gate.test_all_gates.test_gate_g6_thresholds",
+      "cne.tests.gate.test_all_gates.test_gate_g7_envelope"
+    ]
+  },
+  "validation_artifacts": [
+    "real_runtime_validation.json",
+    "adapter_training_validation.json",
+    "sandbox_validation.json"
+  ],
+  "test_result_aggregation": "Latest result per test across the initial full suite, final 97-test platform rerun and isolated G6/G7 rerun; not a single all-green full-suite invocation.",
+  "reproduction_command": "python -m cne.platform.validation --gguf MODEL.gguf --base-model BASE_DIRECTORY --output OUTPUT_DIRECTORY --sandbox"
+}

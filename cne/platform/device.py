@@ -23,6 +23,7 @@ from typing import Any, Dict, List, Optional, Set
 
 class RuntimeBackend(str, Enum):
     """Execution backends available on the device."""
+
     CPU = "CPU"
     GPU = "GPU"
     NPU = "NPU"
@@ -33,13 +34,14 @@ class RuntimeBackend(str, Enum):
 @dataclass(frozen=True)
 class BackendCapabilities:
     """Hardware and instruction set capabilities for a specific backend."""
+
     backend: RuntimeBackend
     is_available: bool = True
     device_name: str = "Host CPU"
     total_memory_mb: float = 0.0
-    supports_fp16: bool = False
-    supports_int8: bool = True
-    supports_int4: bool = True
+    supports_fp16: Optional[bool] = None
+    supports_int8: Optional[bool] = None
+    supports_int4: Optional[bool] = None
     compute_units: int = 1
     driver_version: Optional[str] = None
 
@@ -47,31 +49,68 @@ class BackendCapabilities:
 @dataclass(frozen=True)
 class ResourceSnapshot:
     """Instantaneous snapshot of device resource utilization."""
+
     available_ram_mb: float
     used_ram_mb: float
     process_rss_mb: float
-    process_pss_mb: float
+    process_pss_mb: Optional[float]
     cpu_percent: float
     battery_percent: Optional[float] = None
     is_charging: Optional[bool] = None
-    is_thermal_throttled: bool = False
+    is_thermal_throttled: Optional[bool] = None
     storage_free_mb: float = 0.0
+    thermal_state: str = "UNKNOWN"
+
+
+@dataclass(frozen=True)
+class BudgetDecision:
+    passed: bool
+    violations: List[str]
+    observed: Dict[str, Any]
+    limits: Dict[str, Any]
 
 
 @dataclass(frozen=True)
 class ResourceBudget:
     """Hardware resource budget limits for the active process."""
-    max_peak_pss_mb: float = 1536.0        # 1.5 GB peak PSS target
-    max_steady_ram_mb: float = 1024.0      # 1.0 GB steady active target
-    max_model_storage_mb: float = 500.0    # 500 MB model storage target
-    max_framework_storage_mb: float = 150.0 # 150 MB core framework target
+
+    max_peak_pss_mb: float = 1536.0  # 1.5 GB peak PSS target
+    max_steady_ram_mb: float = 1024.0  # 1.0 GB steady active target
+    max_model_storage_mb: float = 500.0  # 500 MB model storage target
+    max_framework_storage_mb: float = 150.0  # 150 MB core framework target
     max_concurrent_inferences: int = 1
     allow_accelerator: bool = True
 
     def is_within_budget(self, snapshot: ResourceSnapshot) -> bool:
         """Check if current process snapshot satisfies budget."""
-        pss_to_check = snapshot.process_pss_mb if snapshot.process_pss_mb > 0 else snapshot.process_rss_mb
-        return pss_to_check <= self.max_peak_pss_mb
+        return self.evaluate(snapshot).passed
+
+    def evaluate(
+        self,
+        snapshot,
+        peak_memory_mb=None,
+        steady_memory_mb=None,
+        required_storage_mb=0,
+        concurrent_inferences=0,
+    ):
+        observed = {
+            "peak_memory_mb": peak_memory_mb,
+            "steady_memory_mb": steady_memory_mb,
+            "required_storage_mb": required_storage_mb,
+            "concurrent_inferences": concurrent_inferences,
+        }
+        limits = {
+            "peak_memory_mb": self.max_peak_pss_mb,
+            "steady_memory_mb": self.max_steady_ram_mb,
+            "required_storage_mb": snapshot.storage_free_mb,
+            "concurrent_inferences": self.max_concurrent_inferences,
+        }
+        violations = [
+            ("NOT_MEASURED:" + key) if observed[key] is None else key
+            for key in limits
+            if observed[key] is None or observed[key] > limits[key]
+        ]
+        return BudgetDecision(not violations, violations, observed, limits)
 
 
 class DeviceProfile:
@@ -95,10 +134,10 @@ class DeviceProfile:
             is_available=True,
             device_name=f"{platform.processor() or 'ARM/x86'} CPU",
             total_memory_mb=total_ram_mb,
-            supports_fp16=True,
-            supports_int8=True,
-            supports_int4=True,
-            compute_units=cpu_count
+            supports_fp16=None,
+            supports_int8=None,
+            supports_int4=None,
+            compute_units=cpu_count,
         )
 
         # 2. Check for optional GPU / NPU / USB accelerators without making them required
@@ -126,10 +165,16 @@ class DeviceProfile:
         storage_free_mb = disk.free / (1024 * 1024)
 
         # PSS approximation on Windows/generic (falls back to RSS if pss attribute missing)
-        pss_mb = getattr(mem_info, "pss", mem_info.rss) / (1024 * 1024)
+        try:
+            pss = getattr(proc.memory_full_info(), "pss", None)
+        except (psutil.AccessDenied, AttributeError):
+            pss = None
+        pss_mb = pss / (1024 * 1024) if pss is not None else None
         rss_mb = mem_info.rss / (1024 * 1024)
 
-        battery = psutil.sensors_battery() if hasattr(psutil, "sensors_battery") else None
+        battery = (
+            psutil.sensors_battery() if hasattr(psutil, "sensors_battery") else None
+        )
         battery_pct = battery.percent if battery else None
         charging = battery.power_plugged if battery else None
 
@@ -137,10 +182,10 @@ class DeviceProfile:
             available_ram_mb=vm.available / (1024 * 1024),
             used_ram_mb=vm.used / (1024 * 1024),
             process_rss_mb=round(rss_mb, 2),
-            process_pss_mb=round(pss_mb, 2),
+            process_pss_mb=round(pss_mb, 2) if pss_mb is not None else None,
             cpu_percent=psutil.cpu_percent(interval=None),
             battery_percent=battery_pct,
             is_charging=charging,
-            is_thermal_throttled=False,
-            storage_free_mb=round(storage_free_mb, 2)
+            is_thermal_throttled=None,
+            storage_free_mb=round(storage_free_mb, 2),
         )

@@ -76,6 +76,7 @@ class ToolDefinition:
     description: str = ""
     parameters_schema: Dict[str, Any] = field(default_factory=dict)
     returns_schema: Dict[str, Any] = field(default_factory=dict)
+    mutation_sources: List[str] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -83,6 +84,7 @@ class CapabilityManifest:
     """
     Formal specification manifest for an installable capability pack.
     """
+
     id: str
     version: str
     description: str
@@ -99,6 +101,8 @@ class CapabilityManifest:
     backend_compatibility: List[str] = field(default_factory=lambda: ["CPU"])
     package_hash: Optional[str] = None
     signature: Optional[str] = None
+    asset_hashes: Dict[str, str] = field(default_factory=dict)
+    model_asset_hashes: Dict[str, str] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         # Validate canonical ID
@@ -110,23 +114,59 @@ class CapabilityManifest:
         CapabilityVersion.parse(self.version)
 
         # Coerce modalities, network_mode, permissions if raw strings provided
-        coerced_mods = [Modality(m) if isinstance(m, str) else m for m in self.modalities]
+        coerced_mods = [
+            Modality(m) if isinstance(m, str) else m for m in self.modalities
+        ]
         object.__setattr__(self, "modalities", coerced_mods)
 
         if isinstance(self.network_mode, str):
             object.__setattr__(self, "network_mode", NetworkMode(self.network_mode))
 
-        coerced_perms = [Permission(p) if isinstance(p, str) else p for p in self.permissions]
+        coerced_perms = [
+            Permission(p) if isinstance(p, str) else p for p in self.permissions
+        ]
         object.__setattr__(self, "permissions", coerced_perms)
+        object.__setattr__(
+            self,
+            "model_dependencies",
+            [
+                ModelDependency(**m) if isinstance(m, dict) else m
+                for m in self.model_dependencies
+            ],
+        )
+        object.__setattr__(
+            self,
+            "deterministic_tools",
+            [
+                ToolDefinition(**t) if isinstance(t, dict) else t
+                for t in self.deterministic_tools
+            ],
+        )
 
     def compute_manifest_hash(self) -> str:
         """Deterministic SHA-256 fingerprint of the manifest specification."""
+        return hashlib.sha256(self.canonical_bytes()).hexdigest()
+
+    def canonical_bytes(self) -> bytes:
         data = asdict(self)
         data.pop("package_hash", None)
         data.pop("signature", None)
         # Convert enums to values
-        data["modalities"] = [m.value if isinstance(m, Modality) else m for m in self.modalities]
-        data["network_mode"] = self.network_mode.value if isinstance(self.network_mode, NetworkMode) else self.network_mode
-        data["permissions"] = [p.value if isinstance(p, Permission) else p for p in self.permissions]
-        serialized = json.dumps(data, sort_keys=True)
-        return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+        data["modalities"] = [
+            m.value if isinstance(m, Modality) else m for m in self.modalities
+        ]
+        data["network_mode"] = (
+            self.network_mode.value
+            if isinstance(self.network_mode, NetworkMode)
+            else self.network_mode
+        )
+        data["permissions"] = [
+            p.value if isinstance(p, Permission) else p for p in self.permissions
+        ]
+        return json.dumps(
+            data,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+            allow_nan=False,
+        ).encode("utf-8")

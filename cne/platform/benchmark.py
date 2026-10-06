@@ -1,161 +1,290 @@
-"""
-CNE Model Candidate Selection Benchmark Harness.
-Evaluates heterogeneous model size classes (~100-150M, ~250-350M, ~500-700M) across
-standardized test batteries: routing, intent classification, OOS rejection, slot extraction,
-DSL generation, latency, TTFT, and RAM.
-"""
+"""Independent labeled metrics. Missing observations never become passing scores."""
 from __future__ import annotations
-
-import logging
+from dataclasses import dataclass, field, asdict
 import time
-from dataclasses import asdict, dataclass, field
-from typing import Any, Callable, Dict, List, Optional
-
 from cne.platform.dsl import SemanticDSLParser
-from cne.platform.models import ModelDescriptor, ModelKind
+from cne.platform.models import ModelResult
+from pathlib import Path
+import json
+import threading
+import psutil
 
-logger = logging.getLogger(__name__)
+
+class ProcessMemorySampler:
+    """Sampled process peaks, not model allocation or Android measurements."""
+
+    def __init__(self, interval_s=0.005):
+        self.interval_s = interval_s
+        self.rss = []
+        self.pss = []
+        self.stop = threading.Event()
+
+    def sample(self):
+        proc = psutil.Process()
+        self.rss.append(proc.memory_info().rss / 1048576)
+        try:
+            pss = getattr(proc.memory_full_info(), "pss", None)
+            if pss is not None:
+                self.pss.append(pss / 1048576)
+        except psutil.AccessDenied:
+            pass
+
+    def run(self):
+        while not self.stop.wait(self.interval_s):
+            self.sample()
+
+    def __enter__(self):
+        self.sample()
+        self.thread = threading.Thread(target=self.run, daemon=True)
+        self.thread.start()
+        return self
+
+    def __exit__(self, *exc):
+        self.stop.set()
+        self.thread.join()
+        self.sample()
+
+
+@dataclass
+class Metric:
+    numerator: int = 0
+    denominator: int = 0
+    status: str = "NOT_APPLICABLE"
+
+    @property
+    def value(self):
+        return self.numerator / self.denominator if self.denominator else None
+
+    def observe(self, success):
+        self.denominator += 1
+        self.numerator += int(success)
+        self.status = "MEASURED"
+
+    def to_dict(self):
+        return {**asdict(self), "value": self.value}
 
 
 @dataclass
 class CandidateBenchmarkMetrics:
     candidate_name: str
     parameter_class: str
-    model_size_mb: float
-    routing_accuracy: float
-    intent_accuracy: float
-    oos_rejection_rate: float
-    ambiguity_accuracy: float
-    slot_exact_match_rate: float
-    dsl_validity_rate: float
-    avg_latency_ms: float
-    ttft_ms: float
-    peak_ram_mb: float
+    model_size_mb: float | None
+    metrics: dict
+    avg_latency_ms: float | None
+    ttft_ms: float | None = None
+    peak_ram_mb: float | None = None
+    tokens_per_second: float | None = None
     passed_all_gates: bool = False
+    provenance: dict = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
-        return asdict(self)
+    def __getattr__(self, name):
+        if name in self.metrics:
+            return self.metrics[name].value
+        raise AttributeError(name)
+
+    def to_dict(self):
+        out = asdict(self)
+        out["metrics"] = {k: v.to_dict() for k, v in self.metrics.items()}
+        return out
 
 
 class ModelSelectionHarness:
-    """
-    Standardized benchmarking harness comparing candidate SLM size classes.
-    Selects the smallest candidate model that crosses all quality gates.
-    """
-
-    def __init__(self, quality_thresholds: Optional[Dict[str, float]] = None):
+    def __init__(self, quality_thresholds=None):
         self.quality_thresholds = quality_thresholds or {
-            "routing_accuracy": 0.85,
-            "intent_accuracy": 0.80,
-            "oos_rejection_rate": 0.90,
-            "slot_exact_match_rate": 0.75,
-            "dsl_validity_rate": 0.95,
-            "max_peak_ram_mb": 1500.0,
-            "max_latency_ms": 15000.0
+            "routing_accuracy": 0.95,
+            "intent_accuracy": 0.95,
+            "oos_rejection_rate": 0.95,
+            "ambiguity_accuracy": 0.95,
+            "slot_exact_match_rate": 0.9,
+            "dsl_validity_rate": 0.99,
+            "semantic_validity_rate": 0.95,
+            "contract_correctness": 0.95,
+            "post_execution_correctness": 0.95,
+            "in_scope_coverage": 0.6,
+            "primitive_adherence": 1.0,
         }
 
-    def evaluate_candidate(
-        self,
-        descriptor: ModelDescriptor,
-        inference_fn: Callable[[str], str],
-        eval_cases: List[Dict[str, Any]]
-    ) -> CandidateBenchmarkMetrics:
-        """
-        Runs evaluation cases across routing, intent, OOS, slots, and DSL emission.
-        """
-        routing_correct = 0
-        intent_correct = 0
-        oos_correct = 0
-        oos_total = 0
-        ambiguity_correct = 0
-        ambiguity_total = 0
-        slots_correct = 0
-        slots_total = 0
-        dsl_valid = 0
+    def evaluate_candidate(self, descriptor, inference_fn, eval_cases):
+        metrics = {
+            k: Metric()
+            for k in (
+                "routing_accuracy",
+                "intent_accuracy",
+                "oos_rejection_rate",
+                "ambiguity_accuracy",
+                "slot_exact_match_rate",
+                "dsl_validity_rate",
+                "semantic_validity_rate",
+                "contract_correctness",
+                "post_execution_correctness",
+                "in_scope_coverage",
+                "primitive_adherence",
+            )
+        }
         latencies = []
         ttfts = []
-
+        runtime_results = []
+        peaks = []
+        pss_peaks = []
+        memory_samples = 0
         for case in eval_cases:
-            query = case["query"]
-            exp_routing = case.get("expected_capability")
-            exp_intent = case.get("expected_intent")
-            exp_oos = case.get("is_oos", False)
-            exp_slots = case.get("expected_slots", {})
-
-            t0 = time.perf_counter()
-            # Perform simulated/actual inference
-            raw_output = inference_fn(query)
-            t_end = time.perf_counter()
-
-            lat_ms = (t_end - t0) * 1000.0
-            latencies.append(lat_ms)
-            ttfts.append(lat_ms * 0.4)  # TTFT approximation
-
-            # Check OOS
-            if exp_oos:
-                oos_total += 1
-                if "UNSUPPORTED" in raw_output or not raw_output:
-                    oos_correct += 1
-                continue
-
-            # Check DSL compile
-            compile_res = SemanticDSLParser.compile_dsl(raw_output)
-            if compile_res.is_valid:
-                dsl_valid += 1
-                intent_correct += 1
-                routing_correct += 1
-
-                # Check slot exact matches
-                for sk, sv in exp_slots.items():
-                    slots_total += 1
-                    if str(compile_res.extracted_slots.get(sk, "")).lower() == str(sv).lower():
-                        slots_correct += 1
-
-        total_cases = len(eval_cases)
-        non_oos_cases = total_cases - oos_total if total_cases > oos_total else 1
-
-        routing_acc = routing_correct / non_oos_cases
-        intent_acc = intent_correct / non_oos_cases
-        oos_rate = oos_correct / oos_total if oos_total > 0 else 1.0
-        slot_acc = slots_correct / slots_total if slots_total > 0 else 1.0
-        dsl_rate = dsl_valid / non_oos_cases
-        avg_lat = sum(latencies) / len(latencies) if latencies else 0.0
-        avg_ttft = sum(ttfts) / len(ttfts) if ttfts else 0.0
-
-        # Check gates
+            start = time.perf_counter()
+            with ProcessMemorySampler() as sampler:
+                try:
+                    raw = inference_fn(case["query"])
+                except Exception as exc:
+                    raw = {"error": type(exc).__name__}
+            latencies.append((time.perf_counter() - start) * 1000)
+            peaks.extend(sampler.rss)
+            pss_peaks.extend(sampler.pss)
+            memory_samples += len(sampler.rss)
+            if isinstance(raw, ModelResult):
+                runtime_results.append(raw)
+                if raw.metadata.get("ttft_ms") is not None:
+                    ttfts.append(raw.metadata["ttft_ms"])
+                try:
+                    raw = (
+                        json.loads(raw.outputs)
+                        if isinstance(raw.outputs, str)
+                        else raw.outputs
+                    )
+                except (ValueError, TypeError):
+                    raw = {"semantic_dsl": raw.outputs}
+            actual = raw if isinstance(raw, dict) else {"semantic_dsl": raw}
+            for expected_key, actual_key, metric in [
+                (
+                    "expected_capabilities",
+                    "selected_capability_ids",
+                    "routing_accuracy",
+                ),
+                ("expected_intent", "intent", "intent_accuracy"),
+                ("expected_slots", "extracted_slots", "slot_exact_match_rate"),
+            ]:
+                if expected_key in case:
+                    expected = case[expected_key]
+                    observed = actual.get(actual_key)
+                    if expected_key == "expected_capabilities":
+                        expected = sorted(expected)
+                        observed = sorted(observed) if observed is not None else None
+                    metrics[metric].observe(observed == expected)
+            if case.get("is_oos"):
+                metrics["oos_rejection_rate"].observe(
+                    actual.get("outcome") == "UNSUPPORTED_INTENT"
+                )
+            if case.get("is_ambiguous"):
+                metrics["ambiguity_accuracy"].observe(
+                    actual.get("outcome") == "AMBIGUOUS_INTENT"
+                )
+            if not case.get("is_oos") and not case.get("is_ambiguous"):
+                metrics["in_scope_coverage"].observe(
+                    actual.get("outcome") == "COMPILED"
+                )
+                result = SemanticDSLParser.compile_dsl(actual.get("semantic_dsl") or "")
+                metrics["dsl_validity_rate"].observe(result.is_valid)
+                metrics["primitive_adherence"].observe(result.is_valid)
+                # Semantic/contract/task checks must be independently supplied test oracles,
+                # not self-reported fields from the model under evaluation.
+                for name, checker in [
+                    ("semantic_validity_rate", "semantic_check"),
+                    ("contract_correctness", "contract_check"),
+                    ("post_execution_correctness", "execute_and_check"),
+                ]:
+                    if checker in case:
+                        try:
+                            correct = (
+                                bool(case[checker](result))
+                                if result.is_valid
+                                else False
+                            )
+                        except Exception:
+                            correct = False
+                        metrics[name].observe(correct)
+        for name in (
+            "semantic_validity_rate",
+            "contract_correctness",
+            "post_execution_correctness",
+        ):
+            if eval_cases and metrics[name].denominator == 0:
+                metrics[name].status = "NOT_MEASURED"
+        size = (
+            Path(descriptor.asset_path).stat().st_size / 1048576
+            if descriptor.asset_path and Path(descriptor.asset_path).is_file()
+            else None
+        )
+        token_counts = [
+            r.tokens_generated
+            for r in runtime_results
+            if r.tokens_generated is not None
+        ]
+        inference_seconds = sum(r.latency_ms for r in runtime_results) / 1000
+        tps = (
+            sum(token_counts) / inference_seconds
+            if token_counts
+            and len(token_counts) == len(runtime_results)
+            and inference_seconds > 0
+            else None
+        )
+        quality = all(
+            metrics[k].value is not None and metrics[k].value >= threshold
+            for k, threshold in self.quality_thresholds.items()
+        )
+        runtime_complete = (
+            bool(eval_cases)
+            and len(runtime_results) == len(eval_cases)
+            and len(ttfts) == len(eval_cases)
+            and size is not None
+        )
         passed = (
-            routing_acc >= self.quality_thresholds["routing_accuracy"] and
-            intent_acc >= self.quality_thresholds["intent_accuracy"] and
-            oos_rate >= self.quality_thresholds["oos_rejection_rate"] and
-            slot_acc >= self.quality_thresholds["slot_exact_match_rate"] and
-            dsl_rate >= self.quality_thresholds["dsl_validity_rate"] and
-            descriptor.estimated_ram_mb <= self.quality_thresholds["max_peak_ram_mb"] and
-            avg_lat <= self.quality_thresholds["max_latency_ms"]
+            quality
+            and runtime_complete
+            and max(peaks, default=float("inf")) <= 1536
+            and max(latencies, default=float("inf")) <= 15000
         )
-
         return CandidateBenchmarkMetrics(
-            candidate_name=descriptor.model_id,
-            parameter_class=f"~{int(descriptor.parameter_count_m)}M",
-            model_size_mb=descriptor.file_size_mb,
-            routing_accuracy=round(routing_acc, 4),
-            intent_accuracy=round(intent_acc, 4),
-            oos_rejection_rate=round(oos_rate, 4),
-            ambiguity_accuracy=1.0,
-            slot_exact_match_rate=round(slot_acc, 4),
-            dsl_validity_rate=round(dsl_rate, 4),
-            avg_latency_ms=round(avg_lat, 2),
-            ttft_ms=round(avg_ttft, 2),
-            peak_ram_mb=descriptor.estimated_ram_mb,
-            passed_all_gates=passed
+            descriptor.model_id,
+            f"~{descriptor.parameter_count_m:g}M",
+            size,
+            metrics,
+            sum(latencies) / len(latencies) if latencies else None,
+            ttft_ms=sum(ttfts) / len(ttfts) if ttfts else None,
+            peak_ram_mb=max(peaks) if peaks else None,
+            tokens_per_second=tps,
+            passed_all_gates=bool(passed),
+            provenance={
+                "latency": {
+                    "source": "perf_counter around callback and memory sampler; not necessarily model inference",
+                    "samples": len(latencies),
+                },
+                "TTFT": {
+                    "source": "runtime first generated token"
+                    if ttfts
+                    else "NOT_MEASURED",
+                    "samples": len(ttfts),
+                },
+                "peak_RSS": {
+                    "source": "psutil sampled process RSS",
+                    "samples": memory_samples,
+                    "sampling_interval_s": 0.005,
+                },
+                "peak_PSS": {
+                    "value": max(pss_peaks) if pss_peaks else None,
+                    "status": "MEASURED" if pss_peaks else "NOT_MEASURED",
+                    "samples": len(pss_peaks),
+                },
+                "model_file_size": "filesystem stat"
+                if size is not None
+                else "NOT_MEASURED",
+                "tokens_per_second": "runtime generated token count / runtime inference seconds"
+                if tps is not None
+                else "NOT_MEASURED",
+                "gate_status": "PASSED" if passed else "FAILED_OR_NOT_MEASURED",
+            },
         )
 
-    def select_smallest_admissible_model(
-        self,
-        candidate_results: List[CandidateBenchmarkMetrics]
-    ) -> Optional[CandidateBenchmarkMetrics]:
-        """Selects the candidate with lowest parameter count crossing all gates."""
-        qualifying = [c for c in candidate_results if c.passed_all_gates]
-        if not qualifying:
-            return None
-        # Sort by model size / parameter count ascending
-        return min(qualifying, key=lambda c: c.model_size_mb)
+    def select_smallest_admissible_model(self, candidate_results):
+        qualified = [
+            r
+            for r in candidate_results
+            if r.passed_all_gates and r.model_size_mb is not None
+        ]
+        return min(qualified, key=lambda r: r.model_size_mb) if qualified else None

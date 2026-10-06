@@ -1,5 +1,19 @@
 # CNE Capability Pack Specification
 
+## Current implementation evidence (2026-10-06)
+
+Implementation status: PARTIAL. The sections below describe the target packaging architecture.
+
+`permissions` are requests. Installation and rollback grant nothing. A trusted `PermissionAuthority` must issue an explicit capability/permission/scope grant with source and optional expiry. Enabled state, declaration, grant and exact scope are all required.
+
+Production registration rejects missing/mismatched manifest hashes, missing or corrupt declared assets, and absent/invalid signatures. Signature verification requires a trusted verifier configured by the host; Ed25519TrustStore supplies local signing, domain-bound key trust and revocation. Enterprise key distribution is not included. Canonical manifests use sorted compact UTF-8 JSON, exclude `package_hash`/`signature`, and include asset hashes. `package_hash` stores the bare SHA-256 canonical manifest digest. Unsigned first-party development packages require explicit `TrustMode.DEVELOPMENT_TRUST_MODE` by the host.
+
+Dependencies use `capability.id@exact.version` (or an installed enabled capability ID). Semver ranges are NOT_IMPLEMENTED. Required model catalog entries need path/version/backend and a hash in production. Cycles fail before enabling. CapabilityPackageInstaller rejects traversal, symlinks, duplicate entries and undeclared assets, verifies staged packages, then publishes content-addressed files and durable registry pointers. Registry rollback restores the corresponding asset path. Untrusted tools use restricted workers.
+
+Declared `schemas.intents` contain full-match patterns, typed slots, DSL templates, and optional composition capability IDs. Unmatched requests decline. Tool `mutation_sources` must list every modified CNE source; trusted tools must use the mutation authority. Malicious Python code is outside this in-process boundary.
+
+---
+
 ## 1. Concept & Scope
 
 A **Capability Pack** is a self-contained, modular bundle of assets that provides domain-specific AI and computational functionality to the CNE platform. A capability pack is **not** necessarily a neural model. A pack may contain:

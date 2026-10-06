@@ -1,37 +1,16 @@
-"""
-CNE Compact Semantic DSL & Deterministic Compiler.
-Replaces verbose JSON generation with a terse, formal domain-specific language.
-
-Grammar:
-A DSL script consists of newline-delimited operation lines:
-<OP> <key>=<value> <key>=<value> ...
-
-Allowed OPs strictly correspond to CNE's 11 frozen primitives (+ Literal):
-OBS (Observe)
-FIL (Filter)
-MAP (Map)
-RED (Reduce)
-JOI (Join)
-BRA (Branch)
-ITE (Iterate)
-CHO (Choose)
-UPD (Update)
-CAL (Call)
-EMI (Emit)
-LIT (Literal)
-"""
+"""Explicit, typed DAG DSL. Regions use `REGION name root=node` ... `END`."""
 from __future__ import annotations
-
+import json
+import operator
 import re
+import shlex
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
-
+from typing import Any, Optional
 from cne.contracts.outcome_contract import ContractType, OutcomeContract
-from cne.semantic_ir.nodes import IRNode, OpKind, SemanticIRGraph
-from cne.semantic_ir.types import SemanticType
+from cne.semantic_ir.nodes import IRNode, OpKind, SemanticIRGraph, SemanticRegion
+from cne.semantic_ir.types import SemanticType, TypeKind
 
-
-_OP_MAP: Dict[str, OpKind] = {
+_OP_MAP = {
     "OBS": OpKind.OBSERVE,
     "FIL": OpKind.FILTER,
     "MAP": OpKind.MAP,
@@ -45,13 +24,37 @@ _OP_MAP: Dict[str, OpKind] = {
     "EMI": OpKind.EMIT,
     "LIT": OpKind.LITERAL,
 }
+# Required and optional attributes; references are explicit and never inferred.
+SCHEMAS = {
+    "OBS": ({"source"}, {"key", "type"}),
+    "FIL": ({"in", "op", "val"}, {"field"}),
+    "MAP": ({"in", "field"}, set()),
+    "RED": ({"in", "reducer"}, {"initial"}),
+    "JOI": ({"left", "right", "on"}, set()),
+    "BRA": ({"in", "then_region", "else_region"}, set()),
+    "ITE": ({"in", "step_region", "initial"}, set()),
+    "CHO": ({"in"}, {"policy", "budget", "actions", "belief", "lookahead_depth"}),
+    "UPD": ({"prior", "evidence"}, set()),
+    "CAL": ({"target"}, {"in"}),
+    "EMI": ({"in"}, {"label"}),
+    "LIT": ({"value"}, set()),
+}
+COMPARISONS = {
+    "gt": operator.gt,
+    "gte": operator.ge,
+    "lt": operator.lt,
+    "lte": operator.le,
+    "eq": operator.eq,
+    "ne": operator.ne,
+}
 
 
 @dataclass
 class DSLNode:
     op_code: str
-    attributes: Dict[str, Any]
+    attributes: dict
     line_number: int
+    node_id: str
 
 
 @dataclass
@@ -59,174 +62,218 @@ class DSLCompileResult:
     is_valid: bool
     graph: Optional[SemanticIRGraph] = None
     contract: Optional[OutcomeContract] = None
-    extracted_slots: Dict[str, Any] = field(default_factory=dict)
+    extracted_slots: dict = field(default_factory=dict)
     error_message: Optional[str] = None
 
 
 class SemanticDSLParser:
-    """
-    Parses and compiles compact CNE DSL scripts into type-safe SemanticIRGraph instances.
-    """
-
     @classmethod
-    def parse_line(cls, line: str, line_no: int = 1) -> Optional[DSLNode]:
+    def parse_line(cls, line, line_no=1):
         line = line.strip()
         if not line or line.startswith("#"):
             return None
-
-        # Support optional assignment syntax, e.g. "t0 = OBS source=..."
-        if "=" in line:
-            parts_eq = line.split("=", 1)
-            first_word = parts_eq[0].strip()
-            rest = parts_eq[1].strip()
-            rest_tokens = rest.split()
-            if " " not in first_word and rest_tokens and rest_tokens[0].upper() in _OP_MAP:
-                line = rest
-
-        parts = line.split()
-        op_code = parts[0].upper()
-        if op_code not in _OP_MAP:
-            raise ValueError(f"Line {line_no}: Unknown primitive opcode '{op_code}'")
-
-        attrs: Dict[str, Any] = {}
-        for token in parts[1:]:
+        match = re.fullmatch(r"([A-Za-z_]\w*)\s*=\s*([A-Z]{3})(?:\s+(.*))?", line)
+        if not match:
+            raise ValueError(f"Line {line_no}: explicit node assignment required")
+        nid, op, tail = match.groups()
+        if op not in SCHEMAS:
+            raise ValueError(f"Unknown primitive opcode '{op}'")
+        attrs = {}
+        for token in shlex.split(tail or ""):
             if "=" not in token:
-                continue
-            k, v = token.split("=", 1)
-            # Deterministic type parsing
-            if v.lower() == "true":
-                val: Any = True
-            elif v.lower() == "false":
-                val = False
-            else:
-                try:
-                    val = int(v) if "." not in v else float(v)
-                except ValueError:
-                    val = v
-            attrs[k] = val
-
-        return DSLNode(op_code=op_code, attributes=attrs, line_number=line_no)
+                raise ValueError(f"Invalid attribute {token}")
+            key, value = token.split("=", 1)
+            if key in attrs:
+                raise ValueError(f"Duplicate attribute {key}")
+            try:
+                attrs[key] = json.loads(value)
+            except json.JSONDecodeError:
+                attrs[key] = value
+        required, optional = SCHEMAS[op]
+        if required - attrs.keys() or attrs.keys() - required - optional:
+            raise ValueError(
+                f"{op}: missing {required - attrs.keys()}, unknown {attrs.keys() - required - optional}"
+            )
+        return DSLNode(op, attrs, line_no, nid)
 
     @classmethod
-    def compile_dsl(
-        cls,
-        dsl_text: str,
-        contract_type: ContractType = ContractType.EXACT,
-        intent: Optional[str] = None
-    ) -> DSLCompileResult:
-        """
-        Deterministically compiles DSL text into a valid CNE SemanticIRGraph.
-        """
-        lines = dsl_text.strip().splitlines()
-        nodes: List[DSLNode] = []
-
+    def compile_dsl(cls, dsl_text, contract_type=ContractType.EXACT, intent=None):
         try:
-            for i, l in enumerate(lines):
-                node = cls.parse_line(l, line_no=i + 1)
-                if node:
-                    nodes.append(node)
-        except Exception as e:
-            return DSLCompileResult(
-                is_valid=False,
-                error_message=f"DSL Parsing error: {str(e)}"
-            )
+            return cls._compile(dsl_text, contract_type, intent)
+        except (ValueError, TypeError, KeyError) as exc:
+            return DSLCompileResult(False, error_message=str(exc))
 
-        if not nodes:
-            return DSLCompileResult(
-                is_valid=False,
-                error_message="Empty DSL script: no operational nodes defined."
-            )
-
-        # Invariant: Must end with exactly ONE Emit node
-        if nodes[-1].op_code != "EMI":
-            return DSLCompileResult(
-                is_valid=False,
-                error_message=f"Last node must be 'EMI' (Emit), got '{nodes[-1].op_code}'"
-            )
-
-        graph = SemanticIRGraph()
-        slots: Dict[str, Any] = {}
-        prev_node_id: Optional[str] = None
-
-        for idx, d_node in enumerate(nodes):
-            node_id = f"n{idx}_{d_node.op_code.lower()}"
-            op_kind = _OP_MAP[d_node.op_code]
-            inputs = [prev_node_id] if prev_node_id else []
-
-            # Set output type heuristically based on primitive
-            if op_kind in (OpKind.OBSERVE, OpKind.FILTER, OpKind.MAP):
-                out_type = SemanticType.collection(SemanticType.any())
-            elif op_kind in (OpKind.REDUCE, OpKind.EMIT, OpKind.LITERAL):
-                out_type = SemanticType.scalar()
-            elif op_kind == OpKind.BRANCH:
-                out_type = SemanticType.boolean()
-            else:
-                out_type = SemanticType.record({})
-
-            # Extract slots from node attributes deterministically
-            for k, v in d_node.attributes.items():
-                if k in ("category", "threshold", "aggregation", "metric", "account", "source"):
-                    slots[k] = v
-
-            attrs = dict(d_node.attributes)
-            if op_kind == OpKind.REDUCE:
-                reducer_name = str(attrs.get("reducer") or attrs.get("op", "sum")).lower()
-                init_val = float(attrs.get("initial", attrs.get("init", 0)))
-                if reducer_name in ("sum", "+"):
-                    attrs["op"] = lambda a, b: (0.0 if a is None else a) + (b or 0.0)
-                    attrs["init"] = init_val
-                elif reducer_name == "count":
-                    attrs["op"] = lambda a, _: (0 if a is None else a) + 1
-                    attrs["init"] = int(init_val)
-                elif reducer_name == "max":
-                    attrs["op"] = lambda a, b: max(a, b)
-                    attrs["init"] = init_val
-                elif reducer_name == "min":
-                    attrs["op"] = lambda a, b: min(a, b)
-                    attrs["init"] = init_val
-            elif op_kind == OpKind.MAP:
-                field = attrs.get("field")
-                if field:
-                    attrs["fn"] = lambda x, f=field: (x.get(f) if isinstance(x, dict) else getattr(x, f, x))
-            elif op_kind == OpKind.FILTER:
-                field = attrs.get("field")
-                val = attrs.get("val") or attrs.get("threshold")
-                op_sym = attrs.get("op", "eq")
-                if field and val is not None:
-                    if op_sym == "gt":
-                        attrs["predicate"] = lambda x, f=field, v=val: float(x.get(f, 0)) > float(v)
-                    elif op_sym == "lt":
-                        attrs["predicate"] = lambda x, f=field, v=val: float(x.get(f, 0)) < float(v)
-                    else:
-                        attrs["predicate"] = lambda x, f=field, v=val: str(x.get(f, "")).lower() == str(v).lower()
-                elif val is not None:
-                    if op_sym == "gt":
-                        attrs["predicate"] = lambda x, v=val: float(x) > float(v)
-                    elif op_sym == "lt":
-                        attrs["predicate"] = lambda x, v=val: float(x) < float(v)
-                    else:
-                        attrs["predicate"] = lambda x, v=val: str(x).lower() == str(v).lower()
-
-            ir_node = IRNode(
-                id=node_id,
-                op=op_kind,
-                inputs=inputs,
-                attributes=attrs,
-                output_type=out_type
-            )
-            graph.add_node(ir_node)
-            prev_node_id = node_id
-
-        # Root node is the emit node
-        root_id = prev_node_id
-        graph.root_id = root_id
-        contract = OutcomeContract(
-            contract_type=contract_type
+    @classmethod
+    def _compile(cls, text, contract_type, intent):
+        graph = SemanticIRGraph(
+            metadata={"compiler_version": "dsl-2", "intent": intent}
         )
+        parsed, owners = {}, {}
+        region = None
+        for number, line in enumerate(text.splitlines(), 1):
+            line = line.strip()
+            if line.startswith("REGION "):
+                if region is not None:
+                    raise ValueError(
+                        "Region declarations cannot nest; use region references"
+                    )
+                match = re.fullmatch(r"REGION (\w+) root=(\w+)", line)
+                if not match or match[1] in graph.regions:
+                    raise ValueError("Invalid or duplicate region")
+                region = SemanticRegion(match[1], root_id=match[2])
+                graph.add_region(region)
+                continue
+            if line == "END":
+                if region is None:
+                    raise ValueError("Unmatched END")
+                region = None
+                continue
+            node = cls.parse_line(line, number)
+            if node is None:
+                continue
+            if node.node_id in parsed:
+                raise ValueError("Duplicate node ID")
+            parsed[node.node_id] = node
+            owners[node.node_id] = region.id if region else None
+        if region is not None:
+            raise ValueError("Unclosed region")
+        if not parsed:
+            raise ValueError("Empty DSL")
+        refs, region_refs = {}, {}
+        for nid, node in parsed.items():
+            a, op = node.attributes, node.op_code
+            if op == "JOI":
+                inputs = [a["left"], a["right"]]
+            elif op == "UPD":
+                inputs = [a["prior"], a["evidence"]]
+            elif "in" in a:
+                inputs = str(a["in"]).split(",")
+            else:
+                inputs = []
+            if op != "CAL" and "in" in a and len(inputs) != 1:
+                raise ValueError("Invalid arity")
+            refs[nid] = inputs
+            region_refs[nid] = [
+                a[k] for k in ("then_region", "else_region", "step_region") if k in a
+            ]
+            for ref in inputs:
+                if ref not in parsed:
+                    raise ValueError(f"Unknown node reference: {ref}")
+                if owners[ref] is not None and owners[ref] != owners[nid]:
+                    raise ValueError("Illegal cross-region reference")
+            for rid in region_refs[nid]:
+                if rid not in graph.regions:
+                    raise ValueError(f"Unknown region: {rid}")
+        for reg in graph.regions.values():
+            if reg.root_id not in parsed or owners[reg.root_id] != reg.id:
+                raise ValueError("Invalid region root")
+        emits = [
+            nid
+            for nid, n in parsed.items()
+            if n.op_code == "EMI" and owners[nid] is None
+        ]
+        if len(emits) != 1:
+            raise ValueError("Exactly one root Emit required")
+        graph.root_id = emits[0]
+        visiting, built = set(), {}
 
+        def build(nid):
+            if nid in visiting:
+                raise ValueError("Cycle in graph or control regions")
+            if nid in built:
+                return built[nid]
+            visiting.add(nid)
+            d = parsed[nid]
+            a, op = dict(d.attributes), d.op_code
+            ins = [build(x) for x in refs[nid]]
+            regions = [build(graph.regions[r].root_id) for r in region_refs[nid]]
+            out = SemanticType.any()
+            if op in ("FIL", "MAP", "RED", "JOI", "ITE"):
+                for inp in ins:
+                    if inp.output_type.kind not in (TypeKind.COLLECTION, TypeKind.ANY):
+                        raise ValueError(f"{op} requires collection input")
+            if op == "OBS":
+                types = {
+                    "collection": SemanticType.collection(SemanticType.any()),
+                    "boolean": SemanticType.boolean(),
+                    "numeric": SemanticType.numeric(),
+                    "any": SemanticType.any(),
+                }
+                out = types[a.pop("type", "collection")]
+            elif op == "LIT":
+                v = a["value"]
+                out = (
+                    SemanticType.boolean()
+                    if isinstance(v, bool)
+                    else SemanticType.numeric()
+                    if isinstance(v, (int, float))
+                    else SemanticType.collection(SemanticType.any())
+                    if isinstance(v, list)
+                    else SemanticType.any()
+                )
+            elif op == "FIL":
+                comparator = COMPARISONS.get(str(a["op"]).lower())
+                if comparator is None:
+                    raise ValueError("Invalid comparison")
+                value, field_name = a["val"], a.get("field")
+                a["predicate"] = lambda x, f=field_name, v=value, cmp=comparator: cmp(
+                    x[f] if f else x, v
+                )
+                out = ins[0].output_type
+            elif op == "MAP":
+                a["fn"] = lambda x, f=a["field"]: x[f]
+                out = SemanticType.collection(SemanticType.any())
+            elif op == "RED":
+                reducer = a["reducer"]
+                if reducer not in ("sum", "count", "min", "max"):
+                    raise ValueError("Invalid reducer")
+                if reducer == "sum":
+                    a["op"] = operator.add
+                elif reducer == "count":
+                    a["op"] = lambda acc, x: acc + 1
+                elif reducer == "min":
+                    a["op"] = lambda acc, x: x if acc is None else min(acc, x)
+                else:
+                    a["op"] = lambda acc, x: x if acc is None else max(acc, x)
+                a["init"] = a.pop("initial", 0 if reducer in ("sum", "count") else None)
+                out = SemanticType.numeric()
+            elif op == "JOI":
+                a["left_key"] = a["right_key"] = a.pop("on")
+                out = SemanticType.collection(SemanticType.any())
+            elif op == "BRA":
+                if ins[0].output_type.kind not in (TypeKind.BOOLEAN, TypeKind.ANY):
+                    raise ValueError("Branch requires boolean condition")
+                if not regions[0].output_type.is_compatible_with(
+                    regions[1].output_type
+                ):
+                    raise ValueError("Branch region type mismatch")
+                out = regions[0].output_type
+            elif op == "ITE":
+                a["init"] = a.pop("initial")
+                out = regions[0].output_type
+            elif op == "CHO":
+                if a.get("policy", "greedy") not in ("greedy", "bounded_lookahead"):
+                    raise ValueError("Invalid Choose policy")
+            elif op == "EMI":
+                out = ins[0].output_type
+            for key in ("in", "left", "right"):
+                a.pop(key, None)
+            if op == "UPD":
+                a.pop("prior")
+                a.pop("evidence")
+            ir = IRNode(nid, _OP_MAP[op], refs[nid], a, out)
+            built[nid] = ir
+            visiting.remove(nid)
+            if owners[nid] is None:
+                graph.add_node(ir)
+            else:
+                graph.regions[owners[nid]].add_node(ir)
+            return ir
+
+        build(graph.root_id)
+        if set(built) != set(parsed):
+            raise ValueError("Unreachable nodes or multiple roots")
+        graph.root_id = emits[0]
         return DSLCompileResult(
-            is_valid=True,
-            graph=graph,
-            contract=contract,
-            extracted_slots=slots
+            True, graph, OutcomeContract(contract_type=contract_type)
         )

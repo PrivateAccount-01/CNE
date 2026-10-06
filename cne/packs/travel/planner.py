@@ -7,6 +7,7 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
+from cne.platform.external_data import DataFreshnessStatus
 
 
 @dataclass
@@ -16,6 +17,10 @@ class ItineraryItem:
     duration_hours: float
     is_live_status: bool = False
     freshness_notice: Optional[str] = None
+    freshness_status: DataFreshnessStatus = DataFreshnessStatus.NO_DATA
+    source_id: Optional[str] = None
+    retrieved_at: Optional[float] = None
+    expires_at: Optional[float] = None
 
 
 @dataclass
@@ -29,7 +34,7 @@ def build_day_schedule(
     destination: str,
     attractions: List[str],
     network_available: bool = False,
-    pace: str = "moderate"
+    pace: str = "moderate",
 ) -> DayItinerary:
     """
     Deterministically builds a day schedule.
@@ -42,13 +47,13 @@ def build_day_schedule(
     current_hour = 9.0
     for attr in attractions:
         start_str = f"{int(current_hour):02d}:{int((current_hour % 1) * 60):02d}"
-        freshness = None if network_available else "Offline Mode: Verified against local cached database; live opening hours not verified."
+        freshness = "NO_DATA: no opening-hours connector or cache was queried."
         item = ItineraryItem(
             time_slot=start_str,
             activity=f"Visit {attr} in {destination}",
             duration_hours=hours_per_item,
-            is_live_status=network_available,
-            freshness_notice=freshness
+            is_live_status=False,
+            freshness_notice=freshness,
         )
         itinerary.items.append(item)
         current_hour += hours_per_item + 0.5  # add transit time

@@ -1,0 +1,70 @@
+{
+  "status": "PASSED",
+  "scope": "Public one-example development smoke; not learning quality or deployment gate evidence",
+  "training": {
+    "candidate": {
+      "adapter_id": "development-lora",
+      "version": "1",
+      "capability_id": "development.literal",
+      "target_model_id": "smollm2-135m",
+      "training_sample_count": 1,
+      "created_at": 1791264220.7782698,
+      "artifact_path": "C:\\Users\\Paril Rupani\\OneDrive - Shri Vile Parle Kelavani Mandal\\Desktop\\project\\CNE\\.dist\\training-probe\\adapter.gguf",
+      "artifact_sha256": "eb61e2a0869a4ff03f7784e22e2f586489d89e12449e53f637911c2340896ac1"
+    },
+    "losses": [
+      5.8239898681640625,
+      5.82222318649292
+    ],
+    "sample_count": 1,
+    "dataset_hash": "3b70d886111447936a72301901aca22619279b3159f924c8f60ec3e7faa31e01",
+    "base_weights_unchanged": true
+  },
+  "baseline_inference": {
+    "request_id": "base",
+    "model_id": "smollm2-135m",
+    "outputs": " yes.\n\nThe reason is that",
+    "latency_ms": 267.89569994434714,
+    "tokens_generated": 8,
+    "confidence_score": null,
+    "backend_used": "CPU",
+    "metadata": {
+      "backend_identity": "llama-cpp-python/CPU",
+      "ttft_ms": 181.59170006401837,
+      "tokens_per_second": 29.86236808452665,
+      "token_count_provenance": "generated token IDs",
+      "adapter_dependencies": [],
+      "cache_scope": "development"
+    }
+  },
+  "adapted_inference": {
+    "request_id": "adapted",
+    "model_id": "smollm2-135m",
+    "outputs": " yes.\n\nThe reason is that",
+    "latency_ms": 247.1305001527071,
+    "tokens_generated": 8,
+    "confidence_score": null,
+    "backend_used": "CPU",
+    "metadata": {
+      "backend_identity": "llama-cpp-python/CPU",
+      "ttft_ms": 102.42320015095174,
+      "tokens_per_second": 32.371560754567454,
+      "token_count_provenance": "generated token IDs",
+      "adapter_dependencies": [
+        [
+          "smollm2-135m/lora",
+          "eb61e2a0869a4ff03f7784e22e2f586489d89e12449e53f637911c2340896ac1"
+        ]
+      ],
+      "cache_scope": "development"
+    }
+  },
+  "elapsed_s": 49.0224788999185,
+  "base_source": {
+    "repository": "HuggingFaceTB/SmolLM2-135M-Instruct",
+    "revision": "12fd25f77366fa6b3b4b768ec3050bf629380bac",
+    "license": "apache-2.0"
+  },
+  "failed_commit_preserved_live_model": true,
+  "base_restoration_inference_verified": true
+}

@@ -1,5 +1,17 @@
 # CNE Evaluation Gates & Acceptance Criteria
 
+## Current implementation evidence (2026-10-06)
+
+Implementation status: benchmark accounting IMPLEMENTED; real controller/model tournament NOT_TESTED.
+
+Every quality metric contains numerator, denominator, status and value. Zero samples are NOT_APPLICABLE. Missing semantic/task oracles are NOT_MEASURED, never inferred from parse success. Routing, intent, OOS, ambiguity and whole-slot exact match compare separate gold labels. Contract and post-execution correctness require independent executable oracles.
+
+Callback latency is measured with perf_counter and includes sampling overhead. RSS/PSS are explicitly sampled process peaks at 5 ms, not model allocation or guaranteed instantaneous peaks. PSS is NOT_MEASURED where unavailable. TTFT and token counts come only from actual ModelResult runtime observations; model file size comes from filesystem stat. Passing quality without required runtime evidence cannot win model selection.
+
+Current controller targets: schema >=99%, semantic >=95%, slots >=90%, OOS >=95%, in-scope >=60%, primitive adherence 100%; routing, ambiguity, contract and task success are separately reported. No 100?150M / 250?350M / 500?700M model runs were performed without real assets. No final controller is selected. The untouched 600-query held-out corpus remains quarantined and no replacement success is claimed. Original baseline figures below are historical evidence, not results from this platform hardening.
+
+---
+
 ## 1. Overview
 
 This document defines the formal evaluation scorecards and acceptance gates governing new controllers, capability packs, caching layers, and continual learning adaptations.
@@ -54,3 +66,7 @@ On the reference ARM 6 GB Android class device:
 - **Base Model Storage:** $\le 500$ MB.
 - **Core Framework Storage:** $\le 150$ MB (excluding models).
 - **CPU-Only Operational Guarantee:** 100% of baseline functionality operates on CPU alone.
+
+## Running a real development tournament
+
+Install the optional `gguf` dependency group and provide licensed local GGUF paths. Run `python -m cne.platform.tournament --config development.json --output tournament.json`. The config requires `dataset_role: development`, configurable candidate descriptors (`model_id`, `version`, `parameter_count_m`, `asset_path`) and labeled cases. Missing backends/assets produce NOT_TESTED entries. The CLI does not download models, train, or select a final controller. Independent semantic/contract/task oracles remain necessary for all gates; no model can win from syntax alone. Keep the blind corpus out of this development configuration.

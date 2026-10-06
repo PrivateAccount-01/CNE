@@ -1,5 +1,5 @@
 """
-Phase P13 End-to-End Integration Test:
+Desktop DSL-to-CNE Integration Test:
 Platform Controller Bridge -> Semantic DSL -> CNE Execution Engine -> LocalStateFabric -> MemoKey Reuse.
 Validates offline, zero-cloud, deterministic computation necessity caching on the reference substrate.
 """
@@ -28,7 +28,7 @@ class TestPlatformCNEEndToEnd:
             "bridge": bridge,
             "engine": engine,
             "fabric": fabric,
-            "registry": registry
+            "registry": registry,
         }
 
     def test_end_to_end_compilation_execution_and_caching(self, setup_platform_cne):
@@ -44,14 +44,11 @@ class TestPlatformCNEEndToEnd:
         )
         comp_res = bridge.compile_to_cne(dsl_script, contract_type=ContractType.EXACT)
         from cne.compiler.nl_compiler import ClassificationOutcome
+
         assert comp_res.outcome == ClassificationOutcome.COMPILED
         assert comp_res.graph is not None
 
-        env = {
-            "transactions": {
-                "amounts": [100, 250, 75, 500]
-            }
-        }
+        env = {"transactions": {"amounts": [100, 250, 75, 500]}}
         contract = comp_res.contract or OutcomeContract(ContractType.EXACT)
         versions_v1 = SystemVersions(capability_vector_hash="finance@1.0.0")
 
@@ -61,7 +58,7 @@ class TestPlatformCNEEndToEnd:
             contract=contract,
             env=env,
             query_id="q1",
-            versions=versions_v1
+            versions=versions_v1,
         )
         assert run1.contract_satisfied
         assert run1.value == 925
@@ -74,7 +71,7 @@ class TestPlatformCNEEndToEnd:
             contract=contract,
             env=env,
             query_id="q2",
-            versions=versions_v1
+            versions=versions_v1,
         )
         assert run2.contract_satisfied
         assert run2.value == 925
@@ -83,17 +80,13 @@ class TestPlatformCNEEndToEnd:
         assert run1.memo_key.key_hash == run2.memo_key.key_hash
 
         # 4. State Mutation: Input data changes in environment -> Cache miss & Recompute
-        env_mutated = {
-            "transactions": {
-                "amounts": [100, 250, 75, 500, 1000]
-            }
-        }
+        env_mutated = {"transactions": {"amounts": [100, 250, 75, 500, 1000]}}
         run3 = engine.execute_query(
             comp_res.graph,
             contract=contract,
             env=env_mutated,
             query_id="q3",
-            versions=versions_v1
+            versions=versions_v1,
         )
         assert run3.contract_satisfied
         assert run3.value == 1925
@@ -107,7 +100,7 @@ class TestPlatformCNEEndToEnd:
             contract=contract,
             env=env,
             query_id="q4",
-            versions=versions_v2
+            versions=versions_v2,
         )
         assert run4.contract_satisfied
         assert run4.value == 925

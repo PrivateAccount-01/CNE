@@ -28,6 +28,9 @@ classifiers = [
 dependencies = []
 
 [project.optional-dependencies]
+platform = ["psutil>=5.9", "cryptography>=42"]
+gguf = ["psutil>=5.9", "llama-cpp-python>=0.3"]
+training = ["torch>=2.2", "transformers>=4.55,<4.56", "peft==0.17.1", "gguf>=0.19", "numpy>=1.26,<2"]
 dev = [
     "pytest>=8.0.0",
     "pytest-cov>=4.1.0",

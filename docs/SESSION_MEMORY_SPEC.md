@@ -1,5 +1,17 @@
 # CNE Multi-Layer Memory & Session Caching Specification
 
+## Current implementation evidence (2026-10-06)
+
+Implementation status: PARTIAL overall; SQLite session and correction persistence are IMPLEMENTED.
+
+Use `SessionStore(repository=SQLiteSessionRepository(path))` and `get_session(user_id, session_id)` for persistent owner-checked access. An in-memory repository is an explicit alternative. The legacy `get_or_create` helper is for local compatibility and also checks ownership. Sessions retain at most ten semantic entries containing fingerprints, not raw transcripts. Active entities are private user-scoped data.
+
+CorrectionStore(path) persists owner-scoped records. New records are UNVERIFIED. USER_SCOPED preferences remain restricted to their owner; VERIFIED requires independent verifier evidence. Metadata filters precede thresholded Jaccard ranking; embeddings are NOT_IMPLEMENTED. Redaction covers emails, phone-like numbers and identifiers plus host-configured address patterns; this is not a universal PII detector.
+
+SemanticPlanTemplate stores versions, required slots, tool dependencies and usage metadata. Binding requires every dynamic slot on every request and checks owner/version compatibility. The declared-grammar controller uses L2 templates and rebinds all current slots before compilation. The GGUF backend resets native KV state when user/cache namespace changes and clears it when weights change. Native cache hits are not fabricated as platform hit metrics. The executor uses a separate CNE fabric per user and hashes the user scope into the execution policy version. Persisted experience records retain a parameterized DSL and a fingerprint, withholding raw queries and private slot values by default. Failed/declined requests persist private-safe outcomes, error types and audit/telemetry evidence; arbitrary exception text is excluded.
+
+---
+
 ## 1. Memory Architecture Overview
 
 The CNE platform organizes state across six strictly segregated layers, preventing execution artifacts, session context, computational state, and learning experiences from contaminating one another.
