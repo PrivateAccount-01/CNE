@@ -35,6 +35,7 @@ class PlatformRuntimeConfig:
     mode: str = "production"
     in_memory: bool = False
     candidate_limit: int = 5
+    controller_residency_budget_mb: float = 1024.0
     key_provider: object | None = None
     key_id: str | None = None
 
@@ -47,8 +48,12 @@ class PlatformRuntimeConfig:
             raise ValueError("A private storage root is required")
         if not 1 <= self.candidate_limit <= 8:
             raise ValueError("Candidate K must be 1..8")
+        if self.controller_residency_budget_mb <= 0:
+            raise ValueError("Controller residency budget must be positive")
         if bool(self.key_provider) != bool(self.key_id):
             raise ValueError("key_provider and key_id must be configured together")
+        if self.mode == "production" and self.key_provider is None:
+            raise ValueError("Production storage requires a host key provider")
 
 
 class PlatformStorageLayout:
@@ -79,8 +84,11 @@ class PlatformRuntime:
     adaptations: GatedAdaptationPipeline
     external_data: ExternalDataCache
     encryption: object | None = None
+    residency_manager: object | None = None
 
     def close(self):
+        if self.residency_manager is not None:
+            self.residency_manager.unload_all()
         # Close each SQLite connection once; users may safely reopen the composition.
         candidates = [
             self.registry,
@@ -108,6 +116,10 @@ class PlatformRuntime:
 class PlatformRuntimeFactory:
     @staticmethod
     def create(config, model_runtime=None, descriptor=None, verifiers=None):
+        if (model_runtime is None) != (descriptor is None):
+            raise ValueError("Model runtime and descriptor must be configured together")
+        if descriptor is not None and descriptor.estimated_ram_mb <= 0:
+            raise ValueError("Controller model requires a positive memory estimate")
         layout = PlatformStorageLayout(config)
         from cne.platform.storage import EncryptedPayloadCodec
 
@@ -129,11 +141,19 @@ class PlatformRuntimeFactory:
             database_path=layout.database("registry"),
         )
         plans = SemanticPlanCache(layout.database("semantic_plans"), codec=encryption)
+        residency_manager = None
+        if model_runtime is not None:
+            from cne.platform.models import ModelResidencyManager
+
+            residency_manager = ModelResidencyManager(
+                config.controller_residency_budget_mb, model_runtime
+            )
         controller = (
             RuntimeSemanticController(
                 registry,
                 model_runtime,
                 descriptor,
+                residency_manager=residency_manager,
                 candidate_limit=config.candidate_limit,
             )
             if model_runtime
@@ -181,4 +201,5 @@ class PlatformRuntimeFactory:
             ),
             ExternalDataCache(layout.database("external_data"), codec=encryption),
             encryption,
+            residency_manager,
         )

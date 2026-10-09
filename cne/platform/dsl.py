@@ -97,14 +97,14 @@ class SemanticDSLParser:
         return DSLNode(op, attrs, line_no, nid)
 
     @classmethod
-    def compile_dsl(cls, dsl_text, contract_type=ContractType.EXACT, intent=None):
+    def compile_dsl(cls, dsl_text, contract_type=ContractType.EXACT, intent=None, contract_spec=None):
         try:
-            return cls._compile(dsl_text, contract_type, intent)
+            return cls._compile(dsl_text, contract_type, intent, contract_spec)
         except (ValueError, TypeError, KeyError) as exc:
             return DSLCompileResult(False, error_message=str(exc))
 
     @classmethod
-    def _compile(cls, text, contract_type, intent):
+    def _compile(cls, text, contract_type, intent, contract_spec=None):
         graph = SemanticIRGraph(
             metadata={"compiler_version": "dsl-2", "intent": intent}
         )
@@ -274,6 +274,7 @@ class SemanticDSLParser:
         if set(built) != set(parsed):
             raise ValueError("Unreachable nodes or multiple roots")
         graph.root_id = emits[0]
-        return DSLCompileResult(
-            True, graph, OutcomeContract(contract_type=contract_type)
-        )
+        contract = contract_spec.build() if contract_spec is not None else OutcomeContract(contract_type=contract_type)
+        if contract.contract_type != contract_type:
+            raise ValueError("Outcome contract type mismatch")
+        return DSLCompileResult(True, graph, contract)

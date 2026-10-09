@@ -14,17 +14,23 @@ class ControllerPromptBuilder:
         intents = sorted({i["intent"] for v in views for i in v.to_dict()["intents"]})
         allslots = {}
         for view in views:
-            for name, schema in view.to_dict()["slots"].items():
-                if name in allslots and allslots[name] != schema:
-                    raise ValueError(
-                        "Ambiguous slot schema across shortlisted capabilities"
-                    )
-                allslots[name] = schema
+            data = view.to_dict()
+            declared = [data.get("slots", {})]
+            declared.extend(intent.get("slots", {}) for intent in data.get("intents", []))
+            for slots in declared:
+                for name, schema in slots.items():
+                    allslots.setdefault(name, []).append(schema)
         typemap = {"number": "number", "integer": "integer", "boolean": "boolean"}
-        props = {
-            name: {"type": typemap.get(spec.get("type"), "string")}
-            for name, spec in allslots.items()
-        }
+        props = {}
+        for name, schemas in allslots.items():
+            variants = []
+            for spec in schemas:
+                variant = {"type": typemap.get(spec.get("type"), "string")}
+                if "enum" in spec:
+                    variant["enum"] = spec["enum"]
+                if variant not in variants:
+                    variants.append(variant)
+            props[name] = variants[0] if len(variants) == 1 else {"anyOf": variants}
         return {
             "type": "object",
             "properties": {

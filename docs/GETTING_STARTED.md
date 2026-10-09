@@ -9,7 +9,7 @@ Welcome to the **Computation Necessity Engine (CNE)**. This guide walks you thro
 CNE is designed to be lightweight with zero external runtime dependencies.
 
 ### Prerequisites
-- Python 3.9+ (Python 3.10, 3.11, or 3.12 recommended)
+- Python 3.10+ (Python 3.10, 3.11, or 3.12 supported)
 - `pip` or virtual environment manager
 
 ### Setup

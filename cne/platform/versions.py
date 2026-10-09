@@ -16,6 +16,25 @@ class ExecutionSemanticVersionVector:
     semantic_compiler_version: str = "dsl-2"
     policy_version: str = "permissions-2"
 
+    def model_identity_map(self):
+        """Return stable structured model identities while accepting legacy pairs."""
+        result = {}
+        for identity in self.models:
+            if len(identity) == 2:
+                model_id, version = identity
+                asset_sha256 = None
+            elif len(identity) == 3:
+                model_id, version, asset_sha256 = identity
+            else:
+                raise ValueError("Model dependency identity must have 2 or 3 fields")
+            if model_id in result:
+                raise ValueError(f"Duplicate model dependency: {model_id}")
+            result[model_id] = {"version": version, "asset_sha256": asset_sha256}
+        return result
+
+    def model_ids(self):
+        return list(self.model_identity_map())
+
     def digest(self):
         data = asdict(self)
         for key in ("capabilities", "models", "adapters", "tools", "knowledge"):

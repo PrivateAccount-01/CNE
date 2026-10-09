@@ -26,3 +26,11 @@ def test_execute_restart_revalidate_reuse_and_mutation(tmp_path):
     assert three.value == 120 and not three.reused_state
     assert not rt.executor.execute("bob", "b0", query, ENV).reused_state
     rt.close()
+
+
+
+def test_production_runtime_requires_host_encryption_key_provider():
+    from cne.platform.runtime_config import PlatformRuntimeConfig
+
+    with pytest.raises(ValueError, match="host key provider"):
+        PlatformRuntimeConfig(storage_root="private-data", mode="production")

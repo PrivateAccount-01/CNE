@@ -391,18 +391,37 @@ class RuntimeSemanticController(PlatformSemanticController):
                 ]
                 package_slots = pack.manifest.schemas.get("slots", {})
                 for key, spec in package_slots.items():
-                    if key in schemas and schemas[key] != spec:
+                    if key in schemas and schemas[key].get("type") != spec.get("type"):
                         raise ValueError("Ambiguous composed slot schema")
-                    schemas[key] = spec
+                    schemas[key] = {**schemas.get(key, {}), **spec}
                 for intent_schema in intent_specs:
                     for key, spec in intent_schema.items():
-                        if key in schemas and schemas[key] != spec:
+                        if key in schemas and schemas[key].get("type") != spec.get("type"):
                             raise ValueError("Ambiguous composed slot schema")
-                        schemas[key] = spec
+                        schemas[key] = {**schemas.get(key, {}), **spec}
                 declared_sources.update(
                     allowed[cid].manifest.schemas.get("sources", [])
                 )
             bound = self.binder.bind(schemas, raw.get("extracted_slots", {}))
+            from cne.platform.correction_review import CorrectionConstraintApplier
+
+            correction_applier = CorrectionConstraintApplier()
+            applied_corrections = []
+            applied_slot_names = []
+            corrected_values = {name: slot.value for name, slot in bound.items()}
+            correction_matches = (context or {}).get("corrections", [])
+            for cid in selected:
+                corrected_values, applied = correction_applier.apply_slots(
+                    corrected_values, correction_matches, scope, cid, intent
+                )
+                applied_corrections.extend(applied)
+                applied_slot_names.extend(
+                    match.correction.constraint.get("slot")
+                    for match in correction_matches
+                    if match.correction.record_id in applied
+                    and match.correction.constraint.get("kind") in ("slot_normalization", "slot_preference")
+                )
+            bound = self.binder.bind(schemas, corrected_values)
             declared_intents = {
                 mapping["intent"]
                 for cid in selected
@@ -413,13 +432,24 @@ class RuntimeSemanticController(PlatformSemanticController):
                 raise ValueError("Undeclared intent")
             dsl = raw["semantic_dsl"]
             evidence["parameterized_dsl"] = dsl
+            if any("${" + name + "}" not in dsl for name in applied_slot_names):
+                raise ValueError("Verified slot correction requires a parameterized DSL slot")
             for name, slot in bound.items():
                 dsl = dsl.replace(
                     "${" + name + "}", shlex.quote(json.dumps(slot.value))
                 )
             if "${" in dsl:
                 raise ValueError("Unbound slot")
-            compiled = SemanticDSLParser.compile_dsl(dsl, intent=intent)
+            correction_applier.validate_plan(
+                dsl, correction_matches, scope, set(selected)
+            )
+            from cne.platform.contracts import OutcomeContractSpec
+
+            contract_spec = OutcomeContractSpec.from_intent(allowed[selected[0]].manifest, intent)
+            compiled = SemanticDSLParser.compile_dsl(
+                dsl, contract_type=contract_spec.contract_type, intent=intent,
+                contract_spec=contract_spec,
+            )
             if not compiled.is_valid:
                 raise ValueError(compiled.error_message)
             observed_sources = set(compiled.graph.get_observed_sources())
@@ -442,6 +472,8 @@ class RuntimeSemanticController(PlatformSemanticController):
                     observed_sources & declared_pack_sources,
                 )
             ExecutionSemanticVersionVector.for_execution(self.registry, selected, tools)
+            evidence["applied_correction_ids"] = sorted(set(applied_corrections))
+            evidence["outcome_contract"] = contract_spec.to_dict()
             evidence["tool_ids"] = sorted(set(tools))
             evidence["source_ids"] = sorted(observed_sources)
             return ControllerDecision(
@@ -538,7 +570,18 @@ class PlatformControllerBridge:
                     used_sources,
                 )
         compile_start = time.perf_counter()
-        result = self.compile_to_cne(decision.semantic_dsl, intent=decision.intent)
+        contract_type = ContractType.EXACT
+        contract_spec = None
+        if isinstance(self.controller, RuntimeSemanticController):
+            from cne.platform.contracts import OutcomeContractSpec
+
+            primary = self.registry.get_pack(decision.selected_capability_ids[0])
+            contract_spec = OutcomeContractSpec.from_intent(primary.manifest, decision.intent)
+            contract_type = contract_spec.contract_type
+        result = self.compile_to_cne(
+            decision.semantic_dsl, contract_type=contract_type, intent=decision.intent,
+            contract_spec=contract_spec,
+        )
         if "timings" in decision.evidence:
             decision.evidence["timings"]["dsl_compile_ms"] += (
                 time.perf_counter() - compile_start
@@ -583,9 +626,12 @@ class PlatformControllerBridge:
         return result
 
     def compile_to_cne(
-        self, dsl_text, contract_type=ContractType.EXACT, intent="custom_pipeline"
+        self, dsl_text, contract_type=ContractType.EXACT, intent="custom_pipeline",
+        contract_spec=None,
     ):
-        result = SemanticDSLParser.compile_dsl(dsl_text, contract_type, intent)
+        result = SemanticDSLParser.compile_dsl(
+            dsl_text, contract_type, intent, contract_spec=contract_spec
+        )
         return CompilationResult(
             query_text=dsl_text,
             outcome=ClassificationOutcome.COMPILED

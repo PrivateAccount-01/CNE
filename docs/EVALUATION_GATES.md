@@ -69,4 +69,4 @@ On the reference ARM 6 GB Android class device:
 
 ## Running a real development tournament
 
-Install the optional `gguf` dependency group and provide licensed local GGUF paths. Run `python -m cne.platform.tournament --config development.json --output tournament.json`. The config requires `dataset_role: development`, configurable candidate descriptors (`model_id`, `version`, `parameter_count_m`, `asset_path`) and labeled cases. Missing backends/assets produce NOT_TESTED entries. The CLI does not download models, train, or select a final controller. Independent semantic/contract/task oracles remain necessary for all gates; no model can win from syntax alone. Keep the blind corpus out of this development configuration.
+The `ProductionControllerTournament` harness is currently a Python API, not a command-line tool. Call its `run(runtime_factory, descriptor, cases)` method with development-only labeled cases and locally provisioned licensed model assets. Missing backends/assets must be recorded as NOT_TESTED. Independent semantic/contract/task oracles remain necessary; the harness does not select a final controller. Keep the blind corpus out of development cases.

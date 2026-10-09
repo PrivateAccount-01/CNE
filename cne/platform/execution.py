@@ -299,7 +299,7 @@ class PlatformExecutor:
                         stage="post",
                         capability_version=self.bridge.registry.get_pack(cid).version,
                         controller_version=decision.controller_version,
-                        model_version=json.dumps(dict(vector.models), sort_keys=True),
+                        model_version=json.dumps(vector.model_identity_map(), sort_keys=True),
                         intent=decision.intent,
                         semantic_shape=SemanticShapeKey.from_graph(
                             compiled.graph
@@ -460,7 +460,7 @@ class PlatformExecutor:
             session_id,
             "",
             graph.metadata["selected_capabilities"],
-            ",".join(model_id for model_id, _ in vector.models),
+            ",".join(model_id for model_id in vector.model_ids()),
             self.bridge.last_decision.evidence.get("parameterized_dsl", "")
             if self.bridge.last_decision.evidence.get("privacy_reviewed_template")
             else "",
@@ -474,7 +474,7 @@ class PlatformExecutor:
                 cid: self.bridge.registry.get_pack(cid).version
                 for cid in graph.metadata["selected_capabilities"]
             },
-            model_versions=dict(vector.models),
+            model_versions=vector.model_identity_map(),
             tool_versions=dict(vector.tools),
             resource_metrics=runtime_metrics,
             input_fingerprint=request_fingerprint(
@@ -515,7 +515,7 @@ class PlatformExecutor:
                 request_id,
                 session_id,
                 graph.metadata["selected_capabilities"],
-                [model_id for model_id, _ in vector.models],
+                [model_id for model_id in vector.model_ids()],
                 "CNE deterministic CPU",
                 record.semantic_shape,
                 cache_hits_by_layer={
@@ -536,7 +536,7 @@ class PlatformExecutor:
                 inference_ttft_ms=runtime_metrics.get("ttft_ms"),
                 tokens_generated=runtime_metrics.get("tokens_generated"),
                 tokens_per_second=runtime_metrics.get("tokens_per_second"),
-                model_versions=dict(vector.models),
+                model_versions=vector.model_identity_map(),
                 routing_latency_ms=timings.get("routing_ms"),
                 slot_binding_latency_ms=timings.get("slot_binding_ms"),
                 dsl_compile_latency_ms=timings.get("dsl_compile_ms"),

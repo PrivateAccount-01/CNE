@@ -1,4 +1,4 @@
-"""Operation-level permission requirements, bounded by the manifest ceiling."""
+﻿"""Operation-level permission requirements, bounded by the manifest ceiling."""
 from cne.platform.manifest import Permission
 
 
@@ -6,10 +6,13 @@ def intent_permissions(manifest, intent):
     mapping = next(
         (m for m in manifest.schemas.get("intents", []) if m["intent"] == intent), None
     )
-    return set(
-        Permission(p)
-        for p in (mapping or {}).get("required_permissions", manifest.permissions)
-    )
+    if mapping is not None:
+        return {Permission(p) for p in mapping.get("required_permissions", manifest.permissions)}
+    # Legacy packs have no intent ownership metadata; retain their declared ceiling.
+    # Modern multi-intent packs do not inherit unrelated permissions for unknown intents.
+    if manifest.schemas.get("intents"):
+        return set()
+    return {Permission(p) for p in manifest.permissions}
 
 
 def authorize_operation(registry, pack, user_id, intent=None, tools=(), sources=()):

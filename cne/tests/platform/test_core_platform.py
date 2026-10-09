@@ -1,4 +1,4 @@
-"""Behavioral regression tests for platform hardening."""
+﻿"""Behavioral regression tests for platform hardening."""
 import json
 from dataclasses import replace
 import pytest
@@ -500,7 +500,10 @@ def test_runtime_controller_protocol_boundary(registry):
                 0,
             )
 
-    registry.register_pack(manifest(schemas={"sources": ["data"], "slots": {}}))
+    registry.register_pack(manifest(schemas={
+        "sources": ["data"], "slots": {}, "contracts": ["EXACT"],
+        "intents": [{"intent": "total", "template": "sum data", "slots": {}, "outcome_contract": {"version": 1, "type": "EXACT"}}],
+    }))
     descriptor = ModelDescriptor("test-boundary", ModelKind.TEXT_GENERATION, "2", 0)
     bridge = PlatformControllerBridge(
         registry,
@@ -513,3 +516,143 @@ def test_runtime_controller_protocol_boundary(registry):
     assert result.confidence is None
     registry.register_pack(manifest(schemas={"sources": [], "slots": {}}))
     assert bridge.compile("sum data", context={"user_id": "alice"}).graph is None
+
+
+
+def test_runtime_executor_persists_hashed_model_identity_end_to_end(tmp_path):
+    from cne.platform.runtime_config import PlatformRuntimeConfig, PlatformRuntimeFactory
+    from cne.platform.models import ModelDescriptor, ModelKind, ModelResult
+
+    class RuntimeBoundary:
+        def __init__(self):
+            self.loaded = False
+
+        def is_loaded(self, model_id):
+            return self.loaded
+
+        def load_model(self, descriptor, backend):
+            self.loaded = True
+            return True
+
+        def unload_model(self, model_id):
+            self.loaded = False
+            return True
+
+        def infer(self, request):
+            return ModelResult(
+                request.request_id, request.model_id,
+                json.dumps({
+                    "outcome": "COMPILED",
+                    "selected_capability_ids": ["test.runtime"],
+                    "intent": "total",
+                    "extracted_slots": {},
+                    "semantic_dsl": "data = OBS source=data\nresult = EMI in=data",
+                }), 1.0,
+            )
+
+    config = PlatformRuntimeConfig(str(tmp_path), mode="development")
+    boundary = RuntimeBoundary()
+    descriptor = ModelDescriptor(
+        "local-controller", ModelKind.TEXT_GENERATION, "3", 10,
+        estimated_ram_mb=16, asset_sha256="sha256:fixture",
+    )
+    runtime = PlatformRuntimeFactory.create(config, boundary, descriptor)
+    runtime.registry.register_pack(manifest(
+        "test.runtime",
+        schemas={
+            "sources": ["data"], "slots": {}, "contracts": ["EXACT"],
+            "intents": [{
+                "intent": "total", "template": "sum data", "slots": {},
+                "outcome_contract": {"version": 1, "type": "EXACT"},
+            }],
+        },
+    ))
+    result = runtime.executor.execute("alice", "session", "sum data", {"data": [2, 3]})
+    assert result.contract_satisfied and result.value == [2, 3]
+    experience = runtime.executor.experiences.get("alice", runtime.executor.last_experience_id)
+    assert experience.model_versions == {
+        "local-controller": {"version": "3", "asset_sha256": "sha256:fixture"}
+    }
+    rows = runtime.executor.telemetry.db.execute("SELECT payload FROM telemetry").fetchall()
+    assert rows
+    runtime.close()
+    assert not boundary.loaded
+
+
+def test_runtime_controller_enforces_verified_slot_correction_after_inference(registry):
+    from types import SimpleNamespace
+    from cne.compiler.nl_compiler import ClassificationOutcome
+    from cne.platform.bridge import RuntimeSemanticController
+    from cne.platform.memory import AuditStatus
+    from cne.platform.models import ModelDescriptor, ModelKind, ModelResult
+
+    class RuntimeBoundary:
+        def is_loaded(self, model_id):
+            return True
+
+        def infer(self, request):
+            return ModelResult(
+                request.request_id, request.model_id,
+                json.dumps({
+                    "outcome": "COMPILED", "selected_capability_ids": ["test.correct"],
+                    "intent": "lookup", "extracted_slots": {"category": "groceries"},
+                    "semantic_dsl": "value = LIT value=${category}\nresult = EMI in=value",
+                }), 1.0,
+            )
+
+    pack = manifest("test.correct", schemas={
+        "sources": [], "slots": {"category": {"type": "string"}},
+        "contracts": ["EXACT"],
+        "intents": [{
+            "intent": "lookup", "template": "find {category:string}",
+            "slots": {"category": {"type": "string", "required": True}},
+            "outcome_contract": {"version": 1, "type": "EXACT"},
+        }],
+    })
+    registry.register_pack(pack)
+    correction = SimpleNamespace(
+        correction=SimpleNamespace(
+            record_id="verified-1", user_id="alice", scope="user",
+            capability_id="test.correct", intent="lookup",
+            audit_status=AuditStatus.VERIFIED,
+            constraint={"kind": "slot_normalization", "slot": "category", "from": "groceries", "to": "food"},
+        )
+    )
+    controller = RuntimeSemanticController(
+        registry, RuntimeBoundary(),
+        ModelDescriptor("fixture", ModelKind.TEXT_GENERATION, "1", 1),
+    )
+    decision = controller.decide(
+        "find groceries", scope="alice", context={"corrections": [correction]}
+    )
+    assert decision.outcome == ClassificationOutcome.COMPILED, decision.decline_reason
+    assert 'food' in decision.semantic_dsl
+    assert decision.evidence["applied_correction_ids"] == ["verified-1"]
+
+
+def test_runtime_contract_must_be_declared_by_the_selected_intent(registry):
+    from cne.compiler.nl_compiler import ClassificationOutcome
+    from cne.platform.bridge import RuntimeSemanticController
+    from cne.platform.models import ModelDescriptor, ModelKind, ModelResult
+
+    class RuntimeBoundary:
+        def is_loaded(self, model_id):
+            return True
+
+        def infer(self, request):
+            return ModelResult(request.request_id, request.model_id, json.dumps({
+                "outcome": "COMPILED", "selected_capability_ids": ["test.no_contract"],
+                "intent": "lookup", "extracted_slots": {},
+                "semantic_dsl": "value = LIT value=1\nresult = EMI in=value",
+            }), 1)
+
+    registry.register_pack(manifest("test.no_contract", schemas={
+        "sources": [], "slots": {},
+        "intents": [{"intent": "lookup", "template": "lookup", "slots": {}}],
+    }))
+    controller = RuntimeSemanticController(
+        registry, RuntimeBoundary(), ModelDescriptor("m", ModelKind.TEXT_GENERATION, "1", 1)
+    )
+    decision = controller.decide("lookup", scope="alice")
+    assert decision.outcome == ClassificationOutcome.LOW_CONFIDENCE_MAPPING
+    assert "outcome_contract" in decision.decline_reason

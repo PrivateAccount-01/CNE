@@ -19,7 +19,6 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
-import openai
 
 from cne.compiler.few_shot_pool import FewShotPool
 from cne.compiler.grammar_schema import (
@@ -34,6 +33,17 @@ from cne.signature.shape_key import SemanticShapeKey
 
 
 logger = logging.getLogger(__name__)
+
+
+def _openai_client(base_url, api_key):
+    """Load the optional OpenAI-compatible client only when a remote decoder is used."""
+    try:
+        import openai
+    except ImportError as exc:
+        raise RuntimeError(
+            "This decoder requires the optional openai package; install cne[legacy-controller]"
+        ) from exc
+    return openai.OpenAI(base_url=base_url, api_key=api_key)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -183,7 +193,7 @@ class ConstrainedDecoder:
         api_key: str = "ollama"
     ):
         self.model_name = model_name
-        self.client = openai.OpenAI(base_url=base_url, api_key=api_key)
+        self.client = _openai_client(base_url, api_key)
 
     def decode(self, query_text: str) -> DecoderResult:
         messages = [
@@ -316,7 +326,7 @@ class LearnedSemanticController:
         max_tokens: int = 800
     ):
         self.model_name = model_name
-        self.client = openai.OpenAI(base_url=base_url, api_key=api_key)
+        self.client = _openai_client(base_url, api_key)
         self.few_shot_pool = few_shot_pool or FewShotPool()
         self.num_demos = num_demos
         self.max_retries = min(max_retries, len(_RETRY_TEMPERATURES))

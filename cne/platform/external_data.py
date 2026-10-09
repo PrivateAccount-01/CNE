@@ -118,7 +118,10 @@ class HTTPJSONConnector:
         self.max_bytes = max_bytes
         self.allow_loopback_http = allow_loopback_http
 
-    def fetch(self, capability_id, user_id, source, key, url, ttl, force_refresh=False):
+    def fetch(
+        self, capability_id, user_id, source, key, url, ttl,
+        force_refresh=False, allow_stale_fallback=False,
+    ):
         from urllib.parse import urlsplit
         import urllib.request
         import urllib.error
@@ -171,6 +174,9 @@ class HTTPJSONConnector:
             self.cache.put(user_id, record)
             return ExternalDataFetchResult(DataFreshnessStatus.LIVE_FETCHED, record)
         except (OSError, ValueError) as exc:
+            fallback = cached if cached and cached.is_fresh() else None
+            if fallback is None and cached and allow_stale_fallback:
+                fallback = replace(cached, freshness_status=DataFreshnessStatus.STALE)
             return ExternalDataFetchResult(
-                DataFreshnessStatus.LIVE_FETCH_FAILED, cached, type(exc).__name__
+                DataFreshnessStatus.LIVE_FETCH_FAILED, fallback, type(exc).__name__
             )

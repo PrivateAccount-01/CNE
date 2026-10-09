@@ -286,6 +286,17 @@ class ModelResidencyManager:
     def preload(self, descriptors):
         return [self.ensure_resident(d) for d in descriptors]
 
+    def unload_all(self):
+        """Release every manager-owned model during runtime shutdown."""
+        if self.runtime is None:
+            return
+        with self._lock:
+            for model_id in list(self._entries):
+                if self.runtime.is_loaded(model_id):
+                    if not self.runtime.unload_model(model_id) or self.runtime.is_loaded(model_id):
+                        raise RuntimeError("MODEL_UNLOAD_FAILED")
+                self.record_unload(model_id)
+
     def get_residency_snapshot(self):
         return {
             k: {
