@@ -6,6 +6,7 @@ Never leaks private data into telemetry records.
 from __future__ import annotations
 
 import time
+import sqlite3, json
 from dataclasses import asdict, dataclass, field
 from typing import Any, Dict, List, Optional
 
@@ -51,11 +52,42 @@ class RequestTelemetry:
 class LocalTelemetryCollector:
     """Collects and aggregates telemetry records on-device."""
 
-    def __init__(self, max_records: int = 1000):
+    def __init__(self, max_records: int = 1000, database_path=":memory:", codec=None):
         self.max_records = max_records
-        self._records: List[RequestTelemetry] = []
+        self.db = sqlite3.connect(database_path)
+        self.codec = codec
+        self.db.execute(
+            "CREATE TABLE IF NOT EXISTS telemetry (sequence INTEGER PRIMARY KEY, payload TEXT)"
+        )
+        self.db.commit()
+        self._records = [
+            RequestTelemetry(
+                **(
+                    codec.open(row[1], "local", "telemetry")
+                    if codec
+                    else json.loads(row[1])
+                )
+            )
+            for row in self.db.execute(
+                "SELECT sequence,payload FROM telemetry ORDER BY sequence DESC LIMIT ?",
+                (max_records,),
+            ).fetchall()[::-1]
+        ]
 
     def record(self, telemetry: RequestTelemetry) -> None:
+        with self.db:
+            self.db.execute(
+                "INSERT INTO telemetry(payload) VALUES (?)",
+                (
+                    self.codec.seal(asdict(telemetry), "local", "telemetry")
+                    if self.codec
+                    else json.dumps(asdict(telemetry)),
+                ),
+            )
+            self.db.execute(
+                "DELETE FROM telemetry WHERE sequence NOT IN (SELECT sequence FROM telemetry ORDER BY sequence DESC LIMIT ?)",
+                (self.max_records,),
+            )
         self._records.append(telemetry)
         if len(self._records) > self.max_records:
             self._records = self._records[-self.max_records :]

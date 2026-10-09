@@ -10,6 +10,8 @@ import uuid
 from cne.compiler.nl_compiler import ClassificationOutcome
 from cne.optimizer.necessity_engine import ComputationNecessityEngine
 from cne.platform.auditor import ErrorAuditor
+from cne.platform.errors import FreshnessError
+from cne.platform.operations import authorize_operation
 from cne.platform.memory import CorrectionStore, ExperienceRecord, request_fingerprint
 from cne.platform.telemetry import RequestTelemetry, LocalTelemetryCollector
 from cne.semantic_ir.nodes import OpKind
@@ -32,8 +34,9 @@ class ScopedPrivateStore:
 
 
 class ExperienceRepository:
-    def __init__(self, path=":memory:"):
+    def __init__(self, path=":memory:", codec=None):
         self.db = sqlite3.connect(path)
+        self.codec = codec
         self.db.execute(
             "CREATE TABLE IF NOT EXISTS experiences (id TEXT PRIMARY KEY,owner TEXT,payload TEXT)"
         )
@@ -42,9 +45,20 @@ class ExperienceRepository:
     def save(self, record):
         with self.db:
             self.db.execute(
-                "INSERT INTO experiences VALUES (?,?,?)",
-                (record.experience_id, record.user_id, json.dumps(asdict(record))),
+                "INSERT INTO experiences VALUES (?,?,?) ON CONFLICT(id) DO UPDATE SET owner=excluded.owner,payload=excluded.payload WHERE experiences.owner=excluded.owner",
+                (
+                    record.experience_id,
+                    record.user_id,
+                    self._seal(asdict(record), record.user_id),
+                ),
             )
+
+    def _seal(self, payload, owner):
+        return (
+            self.codec.seal(payload, owner, "experiences")
+            if self.codec
+            else json.dumps(payload)
+        )
 
     def get(self, user_id, experience_id):
         row = self.db.execute(
@@ -54,7 +68,26 @@ class ExperienceRepository:
             return None
         if row[0] != user_id:
             raise PermissionError("ACCESS_DENIED")
-        return ExperienceRecord(**json.loads(row[1]))
+        payload = (
+            self.codec.open(row[1], row[0], "experiences")
+            if self.codec
+            else json.loads(row[1])
+        )
+        return ExperienceRecord(**payload)
+
+    def list_user(self, user_id):
+        rows = self.db.execute(
+            "SELECT owner,payload FROM experiences WHERE owner=?", (user_id,)
+        ).fetchall()
+        result = []
+        for owner, payload in rows:
+            data = (
+                self.codec.open(payload, owner, "experiences")
+                if self.codec
+                else json.loads(payload)
+            )
+            result.append(ExperienceRecord(**data))
+        return result
 
 
 class MutationAuthority:
@@ -70,7 +103,15 @@ class MutationAuthority:
 
 
 class PlatformExecutor:
-    def __init__(self, bridge, corrections=None, experiences=None, telemetry=None):
+    def __init__(
+        self,
+        bridge,
+        corrections=None,
+        experiences=None,
+        telemetry=None,
+        state_repository=None,
+    ):
+        self.state_repository = state_repository
         self.bridge = bridge
         self.corrections = corrections or CorrectionStore()
         self.experiences = experiences or ExperienceRepository()
@@ -83,7 +124,16 @@ class PlatformExecutor:
     def engine_for(self, user_id):
         if not user_id:
             raise PermissionError("ACCESS_DENIED")
-        return self._engines.setdefault(user_id, ComputationNecessityEngine())
+        if user_id not in self._engines:
+            from cne.platform.state_repository import PersistentStateFabric
+
+            fabric = (
+                PersistentStateFabric(self.state_repository, user_id)
+                if self.state_repository
+                else None
+            )
+            self._engines[user_id] = ComputationNecessityEngine(fabric=fabric)
+        return self._engines[user_id]
 
     def execute_authenticated(
         self, identity_authority, token, session_id, query, env, external_records=()
@@ -105,26 +155,60 @@ class PlatformExecutor:
         except Exception as exc:
             from cne.platform.auditor import ErrorType
 
-            category = (
-                ErrorType.PERMISSION_ERROR
-                if isinstance(exc, PermissionError)
-                else ErrorType.RESOURCE_ERROR
-                if isinstance(exc, (MemoryError, TimeoutError))
-                else ErrorType.FRESHNESS_ERROR
-                if str(exc) == "STALE"
-                else ErrorType.BACKEND_ERROR
-            )
+            from cne.platform.errors import classify_exception
+
+            category = ErrorType(classify_exception(exc))
             # Exception messages can contain private inputs. Persist only the type.
             self._record_failure(
                 user_id,
                 session_id,
                 query,
                 start,
-                "FAILED",
+                "EXECUTION_FAILURE",
                 category,
                 type(exc).__name__,
             )
             raise
+
+    def _record_decline(self, user_id, session_id, query, start, outcome):
+        labels = {
+            ClassificationOutcome.UNSUPPORTED_INTENT: "DECLINED_UNSUPPORTED",
+            ClassificationOutcome.AMBIGUOUS_INTENT: "NEEDS_CLARIFICATION",
+            ClassificationOutcome.LOW_CONFIDENCE_MAPPING: "DECLINED_LOW_CONFIDENCE",
+        }
+        label = labels[outcome]
+        request_id = uuid.uuid4().hex
+        duration = (time.perf_counter() - start) * 1000
+        self.experiences.save(
+            ExperienceRecord(
+                request_id,
+                session_id,
+                "",
+                [],
+                "",
+                "",
+                label,
+                False,
+                duration,
+                user_id=user_id,
+                input_fingerprint=request_fingerprint(query),
+                verification_result={"status": "NOT_EXECUTED"},
+            )
+        )
+        self.last_experience_id = request_id
+        self.last_audit = self.auditor.generate_session_report(session_id, [], 1)
+        self.telemetry.record(
+            RequestTelemetry(
+                request_id,
+                session_id,
+                [],
+                [],
+                "NOT_EXECUTED",
+                None,
+                total_latency_ms=duration,
+                contract_status=label,
+            )
+        )
 
     def _record_failure(
         self, user_id, session_id, query, start, outcome, category, exception_type=None
@@ -154,6 +238,7 @@ class PlatformExecutor:
                 },
             )
         )
+        self.last_experience_id = request_id
         signal = AuditSignal(
             "request_failure",
             outcome,
@@ -180,8 +265,11 @@ class PlatformExecutor:
         # TTL is rechecked before CNE cache lookup on every request.
         for record in external_records:
             if not record.is_fresh():
-                raise ValueError("STALE")
-        context = {"user_id": user_id}
+                raise FreshnessError("STALE")
+        context = {"user_id": user_id, "defer_session": True}
+        from cne.platform.correction_review import CorrectionConstraintApplier
+
+        context["constraint_applier"] = CorrectionConstraintApplier()
         resolution = self.bridge.controller.resolver.resolve(query, user_id)
         context["corrections"] = [
             m
@@ -192,23 +280,58 @@ class PlatformExecutor:
                 user_id,
                 controller_version=self.bridge.controller.controller_version,
                 capability_version=pack.version,
+                stage="pre",
             )
         ]
         compiled = self.bridge.compile(query, session_id, context)
+        if compiled.outcome == ClassificationOutcome.COMPILED:
+            decision = self.bridge.last_decision
+            vector = compiled.graph.metadata["execution_vector"]
+            from cne.signature.shape_key import SemanticShapeKey
+
+            post = []
+            for cid in decision.selected_capability_ids:
+                post.extend(
+                    self.corrections.retrieve(
+                        query,
+                        cid,
+                        user_id,
+                        stage="post",
+                        capability_version=self.bridge.registry.get_pack(cid).version,
+                        controller_version=decision.controller_version,
+                        model_version=json.dumps(dict(vector.models), sort_keys=True),
+                        intent=decision.intent,
+                        semantic_shape=SemanticShapeKey.from_graph(
+                            compiled.graph
+                        ).key_hash,
+                        tool_versions=dict(vector.tools),
+                    )
+                )
+            initial_ids = {m.correction.record_id for m in context["corrections"]}
+            new = [m for m in post if m.correction.record_id not in initial_ids]
+            if new:
+                context["corrections"] += new
+                compiled = self.bridge.compile(query, session_id, context)
+                self.bridge.last_decision.evidence["replan_count"] = 1
+            self.bridge.last_decision.evidence.setdefault("applied_correction_ids", [])
+            self.bridge.last_decision.evidence["retrieved_correction_ids"] = [
+                m.correction.record_id for m in context["corrections"]
+            ]
         timings = self.bridge.last_decision.evidence.get("timings", {})
         runtime_metrics = self.bridge.last_decision.evidence.get("runtime", {})
         if compiled.outcome != ClassificationOutcome.COMPILED:
-            from cne.platform.auditor import ErrorType
-
-            self._record_failure(
-                user_id,
+            self._record_decline(user_id, session_id, query, start, compiled.outcome)
+            return compiled
+        decision = self.bridge.last_decision
+        for cid in decision.selected_capability_ids:
+            self.bridge.session_store.record_turn(
                 session_id,
                 query,
-                start,
-                compiled.outcome.value,
-                ErrorType.SEMANTIC_PLAN_ERROR,
+                cid,
+                decision.intent,
+                decision.extracted_slots,
+                user_id=user_id,
             )
-            return compiled
         graph = compiled.graph
         vector = graph.metadata["execution_vector"]
         engine = self.engine_for(user_id)
@@ -299,10 +422,13 @@ class PlatformExecutor:
                     )
 
             def guarded(*args, _pack=pack, _fn=function, _definition=definition):
-                for permission in _pack.manifest.permissions:
-                    self.bridge.registry.require_permission(
-                        _pack.id, permission, user_id
-                    )
+                authorize_operation(
+                    self.bridge.registry,
+                    _pack,
+                    user_id,
+                    decision.intent,
+                    [_definition.tool_id],
+                )
                 try:
                     return _fn(*args)
                 finally:
@@ -319,7 +445,11 @@ class PlatformExecutor:
             + ":"
             + hashlib.sha256(user_id.encode()).hexdigest(),
         )
-        result = engine.execute_query(graph, compiled.contract, env, versions=versions)
+        if self.state_repository:
+            engine.fabric.prepare(graph, env)
+        result = engine.execute_query(
+            graph, compiled.contract, env, versions=versions, query_id=uuid.uuid4().hex
+        )
         request_id = uuid.uuid4().hex
         evidence = {
             "satisfied": result.contract_satisfied,
@@ -338,6 +468,7 @@ class PlatformExecutor:
             result.contract_satisfied,
             (time.perf_counter() - start) * 1000,
             user_id=user_id,
+            intent=decision.intent or "",
             controller_version=self.bridge.last_decision.controller_version,
             capability_versions={
                 cid: self.bridge.registry.get_pack(cid).version
@@ -358,6 +489,7 @@ class PlatformExecutor:
         )
         persist_start = time.perf_counter()
         self.experiences.save(record)
+        self.last_experience_id = record.experience_id
         persistence_ms = (time.perf_counter() - persist_start) * 1000
         signal = self.auditor.audit_turn(
             session_id,
@@ -365,6 +497,15 @@ class PlatformExecutor:
             graph.metadata["selected_capabilities"][0],
             result.contract_satisfied,
             user_id=user_id,
+            controller_version=record.controller_version,
+            capability_version=record.capability_versions[
+                graph.metadata["selected_capabilities"][0]
+            ],
+            model_version=json.dumps(record.model_versions, sort_keys=True),
+            semantic_shape=record.semantic_shape,
+            intent=record.intent,
+            tool_versions=record.tool_versions,
+            fingerprint=record.input_fingerprint,
         )
         self.last_audit = self.auditor.generate_session_report(
             session_id, [signal] if signal else [], 1

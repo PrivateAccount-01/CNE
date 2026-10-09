@@ -199,10 +199,18 @@ class CandidateEvaluator:
 
 
 class LearningReplayStore:
-    def __init__(self, max_capacity=5000, retention_s=30 * 86400):
+    def __init__(self, max_capacity=5000, retention_s=30 * 86400, repository=None):
         self.max_capacity = max_capacity
         self.retention_s = retention_s
-        self._records = {}
+        from cne.platform.storage import InMemoryReplayRepository
+
+        self.repository = repository or InMemoryReplayRepository()
+        self._records = {
+            (e.user_id, e.input_fingerprint, e.semantic_dsl, e.outcome): e
+            for e in self.repository.load()
+            if time.time() - e.timestamp < retention_s
+        }
+        self.repository.replace(self._records.values())
         self._admitted = set()
 
     def admit(self, exp, audit_evidence, verification_evidence, privacy_approved=False):
@@ -219,6 +227,18 @@ class LearningReplayStore:
             raise ValueError(
                 "Raw query and private slots must be removed before training admission"
             )
+        exp.admission = {
+            "audit_evidence_sha256": hashlib.sha256(
+                str(audit_evidence).encode()
+            ).hexdigest(),
+            "verification_evidence_sha256": hashlib.sha256(
+                str(verification_evidence).encode()
+            ).hexdigest(),
+            "privacy_approved": True,
+            "admitted_at": time.time(),
+            "retention_s": self.retention_s,
+            "dataset_eligible": True,
+        }
         exp.state = ExperienceState.TRAINING_ELIGIBLE
         self._admitted.add(id(exp))
         self.add_experience(exp)
@@ -250,6 +270,8 @@ class LearningReplayStore:
                 min(self._records, key=lambda k: self._records[k].timestamp)
             ]
 
+        self.repository.replace(self._records.values())
+
     def sample_batch(self, capability_id, limit=100, user_id="default_user"):
         eligible = [
             e
@@ -275,6 +297,7 @@ class LearningReplayStore:
 
     def delete_user(self, user_id):
         self._records = {k: v for k, v in self._records.items() if v.user_id != user_id}
+        self.repository.replace(self._records.values())
 
     @property
     def total_records(self):
@@ -282,10 +305,13 @@ class LearningReplayStore:
 
 
 class GatedAdaptationPipeline:
-    def __init__(self, replay_store=None, evaluator=None, database_path=":memory:"):
+    def __init__(
+        self, replay_store=None, evaluator=None, database_path=":memory:", codec=None
+    ):
         self.replay_store = replay_store or LearningReplayStore()
         self.evaluator = evaluator
         self.db = sqlite3.connect(database_path)
+        self.codec = codec
         self.db.execute(
             "CREATE TABLE IF NOT EXISTS adapters (capability TEXT PRIMARY KEY, active TEXT, previous TEXT, candidate TEXT, activated REAL, artifact TEXT)"
         )
@@ -311,13 +337,23 @@ class GatedAdaptationPipeline:
             or self.evaluator._artifacts.get(eval_result.artifact_hash()) != eval_result
         ):
             return False
-        payload = json.dumps(asdict(candidate))
+        payload = (
+            self.codec.seal(asdict(candidate), candidate.capability_id, "adapters")
+            if self.codec
+            else json.dumps(asdict(candidate))
+        )
         with self.db:
             self.db.execute(
                 "INSERT OR IGNORE INTO evaluations VALUES (?,?)",
                 (
                     eval_result.artifact_hash(),
-                    json.dumps(asdict(eval_result), sort_keys=True),
+                    self.codec.seal(
+                        asdict(eval_result),
+                        candidate.capability_id,
+                        "adapter_evaluations",
+                    )
+                    if self.codec
+                    else json.dumps(asdict(eval_result), sort_keys=True),
                 ),
             )
             self.db.execute(
@@ -336,7 +372,14 @@ class GatedAdaptationPipeline:
         row = self.db.execute(
             "SELECT active FROM adapters WHERE capability=?", (capability_id,)
         ).fetchone()
-        return AdaptationCandidate(**json.loads(row[0])) if row else None
+        if not row:
+            return None
+        payload = (
+            self.codec.open(row[0], capability_id, "adapters")
+            if self.codec
+            else json.loads(row[0])
+        )
+        return AdaptationCandidate(**payload)
 
     def rollback_adapter(self, capability_id):
         with self.db:

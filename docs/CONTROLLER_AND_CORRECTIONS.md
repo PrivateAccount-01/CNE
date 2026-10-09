@@ -1,0 +1,11 @@
+# CNE controller and correction review
+
+The deterministic controller accepts only a complete declared utterance template or restricted legacy regular expression. Templates are preferred. The legacy subset rejects backreferences, lookarounds, nested repeats, and repeated alternations, and matching has a 10 ms deadline and a 4 KiB request limit.
+
+The runtime controller retrieves at most K=8 locally indexed candidates (default 5). Index features are manifest identifiers, declared capabilities, ontology terms, intent names/templates, source names, slot names, and tool identifiers. Package descriptions and arbitrary tool prose are omitted from the model view. The prompt contains JSON-delimited untrusted request and correction data, a fixed trusted system instruction, and a JSON Schema output contract. The same `RuntimeSemanticController` and bridge path are intended for production and controller tournament cases.
+
+A successful model response must select shortlisted active packages, a declared intent, typed slots, declared sources and tools, and valid CNE DSL. Exact operation permissions are checked after selection and again immediately before compilation. Model confidence is not authorization. Models require a SHA-256 asset identity in the GGUF adapter, use their metadata chat template when configured, and can be run in a spawned worker with a hard deadline. Hardware, latency, memory, and quality claims require measurements on the target device.
+
+User feedback creates an UNVERIFIED correction. It cannot affect planning. An owner may promote only an explicit slot preference to USER_SCOPED. Factual and planning corrections require an independent configured verifier; global promotion requires two distinct authorities. Corrections are typed, bounded constraints and can change only approved slot values, a unique declared mapping, or reject a plan with an exact digest. Replanning is limited to once per request. Retrieval filters use the live controller, capability, model, tool, intent, and semantic-shape versions when available.
+
+The progression benchmark runs a baseline, exact repeat, paraphrase in a fresh session, process/runtime restart, and unrelated requests. It reports measured counts and latency only for the supplied development corpus; it does not establish population quality.

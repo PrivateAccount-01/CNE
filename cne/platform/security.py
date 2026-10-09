@@ -238,7 +238,10 @@ class Ed25519TrustStore:
             return False
 
 
-class CapabilityValidationError(ValueError):
+from cne.platform.errors import PackageVersionError
+
+
+class CapabilityValidationError(PackageVersionError):
     def __init__(self, code, detail):
         self.code = code
         super().__init__(f"{code}: {detail}")

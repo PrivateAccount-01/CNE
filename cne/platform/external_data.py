@@ -2,6 +2,7 @@
 from __future__ import annotations
 from dataclasses import dataclass, asdict, replace
 from enum import Enum
+from cne.platform.errors import FreshnessError
 import time
 import sqlite3
 import json
@@ -34,8 +35,9 @@ class ExternalDataRecord:
 
 
 class ExternalDataCache:
-    def __init__(self, database_path=":memory:"):
+    def __init__(self, database_path=":memory:", codec=None):
         self.db = sqlite3.connect(database_path)
+        self.codec = codec
         self.db.execute(
             "CREATE TABLE IF NOT EXISTS external_data (owner TEXT, source TEXT, key TEXT, payload TEXT, PRIMARY KEY(owner,source,key))"
         )
@@ -51,18 +53,29 @@ class ExternalDataCache:
                     user_id,
                     record.source,
                     record.key,
-                    json.dumps(asdict(record), allow_nan=False),
+                    self.codec.seal(asdict(record), user_id, "external_data")
+                    if self.codec
+                    else json.dumps(asdict(record), allow_nan=False),
                 ),
             )
 
     def get(self, user_id, source, key, require_fresh=True, now=None):
         row = self.db.execute(
-            "SELECT payload FROM external_data WHERE owner=? AND source=? AND key=?",
+            "SELECT owner,payload FROM external_data WHERE owner=? AND source=? AND key=?",
             (user_id, source, key),
         ).fetchone()
-        record = ExternalDataRecord(**json.loads(row[0])) if row else None
+        payload = (
+            (
+                self.codec.open(row[1], row[0], "external_data")
+                if self.codec
+                else json.loads(row[1])
+            )
+            if row
+            else None
+        )
+        record = ExternalDataRecord(**payload) if payload else None
         if record and require_fresh and not record.is_fresh(now):
-            raise ValueError("STALE")
+            raise FreshnessError("STALE")
         return (
             replace(
                 record,

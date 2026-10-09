@@ -17,7 +17,10 @@ class SlotResult:
     normalizer: str
 
 
-class SlotBindingError(ValueError):
+from cne.platform.errors import SlotValidationError
+
+
+class SlotBindingError(SlotValidationError):
     pass
 
 

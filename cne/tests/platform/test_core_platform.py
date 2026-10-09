@@ -153,7 +153,7 @@ def correction(**kwargs):
         "fp",
         "email a@example.org calculate budget",
         "finance.budget",
-        "1",
+        "",
         "1",
         "SLOT_ERROR",
         "bad",
@@ -507,7 +507,9 @@ def test_runtime_controller_protocol_boundary(registry):
         controller=RuntimeSemanticController(registry, RuntimeBoundary(), descriptor),
     )
     result = bridge.compile("sum data", context={"user_id": "alice"})
-    assert result.graph.metadata["execution_vector"].models == (("test-boundary", "2"),)
+    assert result.graph.metadata["execution_vector"].models == (
+        ("test-boundary", "2", None),
+    )
     assert result.confidence is None
     registry.register_pack(manifest(schemas={"sources": [], "slots": {}}))
     assert bridge.compile("sum data", context={"user_id": "alice"}).graph is None

@@ -47,14 +47,23 @@ class SupervisedLoRATrainer:
         records = replay_store.sample_batch(capability_id, user_id=user_id)
         if not records:
             raise ValueError("No TRAINING_ELIGIBLE samples")
-        # Only allowlisted semantic material enters training; no arbitrary contract
-        # fields or raw queries are consumed. Reviewed DSL is the supervised target.
-        texts = [
-            f"Capability: {capability_id}\nSemantic plan:\n{r.semantic_dsl}"
-            for r in records
-        ]
-        if any(not r.semantic_dsl for r in records):
-            raise ValueError("Training requires reviewed semantic DSL")
+        # Train on a privacy-reviewed semantic request representation -> verified plan.
+        texts = []
+        for record in records:
+            example = record.training_example
+            if not example:
+                raise ValueError("Training requires a reviewed request-to-plan example")
+            from cne.platform.correction_review import CorrectionReviewService
+
+            CorrectionReviewService.validate_training_example(example)
+            texts.append(
+                "Request representation:\n"
+                + example["sanitized_request"]
+                + "\nIntent: "
+                + example["intent"]
+                + "\nVerified CNE plan:\n"
+                + example["correct_plan"]
+            )
         dataset_hash = hashlib.sha256(
             json.dumps(texts, sort_keys=True).encode()
         ).hexdigest()

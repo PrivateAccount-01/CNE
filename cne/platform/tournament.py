@@ -1,112 +1,77 @@
-"""Configurable real-GGUF tournament. Never downloads assets or opens held-out data."""
-from __future__ import annotations
-import argparse
-from dataclasses import replace
+"""Production-path controller comparison harness; no automatic promotion."""
+from dataclasses import dataclass
+import hashlib
 import json
-from pathlib import Path
-from cne.platform.benchmark import ModelSelectionHarness
-from cne.platform.models import (
-    LlamaCppRuntimeAdapter,
-    ModelDescriptor,
-    ModelKind,
-    ModelRequest,
-)
-from cne.optimizer.necessity_engine import ComputationNecessityEngine
+import time
 
 
-def run_tournament(candidates, cases):
-    """Candidates are host-supplied descriptors; cases are a non-blind development set."""
-    reports = []
-    for descriptor in candidates:
-        runtime = LlamaCppRuntimeAdapter()
+@dataclass(frozen=True)
+class TournamentCase:
+    case_id: str
+    query: str
+    expected_capability_ids: tuple
+    expected_intent: str | None
+    expected_outcome: str
+    expected_value: object = None
+    env: dict | None = None
+
+
+class ProductionControllerTournament:
+    """Evaluates descriptors through the same runtime controller, bridge and CNE."""
+
+    def run(self, runtime_factory, descriptor, cases, user_id="tournament"):
+        runtime = runtime_factory(descriptor)
+        outcomes = []
+        prompts = []
+        latencies = []
         try:
-            runtime.load_model(descriptor)
-        except (FileNotFoundError, RuntimeError) as exc:
-            reports.append(
-                {
-                    "candidate": descriptor.model_id,
-                    "status": "NOT_TESTED",
-                    "reason": str(exc),
-                }
-            )
-            continue
-        try:
-
-            def infer(query):
-                prompt = (
-                    "Return one JSON object with outcome (COMPILED, UNSUPPORTED_INTENT, AMBIGUOUS_INTENT, LOW_CONFIDENCE_MAPPING), selected_capability_ids, intent, extracted_slots, and semantic_dsl. DSL nodes require explicit IDs and input references.\nRequest: "
-                    + query
+            for case in cases:
+                start = time.perf_counter()
+                result = runtime.executor.execute(
+                    user_id, "tournament-" + case.case_id, case.query, case.env or {}
                 )
-                return runtime.infer(
-                    ModelRequest(
-                        "tournament",
-                        descriptor.model_id,
-                        prompt,
-                        {"max_tokens": 512, "temp": 0.0},
-                        timeout_s=120,
-                    )
-                )
-
-            result = ModelSelectionHarness().evaluate_candidate(
-                descriptor, infer, cases
-            )
-            reports.append(
-                {
-                    "candidate": descriptor.model_id,
-                    "status": "MEASURED",
-                    "result": result.to_dict(),
+                latencies.append((time.perf_counter() - start) * 1000)
+                decision = runtime.executor.bridge.last_decision
+                ids = tuple(sorted(decision.selected_capability_ids))
+                current = {
+                    "case_id": case.case_id,
+                    "outcome": decision.outcome.value,
+                    "selected_capability_ids": ids,
+                    "intent": decision.intent,
+                    "value": getattr(result, "value", None),
+                    "pass": decision.outcome.value == case.expected_outcome
+                    and ids == tuple(sorted(case.expected_capability_ids))
+                    and decision.intent == case.expected_intent
+                    and (
+                        case.expected_value is None
+                        or getattr(result, "value", None) == case.expected_value
+                    ),
+                    "prompt_format_identity": decision.evidence.get(
+                        "prompt_format_identity"
+                    ),
+                    "prompt_sha256": decision.evidence.get("prompt_sha256"),
+                    "shortlisted_ids": decision.evidence.get("shortlisted_ids", []),
+                    "candidate_k": decision.evidence.get("candidate_k"),
+                    "model_dependencies": decision.evidence.get(
+                        "model_dependencies", []
+                    ),
+                    "model_identity": decision.evidence.get("model_identity", {}),
+                    "runtime_identity": decision.evidence.get("runtime", {}),
                 }
-            )
+                outcomes.append(current)
+                prompts.append(decision.evidence.get("prompt_format_identity"))
         finally:
-            runtime.unload_model(descriptor.model_id)
-    return {
-        "candidate_results": reports,
-        "selected_controller": None,
-        "selection_policy": "No final controller selection during hardening",
-    }
-
-
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--config",
-        required=True,
-        help="JSON with candidates and non-blind development cases",
-    )
-    parser.add_argument("--output", required=True)
-    args = parser.parse_args()
-    config = json.loads(Path(args.config).read_text())
-    if config.get("dataset_role") != "development":
-        raise ValueError(
-            "Explicit development dataset required; held-out comparison is separate"
-        )
-    candidates = [
-        ModelDescriptor(kind=ModelKind.TEXT_GENERATION, **c)
-        for c in config["candidates"]
-    ]
-    cases = config["cases"]
-    for case in cases:
-        if "expected_output" in case:
-
-            def execute_check(compiled, case=case):
-                result = ComputationNecessityEngine().execute_query(
-                    compiled.graph, compiled.contract, case.get("environment", {})
-                )
-                return (
-                    result.contract_satisfied
-                    and result.value == case["expected_output"]
-                )
-
-            case["execute_and_check"] = execute_check
-        if "expected_contract_type" in case:
-            case["contract_check"] = (
-                lambda compiled, case=case: compiled.contract.contract_type.name
-                == case["expected_contract_type"]
-            )
-    Path(args.output).write_text(
-        json.dumps(run_tournament(candidates, cases), indent=2)
-    )
-
-
-if __name__ == "__main__":
-    main()
+            runtime.close()
+        report = {
+            "case_count": len(outcomes),
+            "pass_count": sum(x["pass"] for x in outcomes),
+            "cases": outcomes,
+            "latency_ms": latencies,
+            "prompt_format_hashes": sorted(set(filter(None, prompts))),
+            "descriptor": getattr(descriptor, "model_id", None),
+            "automatic_promotion": False,
+        }
+        report["report_sha256"] = hashlib.sha256(
+            json.dumps(report, sort_keys=True, default=list).encode()
+        ).hexdigest()
+        return report

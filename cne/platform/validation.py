@@ -82,6 +82,15 @@ def validate(gguf_path, output_directory, base_model=None, sandbox=False):
                 0,
                 user_id="public-development",
                 input_fingerprint=request_fingerprint("Public literal 42"),
+                training_example={
+                    "sanitized_request": "public literal 42",
+                    "intent": "literal",
+                    "slot_schema_hash": "public-development-schema-v1",
+                    "incorrect_plan_sha256": "0" * 64,
+                    "correct_plan": "v = LIT value=42\ne = EMI in=v",
+                    "provenance": "public-development-fixture-reviewed",
+                    "privacy_approved": True,
+                },
             )
             replay.admit(
                 example,

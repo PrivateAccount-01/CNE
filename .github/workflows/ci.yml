@@ -1,0 +1,48 @@
+name: CNE correctness and security
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  full-suite:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: python -m pip install -e '.[platform,dev]'
+      - name: Verify reviewed corpus checksum
+        shell: bash
+        run: |
+          echo 'b5bd4b13696937fc0b69c539a79dbe8d92a85f458ee9cc7f7c81d5ab2506ff06  cne/tests/unit/test_realistic_corpus.py' | sha256sum --check
+      - name: Prepare artifact directory
+        run: mkdir -p artifacts
+      - name: Full correctness and security suite
+        run: python -m pytest cne/tests --junitxml=artifacts/junit.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cne-test-evidence
+          path: artifacts/junit.xml
+
+  optional-gguf-smoke:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: [self-hosted, cne-licensed-model]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -e '.[platform,gguf]'
+      - name: Run licensed local model smoke
+        env:
+          CNE_GGUF_PATH: ${{ vars.CNE_GGUF_PATH }}
+          CNE_GGUF_SHA256: ${{ vars.CNE_GGUF_SHA256 }}
+          CNE_GGUF_MODEL_ID: ${{ vars.CNE_GGUF_MODEL_ID }}
+          CNE_GGUF_LICENSE: ${{ vars.CNE_GGUF_LICENSE }}
+        run: python -m cne.platform.gguf_smoke --output artifacts/gguf-smoke.json

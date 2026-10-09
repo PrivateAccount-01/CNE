@@ -39,6 +39,7 @@ class ErrorType(str, Enum):
     COMPOSITION_ERROR = "COMPOSITION_ERROR"
     LEARNING_REGRESSION = "LEARNING_REGRESSION"
     VERSION_ERROR = "VERSION_ERROR"
+    EXECUTION_ERROR = "EXECUTION_ERROR"
 
 
 @dataclass
@@ -80,6 +81,13 @@ class ErrorAuditor:
         tool_exception: Optional[Exception] = None,
         verifier_error: Optional[str] = None,
         user_id: str = "default_user",
+        controller_version: str = "",
+        capability_version: str = "",
+        model_version: str = "",
+        semantic_shape: str = "",
+        intent: str = "",
+        tool_versions: Optional[dict] = None,
+        fingerprint: str = "",
     ) -> Optional[AuditSignal]:
         """Classify signals from a turn into an AuditSignal."""
         if tool_exception is not None:
@@ -111,11 +119,16 @@ class ErrorAuditor:
             # Feedback is evidence of disagreement, not independent verification.
             rec = CorrectionRecord(
                 record_id=f"corr_{uuid.uuid4().hex}",
-                request_fingerprint=request_fingerprint(query_text, [capability_id]),
+                request_fingerprint=fingerprint
+                or request_fingerprint(query_text, [capability_id]),
                 query_redacted=RedactionPolicy().redact(query_text),
                 capability_id=capability_id,
-                model_version="current",
-                controller_version="platform_v1",
+                model_version=model_version,
+                controller_version=controller_version,
+                capability_version=capability_version,
+                semantic_shape=semantic_shape,
+                intent=intent,
+                tool_versions=tool_versions or {},
                 error_type=signal.error_type.value,
                 incorrect_decision="model_output",
                 verified_correction=RedactionPolicy().redact(user_feedback),

@@ -73,6 +73,11 @@ class CorrectionRecord:
     semantic_shape: str = ""
     intent: str = ""
     capability_version: str = ""
+    tool_versions: dict = field(default_factory=dict)
+    constraint: dict = field(default_factory=dict)
+    correction_kind: str = "factual"
+    experience_id: str = ""
+    training_example: dict | None = None
 
 
 @dataclass
@@ -103,6 +108,9 @@ class ExperienceRecord:
     backend: str = ""
     resource_metrics: dict = field(default_factory=dict)
     fallback: str | None = None
+    intent: str = ""
+    training_example: dict | None = None
+    admission: dict = field(default_factory=dict)
 
 
 @dataclass
@@ -146,8 +154,9 @@ class InMemorySessionRepository:
 
 
 class SQLiteSessionRepository:
-    def __init__(self, path):
+    def __init__(self, path, codec=None):
         self.db = sqlite3.connect(path)
+        self.codec = codec
         self.db.execute(
             "CREATE TABLE IF NOT EXISTS sessions (id TEXT PRIMARY KEY, owner TEXT NOT NULL, payload TEXT NOT NULL)"
         )
@@ -161,7 +170,11 @@ class SQLiteSessionRepository:
             return None
         if row[0] != user_id:
             raise PermissionError("ACCESS_DENIED")
-        data = json.loads(row[1])
+        data = (
+            self.codec.open(row[1], user_id, "sessions")
+            if self.codec
+            else json.loads(row[1])
+        )
         data["active_capabilities"] = set(data["active_capabilities"])
         return SessionState(**data)
 
@@ -171,7 +184,13 @@ class SQLiteSessionRepository:
         with self.db:
             self.db.execute(
                 "INSERT INTO sessions VALUES (?,?,?) ON CONFLICT(id) DO UPDATE SET payload=excluded.payload WHERE sessions.owner=excluded.owner",
-                (session.session_id, session.user_id, json.dumps(data)),
+                (
+                    session.session_id,
+                    session.user_id,
+                    self.codec.seal(data, session.user_id, "sessions")
+                    if self.codec
+                    else json.dumps(data),
+                ),
             )
             self.get_session(session.user_id, session.session_id)
 
@@ -245,11 +264,30 @@ class SemanticPlanTemplate:
 
 
 class SemanticPlanCache:
-    def __init__(self):
+    def __init__(self, database_path=":memory:", codec=None):
         self._plan_templates = {}
+        self.db = sqlite3.connect(database_path)
+        self.codec = codec
+        self.db.execute(
+            "CREATE TABLE IF NOT EXISTS semantic_plans (owner TEXT, shape TEXT, payload TEXT, PRIMARY KEY(owner,shape))"
+        )
+        self.db.commit()
 
     def put_template(self, user_id, template):
+        if not user_id:
+            raise PermissionError("User scope required")
         self._plan_templates[user_id, template.shape_hash] = template
+        with self.db:
+            self.db.execute(
+                "INSERT OR REPLACE INTO semantic_plans VALUES (?,?,?)",
+                (
+                    user_id,
+                    template.shape_hash,
+                    self.codec.seal(asdict(template), user_id, "semantic_plans")
+                    if self.codec
+                    else json.dumps(asdict(template)),
+                ),
+            )
 
     def bind(
         self,
@@ -262,7 +300,20 @@ class SemanticPlanCache:
     ):
         import shlex
 
-        template = self._plan_templates.get((user_id, shape_hash))
+        row = self.db.execute(
+            "SELECT payload FROM semantic_plans WHERE owner=? AND shape=?",
+            (user_id, shape_hash),
+        ).fetchone()
+        payload = (
+            (
+                self.codec.open(row[0], user_id, "semantic_plans")
+                if self.codec
+                else json.loads(row[0])
+            )
+            if row
+            else None
+        )
+        template = SemanticPlanTemplate(**payload) if payload else None
         if template is None:
             return None
         if (
@@ -280,6 +331,7 @@ class SemanticPlanCache:
             raise ValueError("Unbound slot")
         template.last_used = time.time()
         template.use_count += 1
+        self.put_template(user_id, template)
         return result
 
 
@@ -298,15 +350,16 @@ class CorrectionRetriever(Protocol):
 
 
 class CorrectionStore:
-    def __init__(self, path=":memory:", relevance_threshold=0.6):
+    def __init__(self, path=":memory:", relevance_threshold=0.6, codec=None):
         self.db = sqlite3.connect(path)
         self.db.execute(
             "CREATE TABLE IF NOT EXISTS corrections (id TEXT PRIMARY KEY, owner TEXT, payload TEXT)"
         )
         self.db.commit()
         self.relevance_threshold = relevance_threshold
+        self.codec = codec
 
-    def add_correction(self, record):
+    def add_correction(self, record, commit=True):
         record.query_redacted = RedactionPolicy().redact(record.query_redacted)
         for name in (
             "incorrect_decision",
@@ -319,7 +372,9 @@ class CorrectionStore:
                 setattr(record, name, RedactionPolicy().redact(value))
         if record.audit_status == AuditStatus.VERIFIED and not record.verifier_evidence:
             raise ValueError("Verified corrections require independent evidence")
-        with self.db:
+        import contextlib
+
+        with self.db if commit else contextlib.nullcontext():
             old = self.db.execute(
                 "SELECT owner FROM corrections WHERE id=?", (record.record_id,)
             ).fetchone()
@@ -327,8 +382,26 @@ class CorrectionStore:
                 raise PermissionError("ACCESS_DENIED")
             self.db.execute(
                 "INSERT OR REPLACE INTO corrections VALUES (?,?,?)",
-                (record.record_id, record.user_id, json.dumps(asdict(record))),
+                (
+                    record.record_id,
+                    record.user_id,
+                    self._seal(asdict(record), record.user_id),
+                ),
             )
+
+    def _seal(self, payload, owner):
+        return (
+            self.codec.seal(payload, owner, "corrections")
+            if self.codec
+            else json.dumps(payload)
+        )
+
+    def _open(self, payload, owner):
+        return (
+            self.codec.open(payload, owner, "corrections")
+            if self.codec
+            else json.loads(payload)
+        )
 
     def get_correction(self, user_id, record_id):
         row = self.db.execute(
@@ -338,14 +411,14 @@ class CorrectionStore:
             return None
         if row[0] != user_id:
             raise PermissionError("ACCESS_DENIED")
-        return CorrectionRecord(**json.loads(row[1]))
+        return CorrectionRecord(**self._open(row[1], row[0]))
 
     def get_corrections_for_capability(self, capability_id, user_id="default_user"):
+        rows = list(self.db.execute("SELECT owner,payload FROM corrections"))
         records = [
-            CorrectionRecord(**json.loads(row[0]))
-            for row in self.db.execute(
-                "SELECT payload FROM corrections WHERE owner=?", (user_id,)
-            )
+            CorrectionRecord(**self._open(payload, owner))
+            for owner, payload in rows
+            if owner == user_id or self._is_verified_global(payload, owner)
         ]
         return [
             r
@@ -354,25 +427,55 @@ class CorrectionStore:
             and r.audit_status in (AuditStatus.VERIFIED, AuditStatus.USER_SCOPED)
         ]
 
+    def _is_verified_global(self, payload, owner):
+        data = self._open(payload, owner)
+        return (
+            data.get("scope") == "global"
+            and data.get("audit_status") == AuditStatus.VERIFIED.value
+        )
+
     def retrieve(self, query_text, capability_id, user_id, **filters):
+        stage = filters.pop("stage", "post")
         words = set(re.findall(r"\w+", RedactionPolicy().redact(query_text).casefold()))
         matches = []
         for r in self.get_corrections_for_capability(capability_id, user_id):
-            # A constraint with narrower metadata cannot be reused when the
-            # caller has not established that metadata for this request.
+            # Pre-plan only applies broad constraints. Narrow records wait for post-plan metadata.
+            narrow = ("semantic_shape", "intent", "tool_versions", "model_version")
+            if stage == "pre" and any(getattr(r, k) for k in narrow):
+                continue
             if any(
                 getattr(r, k) and k not in filters
-                for k in ("semantic_shape", "intent", "capability_version")
+                for k in (
+                    "semantic_shape",
+                    "intent",
+                    "capability_version",
+                    "tool_versions",
+                    "controller_version",
+                    "model_version",
+                )
             ):
                 continue
-            if any(getattr(r, k) != v for k, v in filters.items()):
+            if any(getattr(r, k) and getattr(r, k) != v for k, v in filters.items()):
                 continue
             other = set(re.findall(r"\w+", r.query_redacted.casefold()))
-            score = len(words & other) / len(words | other) if words | other else 0
+            exact = r.request_fingerprint == request_fingerprint(
+                query_text, [capability_id]
+            )
+            score = (
+                1.0
+                if exact
+                else len(words & other) / len(words | other)
+                if words | other
+                else 0
+            )
             if score >= self.relevance_threshold:
                 matches.append(
                     CorrectionMatch(
-                        r, score, r.scope, filters, "metadata and Jaccard similarity"
+                        r,
+                        score,
+                        r.scope,
+                        filters,
+                        "compatible metadata and request similarity",
                     )
                 )
         return sorted(

@@ -80,6 +80,7 @@ class CapabilityRegistry:
         self.available_backends = set(available_backends)
         self.trusted_in_process_ids = frozenset(trusted_in_process_ids)
         self._path_history = {}
+        self.generation = 0
         self.db = sqlite3.connect(database_path)
         self.db.execute(
             "CREATE TABLE IF NOT EXISTS registry_state (id INTEGER PRIMARY KEY CHECK(id=1), payload TEXT NOT NULL)"
@@ -108,6 +109,7 @@ class CapabilityRegistry:
             self._path_history = data.get("paths", {})
 
     def _persist(self):
+        self.generation += 1
         data = {
             "packs": {
                 cid: {
@@ -136,6 +138,22 @@ class CapabilityRegistry:
         auto_enable: bool = True,
     ) -> CapabilityPack:
         """Register and optionally enable a capability pack."""
+        from cne.platform.utterances import validate_mappings
+        from cne.platform.controller_view import ControllerCapabilityViewBuilder
+
+        validate_mappings(manifest)
+        ControllerCapabilityViewBuilder().build(manifest)
+        requested = set(manifest.permissions)
+        operations = [
+            m.get("required_permissions", [])
+            for m in manifest.schemas.get("intents", [])
+        ]
+        operations += [t.required_permissions for t in manifest.deterministic_tools]
+        operations += list(manifest.schemas.get("source_permissions", {}).values())
+        if any(not {Permission(p) for p in perms} <= requested for perms in operations):
+            raise CapabilityValidationError(
+                "UNDECLARED_OPERATION_PERMISSION", manifest.id
+            )
         self.package_verifier.verify(manifest, install_path)
         if auto_enable:
             self._validate_dependencies(manifest)
@@ -314,10 +332,15 @@ class CapabilityResolver:
         keywords, and domain ontologies.
         """
         import re
+        from cne.platform.capability_index import CapabilityCandidateRetriever
+        from cne.platform.utterances import match_mapping
+        from cne.platform.operations import intent_permissions
 
+        if not hasattr(self, "retriever"):
+            self.retriever = CapabilityCandidateRetriever(self.registry, k=8)
         result = CapabilityResolution()
         words = set(re.findall(r"\w+", query_text.casefold()))
-        for pack in self.registry.list_packs(enabled_only=True):
+        for pack in self.retriever.retrieve(query_text, scope):
             ontology = pack.manifest.schemas.get(
                 "ontology", pack.manifest.provided_capabilities
             )
@@ -326,39 +349,46 @@ class CapabilityResolver:
                 for term in ontology
             ]
             matches = [t for t in terms if t and t <= words]
-            mappings = pack.manifest.schemas.get("intents", [])
-            exact = any(
-                re.fullmatch(m["pattern"], query_text, re.IGNORECASE) for m in mappings
-            )
-            if not matches and not exact:
-                continue
+            mappings = [
+                m
+                for m in pack.manifest.schemas.get("intents", [])
+                if match_mapping(m, query_text)
+            ]
             result.candidate_capabilities.append(pack)
             result.scores[pack.id] = {
                 "ontology_matches": len(matches),
                 "ontology_terms": len(terms),
-                "exact_schema_match": exact,
-                "model_score": None,
+                "exact_schema_match": bool(mappings),
+                "model_score": self.model_scorer(query_text, pack.manifest)
+                if self.model_scorer
+                else None,
             }
-            if self.model_scorer is not None:
-                result.scores[pack.id]["model_score"] = self.model_scorer(
-                    query_text, pack.manifest
-                )
-            result.required_permissions[pack.id] = list(pack.manifest.permissions)
             try:
                 self.registry._validate_dependencies(pack.manifest)
             except CapabilityValidationError as exc:
                 result.missing_dependencies[pack.id] = str(exc)
                 result.rejection_reasons[pack.id] = exc.code
                 continue
-            denied = [
-                p.value
-                for p in pack.manifest.permissions
-                if not self.registry.has_permission(pack.id, p, scope)
+            requirements = [
+                intent_permissions(pack.manifest, m["intent"]) for m in mappings
             ]
-            if denied:
-                result.rejection_reasons[pack.id] = "ACCESS_DENIED: " + ", ".join(
-                    denied
-                )
+            if not requirements:
+                requirements = [
+                    intent_permissions(pack.manifest, m["intent"])
+                    for m in pack.manifest.schemas.get("intents", [])
+                ] or [set(pack.manifest.permissions)]
+            available = [
+                r
+                for r in requirements
+                if all(self.registry.has_permission(pack.id, p, scope) for p in r)
+            ]
+            result.required_permissions[pack.id] = sorted(
+                set().union(*requirements), key=str
+            )
+            if not available:
+                result.rejection_reasons[
+                    pack.id
+                ] = "ACCESS_DENIED: operation grants required"
             else:
                 result.selected_capabilities.append(pack)
         return result

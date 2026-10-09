@@ -77,6 +77,7 @@ class ToolDefinition:
     parameters_schema: Dict[str, Any] = field(default_factory=dict)
     returns_schema: Dict[str, Any] = field(default_factory=dict)
     mutation_sources: List[str] = field(default_factory=list)
+    required_permissions: List[str] = field(default_factory=list)
 
 
 @dataclass(frozen=True)

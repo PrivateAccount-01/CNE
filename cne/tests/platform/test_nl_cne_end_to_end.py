@@ -187,19 +187,15 @@ def tx(category, amount):
 def test_failure_trajectory_persists_without_private_values(platform, tmp_path):
     registry = platform.bridge.registry
     registry.permission_authority.revoke("finance.personal_budget")
-    try:
-        platform.execute(
-            "alice", "failure-session", query(), {"transactions": [tx("food", 80)]}
-        )
-    except PermissionError:
-        pass
-    telemetry = platform.telemetry._records[-1]
-    saved = ExperienceRepository(tmp_path / "experiences.db").get(
-        "alice", telemetry.request_id
+    declined = platform.execute(
+        "alice", "failure-session", query(), {"transactions": [tx("food", 80)]}
     )
-    assert not saved.contract_satisfied and saved.error_classification
+    telemetry = platform.telemetry._records[-1]
+    saved = platform.experiences.get("alice", platform.last_experience_id)
+    assert declined.graph is None and saved.outcome == "DECLINED_UNSUPPORTED"
+    assert saved.error_classification is None
     assert saved.query_text == "" and saved.slot_values == {}
-    assert platform.last_audit.has_errors
+    assert not platform.last_audit.has_errors
     with pytest.raises(PermissionError):
         platform.experiences.get("bob", telemetry.request_id)
 

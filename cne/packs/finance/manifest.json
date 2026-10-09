@@ -71,7 +71,6 @@
     "intents": [
       {
         "intent": "expense_total",
-        "pattern": "Calculate total spending on (?P<category>[A-Za-z]+) over (?P<threshold>\\d+(?:\\.\\d+)?) dollars",
         "slots": {
           "category": {
             "type": "string",
@@ -83,7 +82,12 @@
             "minimum": 0
           }
         },
-        "dsl": "tx = OBS source=transactions\nfood = FIL in=tx field=category op=eq val=${category}\nfiltered = FIL in=food field=amount op=gt val=${threshold}\namounts = MAP in=filtered field=amount\ntotal = RED in=amounts reducer=sum\nresult = EMI in=total"
+        "dsl": "tx = OBS source=transactions\nfood = FIL in=tx field=category op=eq val=${category}\nfiltered = FIL in=food field=amount op=gt val=${threshold}\namounts = MAP in=filtered field=amount\ntotal = RED in=amounts reducer=sum\nresult = EMI in=total",
+        "template": "Calculate total spending on {category:string} over {threshold:number} dollars",
+        "required_permissions": [
+          "filesystem:read",
+          "financial_data:read"
+        ]
       }
     ],
     "source_validators": {
@@ -91,7 +95,13 @@
     },
     "sources": [
       "transactions"
-    ]
+    ],
+    "source_permissions": {
+      "transactions": [
+        "filesystem:read",
+        "financial_data:read"
+      ]
+    }
   },
   "permissions": [
     "filesystem:read",

@@ -18,6 +18,8 @@ from cne.platform.registry import CapabilityRegistry, CapabilityResolver
 from cne.platform.slots import TypedSlotBinder, SlotBindingError
 from cne.platform.versions import ExecutionSemanticVersionVector
 from cne.semantic_ir.nodes import OpKind
+from cne.platform.operations import authorize_operation
+from cne.platform.errors import SemanticPlanError
 
 
 @dataclass
@@ -64,11 +66,19 @@ class PlatformSemanticController:
                 evidence=evidence,
             )
         matches = []
+        from cne.platform.utterances import match_mapping
+
         for pack in resolution.selected_capabilities:
             for mapping in pack.manifest.schemas.get("intents", []):
-                match = re.fullmatch(mapping["pattern"], query_text, re.IGNORECASE)
+                match = match_mapping(mapping, query_text)
                 if match:
                     matches.append((pack, mapping, match))
+        context = context or {}
+        constraint_applier = context.get("constraint_applier")
+        if constraint_applier is not None and len(matches) > 1:
+            matches = constraint_applier.select_mapping(
+                matches, context.get("corrections", []), scope
+            )
         if not matches:
             return ControllerDecision(
                 ClassificationOutcome.LOW_CONFIDENCE_MAPPING,
@@ -94,8 +104,8 @@ class PlatformSemanticController:
                     decline_reason=f"Missing participant {cid}",
                     evidence=evidence,
                 )
-            for permission in dependency.manifest.permissions:
-                self.registry.require_permission(cid, permission, scope)
+            if cid == pack.id:
+                authorize_operation(self.registry, dependency, scope, mapping["intent"])
         try:
             slot_start = time.perf_counter()
             bound = self.binder.bind(
@@ -103,6 +113,17 @@ class PlatformSemanticController:
                 match.groupdict(),
                 {k: match.span(k) for k in match.groupdict()},
             )
+            if constraint_applier is not None:
+                values, applied = constraint_applier.apply_slots(
+                    {k: v.value for k, v in bound.items()},
+                    context.get("corrections", []),
+                    scope,
+                    pack.id,
+                    mapping["intent"],
+                )
+                if applied:
+                    bound = self.binder.bind(mapping.get("slots", {}), values)
+                    evidence["applied_correction_ids"] = applied
             slot_ms = (time.perf_counter() - slot_start) * 1000
             template_key = hashlib.sha256(
                 json.dumps(mapping, sort_keys=True).encode()
@@ -155,11 +176,15 @@ class PlatformSemanticController:
             if "${" in dsl:
                 raise SlotBindingError("Unbound DSL slot")
             compile_start = time.perf_counter()
+            if constraint_applier is not None:
+                constraint_applier.validate_plan(
+                    dsl, context.get("corrections", []), scope, participants
+                )
             compiled = SemanticDSLParser.compile_dsl(dsl, intent=mapping["intent"])
             compile_ms = (time.perf_counter() - compile_start) * 1000
             if not compiled.is_valid:
                 raise SlotBindingError(compiled.error_message)
-        except SlotBindingError as exc:
+        except (SlotBindingError, SemanticPlanError) as exc:
             return ControllerDecision(
                 ClassificationOutcome.LOW_CONFIDENCE_MAPPING,
                 participants,
@@ -203,32 +228,57 @@ class RuntimeSemanticController(PlatformSemanticController):
 
     controller_version = "runtime-controller-2"
 
-    def __init__(self, registry, runtime, descriptor, residency_manager=None):
+    def __init__(
+        self,
+        registry,
+        runtime,
+        descriptor,
+        residency_manager=None,
+        candidate_limit=5,
+        index=None,
+        prompt_builder=None,
+    ):
         super().__init__(registry)
+        from cne.platform.capability_index import CapabilityCandidateRetriever
+        from cne.platform.prompting import ControllerPromptBuilder
+
         self.runtime = runtime
         self.descriptor = descriptor
+        if not 1 <= candidate_limit <= 8:
+            raise ValueError("Candidate K must be 1..8")
+        self.retriever = index or CapabilityCandidateRetriever(
+            registry, candidate_limit
+        )
+        self.prompt_builder = prompt_builder or ControllerPromptBuilder()
         if residency_manager is not None and residency_manager.runtime is not runtime:
             raise ValueError("Residency manager must own the controller runtime")
         self.residency_manager = residency_manager
 
+    def _authorize(self, pack, scope, intent, tools, sources):
+        from cne.platform.operations import authorize_operation
+
+        return authorize_operation(self.registry, pack, scope, intent, tools, sources)
+
     def decide(self, query_text, scope="local_device", context=None):
-        from dataclasses import asdict
         from cne.platform.models import ModelRequest
 
+        candidates = self.retriever.retrieve(query_text, user_id=scope)
         permitted = []
-        for pack in self.registry.list_packs(enabled_only=True):
-            self.registry._validate_dependencies(pack.manifest)
-            if all(
-                self.registry.has_permission(pack.id, p, scope)
-                for p in pack.manifest.permissions
-            ):
-                permitted.append(pack)
+        for pack in candidates:
+            try:
+                self.registry._validate_dependencies(pack.manifest)
+                self.registry.package_verifier.verify(pack.manifest, pack.install_path)
+            except Exception:
+                continue
+            permitted.append(pack)
         if not permitted:
             return ControllerDecision(
                 ClassificationOutcome.UNSUPPORTED_INTENT,
-                decline_reason="No installed permitted capabilities",
+                decline_reason="No relevant active capabilities",
+                evidence={"candidate_k": self.retriever.k, "shortlisted_ids": []},
             )
         load_latency = None
+        result = None
         owner = "controller:" + scope
         if self.residency_manager is not None:
             load_start = time.perf_counter()
@@ -238,32 +288,70 @@ class RuntimeSemanticController(PlatformSemanticController):
             load_start = time.perf_counter()
             self.runtime.load_model(self.descriptor, self.descriptor.preferred_backend)
             load_latency = (time.perf_counter() - load_start) * 1000
-        prompt = json.dumps(
-            {
-                "instruction": "Return a JSON ControllerDecision: outcome, selected_capability_ids, intent, extracted_slots, semantic_dsl. Use only installed schemas and declared sources/tools. DSL requires explicit node IDs and input references. Use ${slot} placeholders for dynamic values. Decline unsupported or ambiguous requests. Never grant permissions.",
-                "capabilities": [asdict(p.manifest) for p in permitted],
-                "request": query_text,
-                "scoped_correction_candidates": [
-                    m.correction.verified_correction
-                    for m in (context or {}).get("corrections", [])
-                ],
-            }
+        views = [self.prompt_builder.views.build(p.manifest) for p in permitted]
+        corrections = [
+            m.correction.constraint
+            for m in (context or {}).get("corrections", [])
+            if m.correction.audit_status.value in ("VERIFIED", "USER_SCOPED")
+        ]
+        prompt, schema, prompt_identity = self.prompt_builder.build(
+            query_text, views, corrections
         )
+        evidence_prompt = prompt
+        model_identity = {
+            "model_id": self.descriptor.model_id,
+            "version": self.descriptor.version,
+            "asset_sha256": self.descriptor.asset_sha256,
+            "source_repository": self.descriptor.source_repository,
+            "source_revision": self.descriptor.source_revision,
+            "license": self.descriptor.license,
+            "quantization": self.descriptor.quantization,
+            "prompt_format": self.descriptor.prompt_format,
+            "chat_template_mode": self.descriptor.chat_template_mode,
+            "bos_policy": self.descriptor.bos_policy,
+            "eos_policy": self.descriptor.eos_policy,
+            "n_threads": self.descriptor.n_threads,
+            "context_window": self.descriptor.context_window,
+        }
+        prompt_identity = hashlib.sha256(
+            json.dumps([prompt_identity, model_identity], sort_keys=True).encode()
+        ).hexdigest()
         try:
-            result = self.runtime.infer(
-                ModelRequest(
-                    "controller",
-                    self.descriptor.model_id,
-                    prompt,
-                    {"max_tokens": 512, "temp": 0.0},
-                    user_scope=scope,
+            try:
+                result = self.runtime.infer(
+                    ModelRequest(
+                        "controller",
+                        self.descriptor.model_id,
+                        prompt,
+                        {"max_tokens": 512, "temp": 0.0},
+                        user_scope=scope,
+                        response_schema=schema,
+                    )
                 )
-            )
+            except (TimeoutError, MemoryError, PermissionError):
+                raise
+            except Exception as exc:
+                from cne.platform.errors import ModelOutputError
+
+                raise ModelOutputError("Local model inference failed") from exc
         finally:
             if self.residency_manager is not None:
                 self.residency_manager.release(self.descriptor.model_id, owner=owner)
+        if result is None:
+            raise RuntimeError("Model inference returned no result")
         evidence = {
-            "model_dependencies": [(self.descriptor.model_id, self.descriptor.version)],
+            "model_dependencies": [
+                (
+                    self.descriptor.model_id,
+                    self.descriptor.version,
+                    self.descriptor.asset_sha256,
+                )
+            ],
+            "model_identity": model_identity,
+            "prompt_format_identity": prompt_identity,
+            "candidate_k": self.retriever.k,
+            "shortlisted_ids": [p.id for p in permitted],
+            "prompt_sha256": hashlib.sha256(evidence_prompt.encode()).hexdigest(),
             "adapter_dependencies": result.metadata.get("adapter_dependencies", []),
             "runtime": {
                 "latency_ms": result.latency_ms,
@@ -293,15 +381,36 @@ class RuntimeSemanticController(PlatformSemanticController):
                 raise ValueError("Undeclared capability selection")
             schemas = {}
             declared_sources = set()
+            intent = raw.get("intent")
             for cid in selected:
-                for key, spec in allowed[cid].manifest.schemas.get("slots", {}).items():
+                pack = allowed[cid]
+                intent_specs = [
+                    m.get("slots", {})
+                    for m in pack.manifest.schemas.get("intents", [])
+                    if m["intent"] == intent
+                ]
+                package_slots = pack.manifest.schemas.get("slots", {})
+                for key, spec in package_slots.items():
                     if key in schemas and schemas[key] != spec:
                         raise ValueError("Ambiguous composed slot schema")
                     schemas[key] = spec
+                for intent_schema in intent_specs:
+                    for key, spec in intent_schema.items():
+                        if key in schemas and schemas[key] != spec:
+                            raise ValueError("Ambiguous composed slot schema")
+                        schemas[key] = spec
                 declared_sources.update(
                     allowed[cid].manifest.schemas.get("sources", [])
                 )
             bound = self.binder.bind(schemas, raw.get("extracted_slots", {}))
+            declared_intents = {
+                mapping["intent"]
+                for cid in selected
+                for mapping in allowed[cid].manifest.schemas.get("intents", [])
+            }
+            legacy_boundary = not declared_intents and len(allowed) == 1
+            if intent not in declared_intents and not legacy_boundary:
+                raise ValueError("Undeclared intent")
             dsl = raw["semantic_dsl"]
             evidence["parameterized_dsl"] = dsl
             for name, slot in bound.items():
@@ -310,17 +419,31 @@ class RuntimeSemanticController(PlatformSemanticController):
                 )
             if "${" in dsl:
                 raise ValueError("Unbound slot")
-            compiled = SemanticDSLParser.compile_dsl(dsl, intent=raw.get("intent"))
+            compiled = SemanticDSLParser.compile_dsl(dsl, intent=intent)
             if not compiled.is_valid:
                 raise ValueError(compiled.error_message)
-            if set(compiled.graph.get_observed_sources()) - declared_sources:
+            observed_sources = set(compiled.graph.get_observed_sources())
+            if observed_sources - declared_sources:
                 raise ValueError("Undeclared data source")
             tools = [
                 n.attributes["target"]
                 for n in compiled.graph.get_all_nodes().values()
                 if n.op == OpKind.CALL
             ]
+            for cid in selected:
+                pack = allowed[cid]
+                pack_tools = {t.tool_id for t in pack.manifest.deterministic_tools}
+                declared_pack_sources = set(pack.manifest.schemas.get("sources", []))
+                self._authorize(
+                    pack,
+                    scope,
+                    intent,
+                    set(tools) & pack_tools,
+                    observed_sources & declared_pack_sources,
+                )
             ExecutionSemanticVersionVector.for_execution(self.registry, selected, tools)
+            evidence["tool_ids"] = sorted(set(tools))
+            evidence["source_ids"] = sorted(observed_sources)
             return ControllerDecision(
                 outcome,
                 sorted(set(selected)),
@@ -329,7 +452,14 @@ class RuntimeSemanticController(PlatformSemanticController):
                 controller_version="runtime-controller-2",
                 evidence=evidence,
                 validation_result="VALID",
-                intent=raw.get("intent"),
+                intent=intent,
+            )
+        except PermissionError:
+            return ControllerDecision(
+                ClassificationOutcome.LOW_CONFIDENCE_MAPPING,
+                decline_reason="Required operation permission is not granted",
+                controller_version="runtime-controller-2",
+                evidence=evidence,
             )
         except (ValueError, TypeError, KeyError) as exc:
             return ControllerDecision(
@@ -372,8 +502,41 @@ class PlatformControllerBridge:
                 raise PermissionError("ACCESS_DENIED: inactive capability")
             self.registry.package_verifier.verify(pack.manifest, pack.install_path)
             self.registry._validate_dependencies(pack.manifest)
-            for permission in pack.manifest.permissions:
-                self.registry.require_permission(cid, permission, user_id)
+            used_tools = (
+                {
+                    n.attributes["target"]
+                    for n in SemanticDSLParser.compile_dsl(
+                        decision.semantic_dsl, intent=decision.intent
+                    )
+                    .graph.get_all_nodes()
+                    .values()
+                    if n.op == OpKind.CALL
+                }
+                if decision.semantic_dsl
+                else set()
+            )
+            used_sources = (
+                set(
+                    SemanticDSLParser.compile_dsl(
+                        decision.semantic_dsl, intent=decision.intent
+                    ).graph.get_observed_sources()
+                )
+                if decision.semantic_dsl
+                else set()
+            )
+            if isinstance(self.controller, RuntimeSemanticController):
+                self.controller._authorize(
+                    pack, user_id, decision.intent, used_tools, used_sources
+                )
+            else:
+                authorize_operation(
+                    self.registry,
+                    pack,
+                    user_id,
+                    decision.intent,
+                    used_tools,
+                    used_sources,
+                )
         compile_start = time.perf_counter()
         result = self.compile_to_cne(decision.semantic_dsl, intent=decision.intent)
         if "timings" in decision.evidence:
@@ -407,15 +570,16 @@ class PlatformControllerBridge:
                 "selected_capabilities": decision.selected_capability_ids,
             }
         )
-        for cid in decision.selected_capability_ids:
-            self.session_store.record_turn(
-                session_id,
-                query_text,
-                cid,
-                decision.intent,
-                decision.extracted_slots,
-                user_id=user_id,
-            )
+        if not context.get("defer_session", False):
+            for cid in decision.selected_capability_ids:
+                self.session_store.record_turn(
+                    session_id,
+                    query_text,
+                    cid,
+                    decision.intent,
+                    decision.extracted_slots,
+                    user_id=user_id,
+                )
         return result
 
     def compile_to_cne(
