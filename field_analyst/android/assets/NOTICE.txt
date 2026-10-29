@@ -1,0 +1,4 @@
+﻿CNE Field Analyst is experimental. This records-only build includes no trained model, no inference runtime, and no Android CNE bridge.
+CNE repository: Apache-2.0. Android platform APIs: Android Open Source Project.
+Potential future data sources: PlantVillage, Mohanty, Hughes and Salathe (2016), dataset card CC BY-SA 3.0; PlantDoc, Singh et al. (2020), CC BY 4.0 per repository. No dataset photos or pretrained weights are distributed in this APK. Source-item rights remain to be verified.
+Scores are not diagnoses. Healthy is not proof of plant health. Comparisons depend on capture conditions. No treatment advice.

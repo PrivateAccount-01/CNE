@@ -1,0 +1,10 @@
+﻿/data/
+/runs/
+/deploy/
+/runtime/
+/.gradle/
+/android/.gradle/
+/android/local.properties
+*.apk
+*.pt
+*.onnx

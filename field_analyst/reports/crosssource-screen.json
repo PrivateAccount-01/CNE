@@ -1,0 +1,9 @@
+{
+  "status": "CANDIDATE_SCREEN_COMPLETE_NOT_GROUP_OR_RIGHTS_CERTIFIED",
+  "scope": "all6627 selected-four-class PV images, all official train/test including quarantined; other PV classes were not used for training and not screened",
+  "method": "exact SHA256 plus dHash Hamming<=4; unresolved candidates excluded; not proof of no near overlap",
+  "eligible_images": 2576,
+  "quarantined_images": 2,
+  "candidates": [],
+  "field_role": "evaluation only; mapping pre-registered; original-image/leaf groups and source-item rights remain UNVERIFIED; provisional evidence only"
+}

@@ -1,0 +1,16 @@
+{
+  "revision": "7f7ecc7e1eaca78107e3affe7cb5abd9427e139a",
+  "files_sha256": {
+    "leaf_grouping/aggregate_map.py": "6f9177743cd7ad57eab03105a8b7ef7047dd3cb1ba4533c134b726cb3569e5dc",
+    "leaf_grouping/create_map.py": "8b6fe1b12916c9c757af5ab883e81f075412d705ffdb6c3af3e04c5a6415bd58",
+    "leaf_grouping/filtered_leafmaps/Tomato___healthy.csv": "e28d9b7f4713d8fa0140741ac8cd23d2d3016f34246a527fec8b90d97a7e410c",
+    "leaf_grouping/filtered_leafmaps/Tomato___Early_blight.csv": "5318a8db263bf2c9655b04c8b601954f53761a40cefb2cca928ad9dc50e305be",
+    "leaf_grouping/filtered_leafmaps/Tomato___Late_blight.csv": "23b855a3eaf5b427546cda0877a6f711c6680dcf03dacc4dc398ac0cce4819c2",
+    "leaf_grouping/filtered_leafmaps/Tomato___Bacterial_spot.csv": "b65be4fe76ff91caddbc384bf98874fc1f2ffc9ca85c252e35e72246dec5590e"
+  },
+  "evidence": "aggregate_map.py constructs class:::Leaf # identities from File Name and Leaf # columns in filtered CSVs; repeated original leaf numbers are real upstream group metadata.",
+  "semantics": "Original leaf number, namespaced by source and class; no inferred filename-as-leaf grouping.",
+  "result": "PARTIAL: validates semantics of mapped leaf IDs, does not fill absent entries. 1582 selected-color images unmatched in pinned HF lookup. Original CSV examples confirm at least one filename changed from a conflicted-copy name. Unmapped healthy GH_HL Leaf entries cannot be assigned by assumption.",
+  "reviewer": "Codex source inspection",
+  "training_status": "BLOCKED; official selected-class test membership must not be silently modified"
+}

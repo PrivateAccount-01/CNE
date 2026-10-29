@@ -1,0 +1,38 @@
+{
+  "status": "DEPLOYED_MODEL_REAL_INFERENCE_VERIFIED",
+  "model_sha256": "1798ca38ffcf388baee5e2c4c5eeab162ad475fdf7aeffdc63b7f5a4928e2582",
+  "cpu_providers": [
+    "CPUExecutionProvider"
+  ],
+  "torch_imported": false,
+  "rss_before_model_bytes": 43573248,
+  "rss_after_21_inferences_bytes": 78282752,
+  "peak_working_set_bytes": 83476480,
+  "model_load_ms": 238.8014,
+  "first_cne_analysis_ms": 36.6289,
+  "warm_cne_p50_ms": 14.522,
+  "warm_cne_p95_ms": 15.485260000000002,
+  "warm_n": 20,
+  "image_sha256": "fc4556527d5d059c9259d993b9b4774a2cee841b6cfab0444da17a6c0586d491",
+  "condition": "one fixed real validation image, fresh session, OS cache uncontrolled, CPU only",
+  "actual_model_calls": 21,
+  "dataset_required_by_model_runtime": false,
+  "ranked": [
+    {
+      "label": "Tomato___healthy",
+      "softmax_score": 0.9985945980774784
+    },
+    {
+      "label": "Tomato___Early_blight",
+      "softmax_score": 0.0012102975474581818
+    },
+    {
+      "label": "Tomato___Late_blight",
+      "softmax_score": 0.00018806091923958363
+    },
+    {
+      "label": "Tomato___Bacterial_spot",
+      "softmax_score": 7.043455823696225e-06
+    }
+  ]
+}

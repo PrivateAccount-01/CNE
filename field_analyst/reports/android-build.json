@@ -1,0 +1,29 @@
+{
+  "status": "BUILT_RECORDS_ONLY",
+  "apk": "C:\\Users\\Paril Rupani\\OneDrive - Shri Vile Parle Kelavani Mandal\\Desktop\\project\\CNE\\field_analyst\\android\\build\\cne-field-analyst-records-debug.apk",
+  "sha256": "8122de37edceb6d401fb967a683129630d88b3918a331f827a262615f2b51500",
+  "bytes": 21016,
+  "package": "org.cne.fieldanalyst",
+  "min_sdk": 26,
+  "target_sdk": 35,
+  "build_tools": "35.0.1",
+  "jdk": "javac 21.0.12",
+  "gradle": "not used: direct aapt/javac/d8/zipalign/apksigner SDK build",
+  "abis": "Java-only DEX; no native inference runtime",
+  "signing": "local debug key, not for release",
+  "model_included": false,
+  "runtime_included": false,
+  "cne_bridge": "BLOCKED",
+  "device_test": "NOT_TESTED",
+  "permissions": [],
+  "members": [
+    "AndroidManifest.xml",
+    "assets/NOTICE.txt",
+    "assets/model-status.json",
+    "resources.arsc",
+    "classes.dex",
+    "META-INF/ANDROIDD.SF",
+    "META-INF/ANDROIDD.RSA",
+    "META-INF/MANIFEST.MF"
+  ]
+}
