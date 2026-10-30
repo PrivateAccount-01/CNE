@@ -1,0 +1,20 @@
+# Fresh research protocol v2 — registration, not results
+
+Scope: subsequent local research after CI/release gates pass. No new field accuracy or unknown-detection result is asserted here. Original training weights, selection, evaluated PlantVillage test, PlantDoc examples and reports stay immutable historical evidence.
+
+The current four-class model was trained on 3,183 verified-cohort images, with 795 validation and 1,047 already evaluated test images. Its selected ONNX classifier-only INT8 model has SHA-256 `1798ca38ffcf388baee5e2c4c5eeab162ad475fdf7aeffdc63b7f5a4928e2582`. The previously evaluated external images and unknowns are observed data, including the adverse finding that all 128 listed unknowns were accepted by the known-only cutoff. They cannot become a new blind benchmark.
+
+## Decisions fixed before new measurements
+
+- Keep ranked scores available for inspection, but abstain from supported-input decisions for **all** inputs until a separately supported policy exists. `accepted=null`, `abstained=true`, `UNKNOWN_RELIABILITY_UNVERIFIED` describe lack of evidence, not a measured OOD detector. Historical threshold curves remain descriptive and are not rewritten to imply improved detection.
+- No new model/threshold selection on previously evaluated test or field populations. Candidate training, feature changes, score method and thresholds may use explicitly designated training/validation data only. Record every candidate, rejection and selection criterion before opening a distinct final set. No paid APIs or generated photographs as quality evidence.
+- A useful additional **laboratory** unsupported-category experiment may sample previously unused PlantVillage categories from pinned archive/revision already on disk. Register exact categories, original split, leaf groups, deterministic seed and sample counts before inference. Group- and exact/perceptual-duplicate audit must pass first. Cross-crop laboratory unknowns do not establish field reliability; original missing/ambiguous leaf IDs remain excluded, never guessed. Record per-category and unique-leaf support, false acceptance versus threshold and group-aware intervals. This experiment has not yet run.
+- Fresh field validation requires permission/provenance, original bytes, acquisition date/source, device/capture conditions, independently confirmed label, plant/leaf and session identifiers. Reserve an untouched final acquisition/source group before inspecting scores. Include all four known categories and genuinely unsupported, ambiguous and poor-quality inputs; do not invent healthy labels for an unprovided category or treat model output as ground truth.
+- Report per-class precision/recall/F1/support, confusion matrix, macro F1, calibration/Brier, coverage/risk, known false reject and unknown false accept. Report missing categories and cluster/source counts; bootstrap leaf/acquisition clusters using a registered seed, never image-IID certainty for correlated leaves. Sample-size limitations and negative results remain visible.
+- Improvement over the historical model requires a preregistered validation selection and one final untouched evaluation. Lack of suitable fresh source rights, grouping or confirmed labels is a blocker to that claim, not a reason to recycle observed field examples.
+
+## Current external needs
+
+The user has been asked for new, previously unevaluated labeled field photos with permission and plant/leaf IDs. A physical phone with model/Android version and USB debugging is also needed for real ARM/device testing. Emulator correctness cannot establish phone memory, thermal, energy or latency behavior.
+
+Source attribution: [pinned PlantVillage dataset card](https://huggingface.co/datasets/mohanty/PlantVillage/tree/9e97599868962bd0079b8db4b7f1efa9185fa1e7), declared CC BY-SA 3.0, Mohanty, Hughes and Salathé (2016). That declaration does not establish individual photo provenance or physical-leaf semantics by itself. Keep the original metadata snapshots and review rather than executing downloaded dataset code.

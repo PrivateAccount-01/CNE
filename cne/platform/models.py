@@ -332,29 +332,10 @@ class LlamaCppRuntimeAdapter(ModelRuntimeAdapter):
 
     def infer_isolated(self, descriptor, request, timeout_s=None):
         """Run native inference in a killable spawned process for hard deadlines."""
-        import multiprocessing as mp
-
         timeout = timeout_s if timeout_s is not None else request.timeout_s
         if timeout <= 0:
             raise ValueError("Positive worker timeout required")
-        ctx = mp.get_context("spawn")
-        out = ctx.Queue(maxsize=1)
-        proc = ctx.Process(
-            target=_isolated_gguf_infer, args=(descriptor, request, out), daemon=True
-        )
-        proc.start()
-        proc.join(timeout)
-        if proc.is_alive():
-            proc.terminate()
-            proc.join(2)
-            if proc.is_alive() and hasattr(proc, "kill"):
-                proc.kill()
-                proc.join()
-            raise TimeoutError("Isolated model worker exceeded hard deadline")
-        try:
-            ok, payload = out.get(timeout=1)
-        except Exception as exc:
-            raise RuntimeError("Isolated model worker failed without a result") from exc
+        ok, payload = _run_isolated_worker(_isolated_gguf_infer,(descriptor,request),timeout)
         if not ok:
             kind, _, detail = payload.partition(": ")
             from cne.platform.errors import (
@@ -657,6 +638,35 @@ class InferenceRuntimePolicy:
 
         physical = psutil.cpu_count(logical=False) or 1
         return max(1, min(self.max_threads, physical - self.reserve_cores or 1))
+
+
+def _run_isolated_worker(target, args, timeout):
+    """Built-in worker transport: receive before join so large Queue results cannot deadlock.
+
+    The deadline covers startup, inference and orderly worker exit. No worker is
+    registered or granted execution permission by this private helper.
+    """
+    import multiprocessing as mp
+    import queue
+    if timeout<=0:raise ValueError("Positive worker timeout required")
+    ctx=mp.get_context("spawn");out=ctx.Queue(maxsize=1)
+    proc=ctx.Process(target=target,args=(*args,out),daemon=True)
+    deadline=time.monotonic()+timeout
+    try:
+        proc.start()
+        try:result=out.get(timeout=max(0,deadline-time.monotonic()))
+        except queue.Empty as exc:
+            if not proc.is_alive():raise RuntimeError("Isolated model worker failed without a result") from exc
+            raise TimeoutError("Isolated model worker exceeded hard deadline") from exc
+        proc.join(max(0,deadline-time.monotonic()))
+        if proc.is_alive() or time.monotonic()>deadline:raise TimeoutError("Isolated model worker exceeded hard deadline")
+        return result
+    finally:
+        if proc.pid is not None and proc.is_alive():
+            proc.terminate();proc.join(1)
+            if proc.is_alive():proc.kill();proc.join(1)
+        out.close();out.join_thread()
+        if proc.pid is not None and not proc.is_alive():proc.close()
 
 
 def _isolated_gguf_infer(descriptor, request, out):

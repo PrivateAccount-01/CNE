@@ -11,11 +11,11 @@ from __future__ import annotations
 import json
 import math
 import os
-import sys
 
 import pytest
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+# Imports use the installed package/repository root. Prepending cne/ shadows the
+# standard-library platform module in fresh spawned processes on Linux.
 
 from cne.compiler.few_shot_pool import FewShotPool, FewShotDemo, _CANONICAL_DEMOS
 from cne.compiler.constrained_decoder import (

@@ -144,14 +144,33 @@ def test_runtime_thread_policy_is_bounded():
     assert 1 <= InferenceRuntimePolicy(max_threads=3).thread_count() <= 3
 
 
+def _blocking_worker_fixture(out):
+    """Real spawned blocking unit fixture, not model or hardware performance evidence."""
+    import time
+    time.sleep(5)
+
+
 def test_isolated_model_worker_enforces_hard_deadline():
-    runtime = LlamaCppRuntimeAdapter()
-    descriptor = ModelDescriptor(
-        "missing", ModelKind.TEXT_GENERATION, "1", 1, asset_path="missing.gguf"
-    )
-    request = ModelRequest("deadline", "missing", "hello", timeout_s=3)
+    from cne.platform.models import _run_isolated_worker
     with pytest.raises(TimeoutError, match="hard deadline"):
-        runtime.infer_isolated(descriptor, request, timeout_s=0.1)
+        _run_isolated_worker(_blocking_worker_fixture,(),0.1)
+
+
+def _large_result_worker_fixture(out):
+    out.put((True,'x'*1_000_000))
+
+
+def test_isolated_worker_drains_large_result_before_join():
+    from cne.platform.models import _run_isolated_worker
+    ok,result=_run_isolated_worker(_large_result_worker_fixture,(),5)
+    assert ok and len(result)==1_000_000
+
+
+def test_isolated_missing_asset_is_not_falsely_a_deadline():
+    from cne.platform.errors import ModelAssetMissingError
+    descriptor=ModelDescriptor('missing',ModelKind.TEXT_GENERATION,'1',1,asset_path='missing.gguf')
+    with pytest.raises(ModelAssetMissingError,match='MODEL_ASSET_MISSING'):
+        LlamaCppRuntimeAdapter().infer_isolated(descriptor,ModelRequest('missing','missing','hello'),timeout_s=5)
 
 
 

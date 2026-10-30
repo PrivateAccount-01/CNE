@@ -1,0 +1,11 @@
+{
+  "registered_before_real_training": true,
+  "architecture": "torchvision MobileNetV3 Small, ImageNet V1, four-output classifier",
+  "training": "CPU, seed42, frozen convolution features, AdamW lr0.0003, batch16, threads4; select best epoch by validation macro F1",
+  "dataset_scope": "verified-leaf subset only; original unverified/near-match groups quarantined; full official test retained untouched and not certified",
+  "conversion": "ONNX FP32; QDQ INT8 minmax calibration on first32 train rows per class; no validation/test calibration",
+  "selection_gate": "Prefer INT8 for storage only if validation macro F1 drop <=.02 and all class recall drops <=.05; otherwise FP32",
+  "validation_reference_parity": "preprocessing max absolute error <=1e-6, FP32 logit error <=1e-4",
+  "unknowns": "No reliability claim until evaluated on specified unknowns; blur/multiple-leaf field unknowns not yet verified",
+  "epochs": "8 total: real 3-epoch smoke followed by 5 resumed epochs; fixed before any held-out metrics"
+}

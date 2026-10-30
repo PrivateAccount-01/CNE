@@ -1,0 +1,104 @@
+{
+  "status": "PASS",
+  "errors": [],
+  "near_duplicate_candidates": [
+    {
+      "id": "0ae49a6c58a1e4f0943562899d0839f77dbeb54cd2d27806dc17269ef5833073",
+      "a": "raw/color/Tomato___Bacterial_spot/19a4a07c-5e82-4a4f-bc64-9f7d941cab88___GCREC_Bact.Sp 3515.JPG",
+      "b": "raw/color/Tomato___Bacterial_spot/517dac9f-61a6-4e5a-928e-b0009c2d6d47___GCREC_Bact.Sp 3516.JPG",
+      "hashes": [
+        "185fc63594a4e2284a12644e4e82acb32c845f49732fb74702cd0bab07569e72",
+        "543b31421a0817883c0ed8454a5d8e9f229de6cd702da1c59c59b2b9e72b55d0"
+      ],
+      "same_group": true,
+      "group_id": "plantvillage:Tomato___Bacterial_spot:::143.0"
+    }
+  ],
+  "manifest_sha256": "93c7775c3d1df5b26049a558c8e8012a354b246d4453e7d8a47c79a0dae10541",
+  "metadata_sha256": "c176481044f63434c2bfbe52899eeb16f455d03c74fb25f11d226a71f2e888ad",
+  "resolutions_sha256": "fc7eb912fb8c36ffbdd49407f8df965048f22e5db25114e637e86f41b03c82d5",
+  "claim_scope": "RESTRICTED_VERIFIED_COHORT_ONLY; NOT full official PlantVillage test; unmatched source images remain quarantined; no field/OOD generalization claim",
+  "counts": [
+    {
+      "split": "test",
+      "label": "Tomato___Bacterial_spot",
+      "images": 436,
+      "leaves": 109
+    },
+    {
+      "split": "test",
+      "label": "Tomato___Early_blight",
+      "images": 215,
+      "leaves": 54
+    },
+    {
+      "split": "test",
+      "label": "Tomato___Late_blight",
+      "images": 172,
+      "leaves": 43
+    },
+    {
+      "split": "test",
+      "label": "Tomato___healthy",
+      "images": 224,
+      "leaves": 56
+    },
+    {
+      "split": "train",
+      "label": "Tomato___Bacterial_spot",
+      "images": 1336,
+      "leaves": 334
+    },
+    {
+      "split": "train",
+      "label": "Tomato___Early_blight",
+      "images": 628,
+      "leaves": 157
+    },
+    {
+      "split": "train",
+      "label": "Tomato___Late_blight",
+      "images": 600,
+      "leaves": 150
+    },
+    {
+      "split": "train",
+      "label": "Tomato___healthy",
+      "images": 619,
+      "leaves": 155
+    },
+    {
+      "split": "validation",
+      "label": "Tomato___Bacterial_spot",
+      "images": 335,
+      "leaves": 84
+    },
+    {
+      "split": "validation",
+      "label": "Tomato___Early_blight",
+      "images": 156,
+      "leaves": 39
+    },
+    {
+      "split": "validation",
+      "label": "Tomato___Late_blight",
+      "images": 148,
+      "leaves": 37
+    },
+    {
+      "split": "validation",
+      "label": "Tomato___healthy",
+      "images": 156,
+      "leaves": 39
+    }
+  ],
+  "low_support_test_classes": [],
+  "dimensions": {
+    "(256, 256)": 5025
+  },
+  "near_duplicate_method": "64-bit dHash Hamming <=4; candidate screening only; does not prove absence",
+  "rights_note": "Audit validates records, not legal clearance or physical leaf identity.",
+  "original_selected_images": 6627,
+  "quarantined_images": 1602,
+  "near_candidates": 31
+}

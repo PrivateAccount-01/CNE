@@ -1,0 +1,1 @@
+﻿{"model_status":"BLOCKED","cne_android_bridge":"NOT_IMPLEMENTED","inference_enabled":false,"reason":"No trained audited model and no validated Android bridge to authoritative CNE. This APK provides local records only.","supported_candidate_labels":["Tomato___healthy","Tomato___Early_blight","Tomato___Late_blight","Tomato___Bacterial_spot"]}

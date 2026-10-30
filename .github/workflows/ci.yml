@@ -1,4 +1,4 @@
-name: CNE correctness and security
+﻿name: CNE correctness and security
 
 on:
   push:
@@ -11,58 +11,128 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+      - name: Prepare evidence directory before any gate
+        shell: bash
+        run: mkdir -p artifacts
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
           cache: pip
-      - run: python -m pip install -e '.[platform,dev]'
-      - name: Verify frozen blind corpus and gold summary
-        shell: bash
-        run: |
-          echo 'ed56f7665b1a05159460362f806cd56f712afedc948a0613c4024a2df309f3bd  cne/artifacts/p1_dataset/test_heldout_blind.jsonl' | sha256sum --check
-          echo '4c27bf9107c05dd68bed5d0209c7c0163e57ff622fa52c30fb8000e239ba1bf9  cne/artifacts/p1_dataset/dataset_summary.json' | sha256sum --check
-      - name: Prepare artifact directory
-        run: mkdir -p artifacts
-      - name: Collect expected test inventory
-        id: inventory
+      - name: Install, verify frozen bytes, collect and execute full CNE suite
         env:
-          CNE_TEST_INVENTORY_PATH: artifacts/expected-inventory.json
-        run: python -m pytest cne/tests --collect-only -q -p cne.platform.pytest_inventory
-      - name: Full correctness and security suite
-        id: full-suite
-        continue-on-error: true
-        env:
-          CNE_TEST_INVENTORY_PATH: artifacts/actual-inventory.json
-        run: python -m pytest cne/tests -p cne.platform.pytest_inventory --junitxml=artifacts/junit.xml
-      - name: Build source-bound evidence and test summary
+          CNE_CI_JOB: full-suite
+        run: python -m cne.platform.ci_runner --suite core --install-profile platform,dev --output artifacts/core
+      - name: Publish real status even when setup, integrity or collection failed
         if: always()
         shell: bash
         run: |
-          set -o pipefail
-          if [[ '${{ steps.inventory.outcome }}' == 'success' && '${{ steps.full-suite.outcome }}' == 'success' ]]; then result=0; else result=1; fi
-          python -m cne.platform.evidence \
-            --root . \
-            --command 'python -m pytest cne/tests -p cne.platform.pytest_inventory --junitxml=artifacts/junit.xml' \
-            --junit artifacts/junit.xml \
-            --corpus cne/artifacts/p1_dataset/test_heldout_blind.jsonl \
-            --expected-inventory artifacts/expected-inventory.json \
-            --actual-inventory artifacts/actual-inventory.json \
-            --output artifacts/evidence.json \
-            --exit-code "$result" \
-            --full-suite \
-            --ci-job full-suite | tee artifacts/summary.txt
-          cat artifacts/summary.txt >> "$GITHUB_STEP_SUMMARY"
+          if [[ -f artifacts/core/summary.md ]]; then
+            cat artifacts/core/summary.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'INCOMPLETE: required runner did not produce evidence; tests are not attested.' >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: cne-test-evidence
           path: artifacts/
+          if-no-files-found: error
+
+  python-compatibility:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {os: ubuntu-latest, python: '3.10'}
+          - {os: ubuntu-latest, python: '3.11'}
+          - {os: ubuntu-latest, python: '3.12'}
+          - {os: windows-latest, python: '3.12'}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare evidence directory
+        shell: bash
+        run: mkdir -p artifacts
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+      - name: Clean base and runtime wheel contracts outside source directory
+        run: python -m cne.platform.install_smoke --output artifacts/install
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: install-${{ matrix.os }}-${{ matrix.python }}
+          path: artifacts/
+          if-no-files-found: error
+
+  field-runtime:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare evidence directory
+        shell: bash
+        run: mkdir -p artifacts
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Required exporter fixture dependency, no PyTorch
+        run: python -m pip install onnx==1.17.0
+      - name: Required real CPU ONNX fixture and tampering tests
+        env:
+          CNE_CI_JOB: field-runtime
+        run: python -m cne.platform.ci_runner --suite runtime --install-profile dev,field-runtime --output artifacts/runtime
+      - name: Windows/Linux integrity and evidence adversarial tests
+        run: python -m pytest cne/tests/platform/test_ci_integrity.py cne/tests/platform/test_ci_evidence.py -q
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: field-runtime-${{ matrix.os }}
+          path: artifacts/
+          if-no-files-found: error
+
+  field-analyst:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare evidence directory
+        shell: bash
+        run: mkdir -p artifacts
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: CPU-only training-test libraries (synthetic fixtures, no trained-quality claim)
+        run: python -m pip install torch==2.7.1 torchvision==0.22.1 --index-url https://download.pytorch.org/whl/cpu
+      - name: Product collection and full product tests with mandatory ONNX fixture
+        env:
+          CNE_CI_JOB: field-analyst
+        run: python -m cne.platform.ci_runner --suite field --install-profile platform,dev,field-test --output artifacts/field
+      - name: Compile actual product code, not downloaded data or environments
+        run: python -m compileall -q field_analyst -x '[/\\](data|runs|deploy|\.venv|reports)[/\\]'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: field-analyst-evidence
+          path: artifacts/
+          if-no-files-found: error
 
   optional-gguf-smoke:
     if: github.event_name == 'workflow_dispatch'
     runs-on: [self-hosted, cne-licensed-model]
     steps:
       - uses: actions/checkout@v4
+      - name: Prepare evidence directory
+        run: python -c "from pathlib import Path; Path('artifacts').mkdir(exist_ok=True)"
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -74,18 +144,8 @@ jobs:
           CNE_GGUF_MODEL_ID: ${{ vars.CNE_GGUF_MODEL_ID }}
           CNE_GGUF_LICENSE: ${{ vars.CNE_GGUF_LICENSE }}
         run: python -m cne.platform.gguf_smoke --output artifacts/gguf-smoke.json
-
-  python-compatibility:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ['3.10', '3.11', '3.12']
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          python-version: ${{ matrix.python-version }}
-      - run: python -m pip install -e '.[platform,dev]'
-      - run: python -m compileall -q cne
-      - run: python -c "import cne.compiler.constrained_decoder; import cne.platform.runtime_config"
+          name: optional-licensed-gguf-evidence
+          path: artifacts/

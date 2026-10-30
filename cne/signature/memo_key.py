@@ -31,6 +31,8 @@ class SystemVersions:
 
     @property
     def version_string(self) -> str:
+        if self is DEFAULT_SYSTEM_VERSIONS:
+            return DEFAULT_VERSION_STRING
         if (self.model_version == "v1.5" and
             self.tokenizer_version == "v1.0" and
             self.runtime_version == "1.0.0" and
@@ -48,6 +50,15 @@ class SystemVersions:
             f"{self.schema_version}_{self.capability_vector_hash}_{self.adapter_version}_{self.tool_schema_hash}"
         )
 
+
+# Frozen, string-only value object: share the default vector, not computation
+# results or mutable dependency state. Avoid rebuilding ten frozen fields on
+# every query. Explicit version vectors and memo serialization remain unchanged.
+DEFAULT_SYSTEM_VERSIONS = SystemVersions()
+# JSONEncoder.encode keeps per-encoding state local. Reuse its fixed options to
+# avoid json.dumps constructing an encoder for every sort_keys=True call. This
+# caches no inputs/results and preserves the exact existing serialized bytes.
+_MEMO_JSON_ENCODER = json.JSONEncoder(sort_keys=True)
 
 _DIGEST_CACHE: Dict[int, Tuple[int, str]] = {}
 
@@ -130,7 +141,7 @@ class MemoKey:
         contract: Optional[Any] = None,
         env: Optional[Dict[str, Any]] = None
     ) -> MemoKey:
-        sys_ver = versions or SystemVersions()
+        sys_ver = versions if versions is not None else DEFAULT_SYSTEM_VERSIONS
         if input_data is None and env is not None:
             input_data = cls.extract_input_data(graph, env)
 
@@ -179,16 +190,26 @@ class MemoKey:
             input_repr = {}
 
         v_str = sys_ver.version_string if hasattr(sys_ver, "version_string") else DEFAULT_VERSION_STRING
+        snapshot_repr = {k: str(v) for k, v in sorted(dependency_snapshot.items())} if dependency_snapshot else {}
+        # Cache only serialization of the *complete current* identity, never
+        # execution outputs. Re-project inputs/dependencies above and re-encode
+        # the contract each call, so in-place contract-repr changes cannot hide.
+        identity_token = (v_str,shape_hash,_MEMO_JSON_ENCODER.encode(contract_repr),
+                          tuple(input_repr.items()),tuple(snapshot_repr.items()))
+        cached_serialization=getattr(graph,'_cached_memo_serialization',None)
+        if cached_serialization is not None and cached_serialization[0]==identity_token:
+            return cls(key_hash=cached_serialization[2],serialized_identity=cached_serialization[1],versions=sys_ver)
         memo_dict = {
             "v": v_str,
             "sh": shape_hash,
             "i": input_repr,
-            "s": {k: str(v) for k, v in sorted(dependency_snapshot.items())} if dependency_snapshot else {},
+            "s": snapshot_repr,
             "c": contract_repr
         }
 
-        serialized = json.dumps(memo_dict, sort_keys=True)
+        serialized = _MEMO_JSON_ENCODER.encode(memo_dict)
         key_hash = hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+        graph._cached_memo_serialization=(identity_token,serialized,key_hash)
         return cls(key_hash=key_hash, serialized_identity=serialized, versions=sys_ver)
 
     def __eq__(self, other: object) -> bool:

@@ -32,29 +32,22 @@ class OutcomeContract:
 
     @property
     def contract_repr(self) -> Dict[str, Any]:
+        """Current contract identity, including in-place edits to public fields.
+
+        Contracts are mutable dataclasses: retaining an old representation can
+        otherwise reuse an answer under a changed tolerance or schema.
         """
-        Cached invariant dictionary representation of contract for MemoKey.
-        """
-        cached = getattr(self, "_cached_contract_repr", None)
-        if cached is None:
-            from cne.signature.canonicalization import callable_identity
-            constraints_repr = [
-                callable_identity(c) for c in self.constraints
-            ]
-            equiv_repr = callable_identity(self.acceptable_equivalence) if self.acceptable_equivalence else None
-            prov_repr = sorted(self.provenance_requirements.items()) if self.provenance_requirements else None
-            cached = {
-                "t": self.contract_type.name,
-                "tol": sorted(self.tolerances.items()),
-                "b": self.decision_boundary,
-                "f": sorted(list(self.required_facts)),
-                "s": self.output_schema,
-                "cst": constraints_repr,
-                "eq": equiv_repr,
-                "prov": prov_repr
-            }
-            self._cached_contract_repr = cached
-        return cached
+        from cne.signature.canonicalization import callable_identity
+        return {
+            "t": self.contract_type.name,
+            "tol": sorted(self.tolerances.items()),
+            "b": self.decision_boundary,
+            "f": sorted(self.required_facts),
+            "s": self.output_schema,
+            "cst": [callable_identity(c) for c in self.constraints],
+            "eq": callable_identity(self.acceptable_equivalence) if self.acceptable_equivalence else None,
+            "prov": sorted(self.provenance_requirements.items()) if self.provenance_requirements else None,
+        }
 
     def is_equivalent(self, candidate: Any, reference: Any) -> bool:
         """

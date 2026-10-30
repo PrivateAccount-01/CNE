@@ -3,12 +3,18 @@ Automated Gate Test for Phase P0.7: Realistic Language & Shape Validation.
 Validates the complete 10-step sequence and decision gate outcome.
 """
 import os
+import hashlib
+import json
+from pathlib import Path
 import pytest
 from cne.bench.p07_report import P07ReportRunner
 
 
-def test_p07_master_decision_gate():
-    report = P07ReportRunner.run_p07_evaluation()
+def test_p07_master_decision_gate(tmp_path):
+    root=Path(__file__).resolve().parents[3]
+    historical=[root/'cne/artifacts/reports/p07_validation_report.json',root/'docs/P07_VALIDATION_REPORT.md']
+    before={p:hashlib.sha256(p.read_bytes()).hexdigest() for p in historical}
+    report = P07ReportRunner.run_p07_evaluation(output_dir=tmp_path)
 
     assert report["decision"] == "GO", f"Expected GO decision, got {report['decision']}"
     assert report["decision_passed"] is True
@@ -58,8 +64,10 @@ def test_p07_master_decision_gate():
     assert "11 currently-supported topologies" in report["narrowed_claim"]
 
     # Verify artifacts exist on disk
-    json_path = os.path.join(os.path.dirname(__file__), "..", "..", "artifacts", "reports", "p07_validation_report.json")
+    json_path = tmp_path / "p07_validation_report.json"
     assert os.path.exists(json_path)
+    assert json.loads(json_path.read_text(encoding='utf8'))['decision']==report['decision']
 
-    md_path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "docs", "P07_VALIDATION_REPORT.md")
+    md_path = tmp_path / "P07_VALIDATION_REPORT.md"
     assert os.path.exists(md_path)
+    assert {p:hashlib.sha256(p.read_bytes()).hexdigest() for p in historical}==before

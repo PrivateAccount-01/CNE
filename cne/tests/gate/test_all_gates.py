@@ -42,9 +42,11 @@ def test_gate_g2_oracle():
     assert res["corpus_r_star"] >= 0.25  # Frozen spec provisional floor (system.md §20 & §61)
 
 
-def test_gate_g3_measurement():
+def test_gate_g3_measurement(record_property):
     res = GateG3Runner.run_g3()
-    assert res["passed"]
+    import json
+    record_property('g3_result',json.dumps(res,sort_keys=True))
+    assert res["passed"], f"Measured G3 failure (unchanged gate thresholds): {res}"
     assert res["primary_condition"]["positive_total_savings"]
     assert res["primary_condition"]["a_corpus_passed"]
     assert res["instrumentation_boundary_verified"]

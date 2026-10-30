@@ -1,0 +1,9 @@
+{
+  "path": "C:\\Users\\Paril Rupani\\OneDrive - Shri Vile Parle Kelavani Mandal\\Desktop\\project\\CNE\\field_analyst\\data\\data.zip",
+  "bytes": 2184723441,
+  "sha256": "fba30c6a7965e49be94b47a62f8aff6cfb1c35c27f475f22092b56db41745e84",
+  "expected_sha256": "fba30c6a7965e49be94b47a62f8aff6cfb1c35c27f475f22092b56db41745e84",
+  "verified": true,
+  "elapsed_s": 739.1514470999828,
+  "source_url": "https://huggingface.co/datasets/mohanty/PlantVillage/resolve/9e97599868962bd0079b8db4b7f1efa9185fa1e7/data.zip"
+}

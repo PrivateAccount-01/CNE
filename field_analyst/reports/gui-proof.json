@@ -1,0 +1,9 @@
+{
+  "status": "FUNCTIONAL_TK_TEST_PASSED_WITH_REAL_MODEL",
+  "model_sha256": "1798ca38ffcf388baee5e2c4c5eeab162ad475fdf7aeffdc63b7f5a4928e2582",
+  "real_image_sha256": "9c7ee2913b993875b7605d527ef749f2da6b3b57cda93c147ad91506e01b6a14",
+  "ranked_labels_rendered": 4,
+  "actual_inference_calls": 1,
+  "visual_review": "NOT_TESTED",
+  "physical_device": "NOT_TESTED"
+}
