@@ -36,7 +36,10 @@ def main():
     with zipfile.ZipFile(apk) as archive:
         names=archive.namelist()
         if any(n.endswith(('.pt','.onnx','.tflite','.so')) for n in names):raise RuntimeError('Unexpected model/runtime in records-only build')
-    report={'status':'BUILT_RECORDS_ONLY','apk':str(apk),'sha256':hashlib.file_digest(apk.open('rb'),'sha256').hexdigest(),'bytes':apk.stat().st_size,
+    apk_hash=hashlib.sha256()
+    with apk.open('rb') as source:
+        for chunk in iter(lambda:source.read(1024*1024),b''):apk_hash.update(chunk)
+    report={'status':'BUILT_RECORDS_ONLY','apk':str(apk),'sha256':apk_hash.hexdigest(),'bytes':apk.stat().st_size,
             'package':'org.cne.fieldanalyst','min_sdk':26,'target_sdk':35,'build_tools':a.build_tools,'jdk':subprocess.check_output(['javac','-version'],stderr=subprocess.STDOUT,text=True).strip(),
             'gradle':'not used: direct aapt/javac/d8/zipalign/apksigner SDK build','abis':'Java-only DEX; no native inference runtime','signing':'local debug key, not for release',
             'model_included':False,'runtime_included':False,'cne_bridge':'BLOCKED','device_test':'NOT_TESTED','permissions':[],'members':names}

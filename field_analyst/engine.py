@@ -9,6 +9,7 @@ from cne.semantic_ir.nodes import IRNode, OpKind, SemanticIRGraph
 from cne.signature.memo_key import SystemVersions
 from field_analyst import LABELS, WARNING
 from field_analyst.dataset import canonical, digest, image_rgb
+from field_analyst.uncertainty import assess_scores
 
 class TorchAsset:
     """Loads verified bytes once. Rechecks mutable disk assets before every invocation."""
@@ -37,7 +38,7 @@ class TorchAsset:
         with torch.inference_mode(): return self.model(x)[0].tolist()
 
 def valid_logits(value):
-    return isinstance(value,list) and len(value)==len(LABELS) and all(isinstance(x,(float,int)) and math.isfinite(x) for x in value)
+    return isinstance(value,list) and len(value)==len(LABELS) and all(not isinstance(x,bool) and isinstance(x,(float,int)) and math.isfinite(x) for x in value)
 
 class FieldEngine:
     """Only trusted built-in assets; never loads pack code or overrides core cache policy."""
@@ -75,10 +76,9 @@ class FieldEngine:
             logits=list(logits)  # Do not expose mutable aliases to CNE's stored result.
             exps=[math.exp(x-max(logits)) for x in logits]; scores=[x/sum(exps) for x in exps]
             threshold=getattr(self.asset,'threshold',None)
-            uncertainty=('Validation-derived score threshold only; does not establish crop support, diagnosis or reliable unknown detection.'
-                         if threshold is not None else 'UNVALIDATED; abstention unavailable without checkpoint-bound validation threshold')
+            uncertainty=assess_scores(scores,threshold)
             return {'logits':logits,'ranked':[{'label':LABELS[i],'softmax_score':scores[i]} for i in sorted(range(len(LABELS)),key=lambda j:-scores[j])],
-                    'note':note,'warning':WARNING,'uncertainty_status':uncertainty,'abstained':max(scores)<threshold if threshold is not None else None,'threshold':threshold,
+                    'note':note,'warning':WARNING,**uncertainty,
                     'trace':{'engine':'authoritative cne.optimizer.necessity_engine','reused_state':reused,'inference_calls':self.invocations-before,
                              'elapsed_ns':elapsed,'costs':costs,'memo_key':memo,'asset_identity':identity,'image_sha256':digest(data),
                              'contract_satisfied':contract_ok,'contract_note':'Execution equivalence only, not prediction correctness',

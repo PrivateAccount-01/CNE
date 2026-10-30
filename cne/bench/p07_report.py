@@ -131,7 +131,7 @@ class P07ReportRunner:
         }
 
     @classmethod
-    def run_p07_evaluation(cls) -> Dict[str, Any]:
+    def run_p07_evaluation(cls, output_dir=None) -> Dict[str, Any]:
         start_time = time.time()
         print("======================================================================")
         print("          CNE PHASE P0.7 REALISTIC LANGUAGE & SHAPE VALIDATION        ")
@@ -586,7 +586,8 @@ class P07ReportRunner:
         }
 
         # Write JSON report
-        report_dir = os.path.join(os.path.dirname(__file__), "..", "artifacts", "reports")
+        # Live measurements must never overwrite tracked historical evidence.
+        report_dir = os.fspath(output_dir) if output_dir is not None else os.path.join("artifacts", "p07")
         os.makedirs(report_dir, exist_ok=True)
         report_path = os.path.join(report_dir, "p07_validation_report.json")
         with open(report_path, "w", encoding="utf-8") as f:
@@ -594,12 +595,12 @@ class P07ReportRunner:
         print(f"Report saved to: {report_path}")
 
         # Generate markdown report
-        cls._generate_markdown_report(report_payload)
+        cls._generate_markdown_report(report_payload, report_dir)
         return report_payload
 
     @classmethod
-    def _generate_markdown_report(cls, data: Dict[str, Any]) -> None:
-        md_dir = os.path.join(os.path.dirname(__file__), "..", "..", "docs")
+    def _generate_markdown_report(cls, data: Dict[str, Any], output_dir=None) -> None:
+        md_dir = os.fspath(output_dir) if output_dir is not None else os.path.join("artifacts", "p07")
         os.makedirs(md_dir, exist_ok=True)
         md_path = os.path.join(md_dir, "P07_VALIDATION_REPORT.md")
 

@@ -1,0 +1,4 @@
+# These frozen assets have independently attested LF Git-object bytes. Do not
+# normalize any other JSON/JSONL or rewrite the blind corpus to repair CI.
+/cne/artifacts/p1_dataset/test_heldout_blind.jsonl text eol=lf
+/cne/artifacts/p1_dataset/dataset_summary.json text eol=lf

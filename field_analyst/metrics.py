@@ -3,7 +3,15 @@ import numpy as np
 from field_analyst import LABELS
 
 def metrics(logits, targets, threshold=None):
-    x=np.asarray(logits,dtype=np.float64); y=np.asarray(targets,dtype=np.int64)
+    # Inspect original scalar types before NumPy promotes mixed bool/int input.
+    if any(isinstance(v,(bool,np.bool_)) for v in np.asarray(targets,dtype=object).flat):raise ValueError('Targets must be integer class IDs, not bools')
+    raw_y=np.asarray(targets)
+    if raw_y.ndim!=1 or raw_y.dtype.kind not in 'iu':raise ValueError('Targets must be integer class IDs, not coerced floats/strings/bools')
+    if ((raw_y>=len(LABELS))|(raw_y < -1 if raw_y.dtype.kind=='i' else False)).any():raise ValueError('Invalid target')
+    if any(isinstance(v,(bool,np.bool_)) for v in np.asarray(logits,dtype=object).flat):raise ValueError('Logits must be numeric, not bools')
+    raw_x=np.asarray(logits)
+    if raw_x.dtype.kind not in 'fiu':raise ValueError('Logits must be numeric, not coerced strings/bools')
+    x=raw_x.astype(np.float64); y=raw_y.astype(np.int64)
     if x.ndim!=2 or x.shape!=(len(y),len(LABELS)) or not len(y) or not np.isfinite(x).all():
         raise ValueError('Empty, nonfinite or mismatched logits')
     if ((y < -1)|(y>=len(LABELS))).any(): raise ValueError('Invalid target')
@@ -41,7 +49,7 @@ def metrics(logits, targets, threshold=None):
             'accuracy_wilson95_image_iid_only':interval,'interval_caveat':'Not leaf-cluster adjusted; exploratory only',
             'coverage_risk':curve,'missing_classes':[v['label'] for v in per if not v['support']]}
     if threshold is not None:
-        if not 0<=threshold<=1: raise ValueError('Invalid threshold')
+        if isinstance(threshold,(bool,np.bool_)) or not isinstance(threshold,(int,float,np.integer,np.floating)) or not np.isfinite(threshold) or not 0<=threshold<=1: raise ValueError('Invalid threshold')
         accepted=confidence>=threshold
         result['operating_point']={'threshold':threshold,'unknown_false_accept':float(accepted[~known].mean()) if (~known).any() else None,
                                    'known_false_reject':float((~accepted[known]).mean()) if n else None,

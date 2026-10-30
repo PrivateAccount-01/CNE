@@ -1,0 +1,47 @@
+name: Android inference (local trained assets)
+on:
+  workflow_dispatch:
+    inputs:
+      abi:
+        description: Target CPU ABI (not a device validation claim)
+        type: choice
+        options: [arm64-v8a, x86_64]
+        default: arm64-v8a
+permissions:
+  contents: read
+jobs:
+  build:
+    # Requires an explicitly provisioned SDK/JDK/Python host and pinned local model.
+    # Git does not carry the trained model; missing assets must fail visibly.
+    runs-on: [self-hosted, Windows, cne-android]
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Prepare evidence before failure
+        shell: pwsh
+        run: New-Item -ItemType Directory -Force artifacts | Out-Null
+      - name: Install build-side package contract
+        run: python -m pip install -e .
+      - name: Build actual model and embedded core
+        shell: pwsh
+        env:
+          CNE_TARGET_ABI: ${{ inputs.abi }}
+        run: |
+          if (-not $env:CNE_ANDROID_ASSET_DIR) { throw 'Provision CNE_ANDROID_ASSET_DIR outside checkout with the pinned trained model first' }
+          New-Item -ItemType Directory -Force field_analyst/deploy | Out-Null
+          foreach ($asset in @('model.onnx','model.json','model-threshold.json')) {
+            Copy-Item -LiteralPath (Join-Path $env:CNE_ANDROID_ASSET_DIR $asset) -Destination (Join-Path field_analyst/deploy $asset)
+          }
+          $buildPython = (Get-Command python).Source
+          python -m field_analyst.android_inference.build --abi $env:CNE_TARGET_ABI --build-python $buildPython --output artifacts/android-build
+          exit $LASTEXITCODE
+      - name: Preserve build evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-build-${{ inputs.abi }}
+          path: artifacts/
+          if-no-files-found: error

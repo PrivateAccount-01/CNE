@@ -1,0 +1,27 @@
+[
+  {
+    "path": "onnxruntime-LICENSE",
+    "url": "https://raw.githubusercontent.com/microsoft/onnxruntime/v1.20.0/LICENSE",
+    "sha256": "2f07c72751aed99790b8a4869cf2311df85a860b22ded05fa22803587a48922c"
+  },
+  {
+    "path": "onnxruntime-ThirdPartyNotices.txt",
+    "url": "https://raw.githubusercontent.com/microsoft/onnxruntime/v1.20.0/ThirdPartyNotices.txt",
+    "sha256": "cf7342f7ba482ef715ae58f5f497a8d3564fa255164175aea324cd293c5701a0"
+  },
+  {
+    "path": "torchvision-LICENSE",
+    "url": "https://raw.githubusercontent.com/pytorch/vision/v0.22.1/LICENSE",
+    "sha256": "6502f676851cfe25f8af75531dfb32375b7325b73c37e7b43741fa422893e71d"
+  },
+  {
+    "path": "chaquopy-LICENSE",
+    "url": "https://raw.githubusercontent.com/chaquo/chaquopy/16.1.0/LICENSE.txt",
+    "sha256": "338d9a4f0a43079c18d24e374443cc6f1065234668f488b4c559650eb7b60f17"
+  },
+  {
+    "path": "CPython-LICENSE",
+    "url": "https://raw.githubusercontent.com/python/cpython/v3.11.10/LICENSE",
+    "sha256": "3b2f81fe21d181c499c59a256c8e1968455d6689d269aa85373bfb6af41da3bf"
+  }
+]

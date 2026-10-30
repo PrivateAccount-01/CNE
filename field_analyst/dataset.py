@@ -12,6 +12,15 @@ SPLITS = {'train','validation','test','field_test','unknown_validation','unknown
 def digest(data):
     return hashlib.sha256(data).hexdigest()
 
+
+def file_sha256(path):
+    """Bounded-memory file hashing, including supported Python 3.10 hosts."""
+    result=hashlib.sha256()
+    with Path(path).open('rb') as source:
+        for chunk in iter(lambda:source.read(1024*1024),b''):
+            result.update(chunk)
+    return result.hexdigest()
+
 def canonical(value):
     return json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=True)
 

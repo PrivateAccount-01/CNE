@@ -1,6 +1,7 @@
 ﻿"""Resumable bounded parallel download of pinned data; verify ranges and full SHA-256."""
 import concurrent.futures,hashlib,json,time,urllib.request
 from pathlib import Path
+from field_analyst.dataset import file_sha256
 from field_analyst.sources import BASE
 SIZE=2184723441
 SHA='fba30c6a7965e49be94b47a62f8aff6cfb1c35c27f475f22092b56db41745e84'
@@ -43,10 +44,10 @@ def main():
             for i in range(count):
                 with (parts/f'{i:04d}.part').open('rb') as src:
                     while data:=src.read(1024*1024):out.write(data)
-        with temp.open('rb') as f:sha=hashlib.file_digest(f,'sha256').hexdigest()
+        sha=file_sha256(temp)
         if sha!=SHA:raise ValueError('Checksum mismatch; keep parts for inspection, do not use archive')
         temp.replace(target)
-    with target.open('rb') as f:sha=hashlib.file_digest(f,'sha256').hexdigest()
+    sha=file_sha256(target)
     report={'path':str(target.resolve()),'bytes':target.stat().st_size,'sha256':sha,'expected_sha256':SHA,'verified':sha==SHA,'elapsed_s':time.perf_counter()-begun,'source_url':BASE+'data.zip'}
     Path('field_analyst/reports/archive-download.json').write_text(json.dumps(report,indent=2));print(json.dumps(report,indent=2),flush=True)
     if sha!=SHA:raise ValueError('Archive checksum mismatch')

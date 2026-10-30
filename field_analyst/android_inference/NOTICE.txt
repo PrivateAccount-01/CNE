@@ -1,0 +1,23 @@
+CNE Field Analyst CPU is experimental. Scores are not diagnoses or proof of health.
+All ranked outputs are inspection-only; unknown-input reliability is unverified.
+
+CNE source: https://github.com/PrivateAccount-01/CNE (Apache-2.0).
+Actual CNE source and model hashes are in bundle.json. Native result reuse is disabled.
+This APK has no INTERNET permission and requires no paid service or accelerator.
+
+Model: locally trained MobileNetV3-small classifier, selected epoch 7.
+Only classifier MatMul weights are dynamic INT8; convolutions remain FP32.
+Initialization: https://download.pytorch.org/models/mobilenet_v3_small-047dcff4.pth
+Torchvision: https://github.com/pytorch/vision (BSD-3-Clause).
+PlantVillage: Mohanty, Hughes and Salathe (2016), dataset card CC BY-SA 3.0:
+https://huggingface.co/datasets/mohanty/PlantVillage/tree/9e97599868962bd0079b8db4b7f1efa9185fa1e7
+No training photographs are included. The dataset card is not an item-level rights certification.
+
+Runtime dependencies and their upstream licenses/notices:
+ONNX Runtime Android 1.20.0: https://github.com/microsoft/onnxruntime/tree/v1.20.0 (MIT).
+Chaquopy 16.1.0: https://github.com/chaquo/chaquopy/tree/16.1.0 (see bundled upstream notices).
+CPython 3.11: https://docs.python.org/3.11/license.html (PSF and third-party notices).
+NumPy 1.26.2: https://github.com/numpy/numpy/tree/v1.26.2 (BSD-3-Clause and bundled notices).
+Pillow 11.0.0: https://github.com/python-pillow/Pillow/tree/11.0.0 (HPND and bundled notices).
+Android platform APIs: Android Open Source Project.
+Build inspection must retain upstream dependency license files; this notice does not replace them.

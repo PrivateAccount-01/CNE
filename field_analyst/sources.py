@@ -1,6 +1,7 @@
 ﻿"""Pinned source inspection. Never execute downloaded dataset Python."""
 import argparse, collections, json, re, urllib.request, zipfile
 from pathlib import Path
+from field_analyst.dataset import file_sha256
 from field_analyst import LABELS
 from field_analyst.dataset import canonical, digest, immutable, write_manifest, group_split, safe_path
 PV_REVISION='9e97599868962bd0079b8db4b7f1efa9185fa1e7'
@@ -72,7 +73,7 @@ def prepare(root,out,grouping_evidence):
     fetch(BASE+'data.zip',archive,return_bytes=False)
     # Hash in chunks; archive is >2GB.
     import hashlib
-    h=hashlib.file_digest(archive.open('rb'),'sha256').hexdigest()
+    h=file_sha256(archive)
     if h!='fba30c6a7965e49be94b47a62f8aff6cfb1c35c27f475f22092b56db41745e84':
         raise ValueError('Source archive SHA-256 mismatch')
     with zipfile.ZipFile(archive) as z:

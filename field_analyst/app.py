@@ -1,5 +1,5 @@
 ﻿"""Offline native desktop app backed by real local model and actual CNE."""
-import argparse,io,json,threading,traceback
+import argparse,io,json,queue,threading,traceback
 from pathlib import Path
 import tkinter as tk
 from tkinter import ttk,filedialog,messagebox
@@ -13,6 +13,7 @@ class App:
     def __init__(self,root,model,manifest,db):
         self.root=root;root.title('CNE Field Analyst — local CPU');root.geometry('1050x780');root.minsize(760,600)
         self.store=Records(db);self.engine=FieldEngine(load_asset(model,manifest));self.observation=None;self.photo=None;self.plant_ids=[];self.observation_ids=[]
+        self.closed=False;self.completions=queue.Queue()
         frame=ttk.Frame(root,padding=18);frame.pack(fill='both',expand=True)
         ttk.Label(frame,text='CNE Field Analyst',font=('Segoe UI',24,'bold')).pack(anchor='w')
         ttk.Label(frame,text='Offline • CPU inference • experimental tomato image classification').pack(anchor='w')
@@ -35,6 +36,7 @@ class App:
         buttons=ttk.Frame(right);buttons.pack(fill='x',pady=8);ttk.Button(buttons,text='Import photo',command=self.import_photo).pack(side='left');self.analyze_button=ttk.Button(buttons,text='Analyze locally',command=self.analyze);self.analyze_button.pack(side='left',padx=8);ttk.Button(buttons,text='Save note',command=self.save_note).pack(side='left')
         self.result=tk.Text(frame,height=10,wrap='word',font=('Consolas',10));self.result.pack(fill='x');self.status=tk.StringVar(value='Real model loaded: '+Path(model).name+' • CPU only');ttk.Label(frame,textvariable=self.status).pack(anchor='w',pady=6)
         self.refresh_plants();root.protocol('WM_DELETE_WINDOW',self.close)
+        self.poll_callback=root.after(50,self.poll_completions)
     def refresh_plants(self):
         rows=list(self.store.db.execute('SELECT id,name FROM plants ORDER BY name,id'));self.plant_ids=[r[0] for r in rows];self.plants['values']=[r[1] for r in rows]
         if rows:self.plants.current(0);self.refresh_history()
@@ -65,9 +67,12 @@ class App:
     def save_note(self):
         if self.observation:self.store.update_note(self.observation,self.note.get('1.0','end-1c'));self.refresh_history()
     def render(self,r):
+        from field_analyst.uncertainty import assess_scores
+        # Historical saved records may predate the current abstention policy.
+        uncertainty=assess_scores([x['softmax_score'] for x in r['ranked']],r.get('threshold'))
         self.result.delete('1.0','end');lines=['Ranked model outputs (softmax scores, not diagnosis probabilities):']
         lines.extend(f"{x['label']}: {x['softmax_score']:.4f}" for x in r['ranked'])
-        lines.extend(['',r['uncertainty_status'],'Trace: '+json.dumps(r['trace'],sort_keys=True)])
+        lines.extend(['',uncertainty['uncertainty_status'],'Trace: '+json.dumps(r['trace'],sort_keys=True)])
         self.result.insert('1.0','\n'.join(lines))
     def analyze(self):
         if not self.observation:messagebox.showinfo('Photo','Import or select a photo first.');return
@@ -76,15 +81,25 @@ class App:
         if digest(row[0])!=row[2]:messagebox.showerror('Integrity','Stored photo hash mismatch');return
         self.analyze_button.configure(state='disabled');self.status.set('Running actual local model through CNE…')
         def work():
-            try:r=self.engine.analyze(row[0],row[1]);self.root.after(0,lambda:self.finished(oid,r,None))
-            except Exception as e:self.root.after(0,lambda error=str(e):self.finished(oid,None,error))
+            try:self.completions.put((oid,self.engine.analyze(row[0],row[1]),None))
+            except Exception as e:self.completions.put((oid,None,str(e)))
         threading.Thread(target=work,daemon=True).start()
+    def poll_completions(self):
+        if self.closed:return
+        while True:
+            try:completion=self.completions.get_nowait()
+            except queue.Empty:break
+            self.finished(*completion)
+        self.poll_callback=self.root.after(50,self.poll_completions)
     def finished(self,oid,result,error):
+        if self.closed:return
         self.analyze_button.configure(state='normal')
         if error:self.status.set('Analysis failed');messagebox.showerror('Analysis',error);return
         with self.store.db:self.store.db.execute('UPDATE observations SET result=? WHERE id=?',(json.dumps(result),oid))
-        self.render(result);self.status.set(f"Local CPU analysis complete • {result['trace']['elapsed_ns']/1e6:.1f} ms • model calls {result['trace']['inference_calls']}")
-    def close(self):self.store.close();self.root.destroy()
+        if self.observation==oid:self.render(result)
+        self.status.set(f"Local CPU analysis saved • {result['trace']['elapsed_ns']/1e6:.1f} ms • model calls {result['trace']['inference_calls']}")
+    def close(self):
+        self.closed=True;self.root.after_cancel(self.poll_callback);self.store.close();self.root.destroy()
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('--model');p.add_argument('--model-manifest');p.add_argument('--db',default='field_analyst/data/local-records.db');a=p.parse_args()

@@ -4,6 +4,7 @@ The full official test benchmark remains uncertified; subset evaluation is ident
 """
 import collections,hashlib,json,random,re,zipfile
 from pathlib import Path
+from field_analyst.dataset import file_sha256
 from field_analyst import LABELS
 from field_analyst.dataset import canonical,digest,immutable,write_manifest,group_split,image_rgb,dhash,audit
 from field_analyst.sources import inspect,PV_REVISION,METADATA_SHA256
@@ -30,7 +31,7 @@ def prepare(root='field_analyst/data',out='field_analyst/data/cohort-v1'):
     root=Path(root);out=Path(out);out.mkdir(parents=True,exist_ok=True)
     mapped,source=inspect(root);lookup={r['path']:r for r in mapped}
     archive=root/'data.zip'
-    with archive.open('rb') as f:sha=hashlib.file_digest(f,'sha256').hexdigest()
+    sha=file_sha256(archive)
     if sha!='fba30c6a7965e49be94b47a62f8aff6cfb1c35c27f475f22092b56db41745e84':raise ValueError('Archive hash mismatch')
     inventory=[];fingerprints={};quarantine={}
     with zipfile.ZipFile(archive) as z:
